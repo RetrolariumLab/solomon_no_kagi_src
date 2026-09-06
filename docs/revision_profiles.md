@@ -347,6 +347,14 @@ shared type; later clicks append positions to that same command. Each change is
 undoable, the new position remains selected, and the original format's maximum
 of 32 positions is enforced before the document reaches the ROM builder.
 
+The `ROM allocation` panel continuously runs the same encoders used by
+`Build ROM`. It shows the selected room's enemy/item stream sizes plus global usage,
+capacity, and remaining bytes for the enemy, item, and variable Demon Mirror
+set pools. Stock data fills each variable pool exactly, so adding a record in
+one room normally requires removing or compressing data elsewhere. An overflow
+is highlighted immediately and may remain in the undoable workspace, but Save,
+Build ROM, and validation continue to reject it before any image is written.
+
 Enemy and item controls pair every stored byte with a readable name while
 keeping the hexadecimal prefix editable. The enemy catalog covers the complete
 `$18-$83` configuration-table range and decodes family, direction, speed,

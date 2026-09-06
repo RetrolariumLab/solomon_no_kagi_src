@@ -203,6 +203,16 @@ class DirtyStateTests(unittest.TestCase):
             model.set_anchor(0, "key", index % 16, (index // 16) % 12)
         self.assertLessEqual(len(model.undo_stack), 100)
 
+    def test_allocation_text_distinguishes_free_space_and_overflow(self) -> None:
+        self.assertEqual(
+            level_studio.LevelStudio.allocation_fragment("Items", 10, 12),
+            "Items 10/12 (2 free)",
+        )
+        self.assertEqual(
+            level_studio.LevelStudio.allocation_fragment("Items", 14, 12),
+            "Items 14/12 (OVER by 2)",
+        )
+
 
 class TilePatternEditingTests(unittest.TestCase):
     def test_updates_shared_pattern_as_one_undoable_change(self) -> None:

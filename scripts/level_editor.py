@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from dataclasses import dataclass
 import json
 from pathlib import Path
 import sys
@@ -359,11 +360,30 @@ def pack_records(
     return cursor - data_start, data_end - data_start
 
 
-def build_level_image(
+@dataclass(frozen=True)
+class EncodedLevelDocument:
+    tile_patterns: bytes
+    mirror_schedules: tuple[bytes, ...]
+    mirror_enemy_sets: tuple[bytes, ...]
+    room_enemies: tuple[bytes, ...]
+    room_blocks: bytes
+    room_items: tuple[bytes, ...]
+    usage: dict[str, tuple[int, int]]
+
+    @property
+    def room_enemy_sizes(self) -> tuple[int, ...]:
+        return tuple(len(record) for record in self.room_enemies)
+
+    @property
+    def room_item_sizes(self) -> tuple[int, ...]:
+        return tuple(len(record) for record in self.room_items)
+
+
+def encode_level_document(
     document_value: object,
-    base_image: bytes,
     profile: dict[str, Any],
-) -> tuple[bytes, dict[str, tuple[int, int]]]:
+) -> EncodedLevelDocument:
+    """Encode every editable family and report its profile allocation."""
     document = validate_document_header(document_value)
     if document["source_profile"] != profile["id"]:
         raise LevelEditorError(
@@ -371,24 +391,89 @@ def build_level_image(
         )
     if document["source_rom_sha256"] != profile["rom"]["sha256"]:
         raise LevelEditorError("document source ROM identity differs from its profile")
-    parsed = parse_ines(base_image)
-    if digest(base_image, "sha256") != profile["rom"]["sha256"]:
-        raise LevelEditorError("base ROM does not match the document profile")
     layout = ROOM_DATA_LAYOUTS[profile["room_layout"]]
-    prg = bytearray(parsed["prg"])
+
     tile_patterns = document.get("tile_patterns")
     if not isinstance(tile_patterns, list):
         raise LevelEditorError("tile pattern table is missing")
     encoded_patterns = encode_room_tile_patterns(tile_patterns)
-    pattern_start = layout.room_tile_pattern_data
-    pattern_end = pattern_start + ROOM_TILE_PATTERN_COUNT * ROOM_TILE_PATTERN_SIZE
-    prg[pattern_start:pattern_end] = encoded_patterns
-
     schedules = require_indexed_records(
         document.get("mirror_schedules"),
         "mirror_schedules",
         MIRROR_SCHEDULE_COUNT,
     )
+    encoded_schedules = tuple(
+        encode_mirror_schedule(schedule) for schedule in schedules
+    )
+    enemy_sets = require_indexed_records(
+        document.get("mirror_enemy_sets"),
+        "mirror_enemy_sets",
+        MIRROR_ENEMY_SET_COUNT,
+    )
+    encoded_enemy_sets = tuple(
+        encode_mirror_enemy_set(enemy_set) for enemy_set in enemy_sets
+    )
+    rooms = require_indexed_records(document.get("rooms"), "rooms", ROOM_COUNT)
+    encoded_enemies = tuple(
+        encode_room_enemies(room.get("enemies")) for room in rooms
+    )
+    encoded_blocks = b"".join(
+        encode_room_blocks(room.get("blocks")) for room in rooms
+    )
+    expected_block_size = ROOM_COUNT * BLOCK_BYTES_PER_ROOM
+    if len(encoded_blocks) != expected_block_size:
+        raise LevelEditorError("room block payload size is invalid")
+    encoded_items = tuple(encode_room_items(room.get("items")) for room in rooms)
+
+    pointer_bytes = ROOM_COUNT * 2
+    schedule_end = layout.mirror_schedule_data + (
+        MIRROR_SCHEDULE_COUNT * MIRROR_SCHEDULE_SIZE
+    )
+    usage = {
+        "mirror_schedules": (
+            sum(map(len, encoded_schedules)),
+            schedule_end - layout.mirror_schedule_data,
+        ),
+        "mirror_enemy_sets": (
+            sum(map(len, encoded_enemy_sets)),
+            layout.enemy_pointer_table - schedule_end,
+        ),
+        "room_enemies": (
+            sum(map(len, encoded_enemies)),
+            layout.block_data - (layout.enemy_pointer_table + pointer_bytes),
+        ),
+        "room_blocks": (len(encoded_blocks), expected_block_size),
+        "room_items": (
+            sum(map(len, encoded_items)),
+            layout.item_data_end - (layout.item_pointer_table + pointer_bytes),
+        ),
+    }
+    return EncodedLevelDocument(
+        encoded_patterns,
+        encoded_schedules,
+        encoded_enemy_sets,
+        encoded_enemies,
+        encoded_blocks,
+        encoded_items,
+        usage,
+    )
+
+
+def build_level_image(
+    document_value: object,
+    base_image: bytes,
+    profile: dict[str, Any],
+) -> tuple[bytes, dict[str, tuple[int, int]]]:
+    encoded = encode_level_document(document_value, profile)
+    parsed = parse_ines(base_image)
+    if digest(base_image, "sha256") != profile["rom"]["sha256"]:
+        raise LevelEditorError("base ROM does not match the document profile")
+    layout = ROOM_DATA_LAYOUTS[profile["room_layout"]]
+    prg = bytearray(parsed["prg"])
+    pattern_start = layout.room_tile_pattern_data
+    pattern_end = pattern_start + ROOM_TILE_PATTERN_COUNT * ROOM_TILE_PATTERN_SIZE
+    prg[pattern_start:pattern_end] = encoded.tile_patterns
+
     schedule_end = layout.mirror_schedule_data + (
         MIRROR_SCHEDULE_COUNT * MIRROR_SCHEDULE_SIZE
     )
@@ -398,25 +483,19 @@ def build_level_image(
         layout.mirror_schedule_table,
         layout.mirror_schedule_data,
         schedule_end,
-        (encode_mirror_schedule(schedule) for schedule in schedules),
+        encoded.mirror_schedules,
         "Demon Mirror schedule",
     )
 
-    enemy_sets = require_indexed_records(
-        document.get("mirror_enemy_sets"),
-        "mirror_enemy_sets",
-        MIRROR_ENEMY_SET_COUNT,
-    )
     usage["mirror_enemy_sets"] = pack_records(
         prg,
         layout.mirror_enemy_set_table,
         schedule_end,
         layout.enemy_pointer_table,
-        (encode_mirror_enemy_set(enemy_set) for enemy_set in enemy_sets),
+        encoded.mirror_enemy_sets,
         "Demon Mirror enemy set",
     )
 
-    rooms = require_indexed_records(document.get("rooms"), "rooms", ROOM_COUNT)
     pointer_bytes = ROOM_COUNT * 2
     enemy_data_start = layout.enemy_pointer_table + pointer_bytes
     usage["room_enemies"] = pack_records(
@@ -424,18 +503,13 @@ def build_level_image(
         layout.enemy_pointer_table,
         enemy_data_start,
         layout.block_data,
-        (encode_room_enemies(room.get("enemies")) for room in rooms),
+        encoded.room_enemies,
         "room enemy stream",
     )
 
-    block_payload = b"".join(
-        encode_room_blocks(room.get("blocks")) for room in rooms
-    )
     expected_block_size = ROOM_COUNT * BLOCK_BYTES_PER_ROOM
-    if len(block_payload) != expected_block_size:
-        raise LevelEditorError("room block payload size is invalid")
-    prg[layout.block_data : layout.block_data + expected_block_size] = block_payload
-    usage["room_blocks"] = (len(block_payload), expected_block_size)
+    prg[layout.block_data : layout.block_data + expected_block_size] = encoded.room_blocks
+    usage["room_blocks"] = (len(encoded.room_blocks), expected_block_size)
 
     item_data_start = layout.item_pointer_table + pointer_bytes
     usage["room_items"] = pack_records(
@@ -443,9 +517,11 @@ def build_level_image(
         layout.item_pointer_table,
         item_data_start,
         layout.item_data_end,
-        (encode_room_items(room.get("items")) for room in rooms),
+        encoded.room_items,
         "room item stream",
     )
+    if usage != encoded.usage:
+        raise LevelEditorError("level allocation calculation disagrees with ROM packing")
     image = bytes(parsed["header"]) + bytes(prg) + bytes(parsed["chr"])
     return image, usage
 

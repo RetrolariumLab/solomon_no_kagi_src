@@ -25,6 +25,7 @@ from level_editor import (
     build_level_image,
     canonical_document,
     clean_position,
+    encode_level_document,
     export_document,
     load_document,
     save_document,
@@ -1493,6 +1494,7 @@ class MirrorDataDialog(tk.Toplevel):
                 self.enemy_loop_offset.get(),
             )
             self.load_enemy_set()
+            self.studio.refresh_allocation()
             self.studio.set_status("Mirror enemy set updated" if changed else "No change")
         except (tk.TclError, LevelEditorError) as exc:
             messagebox.showerror("Invalid Demon Mirror enemy set", str(exc), parent=self)
@@ -1535,6 +1537,7 @@ class LevelStudio(tk.Tk):
             value=type_choice(0x18, item_type_name(0x18))
         )
         self.status = tk.StringVar()
+        self.allocation_text = tk.StringVar()
         self.selected_record = tk.StringVar(value="No record selected")
         self.selected_type = tk.StringVar(value="")
         self.selected_x = tk.IntVar(value=0)
@@ -1656,6 +1659,16 @@ class LevelStudio(tk.Tk):
             command=self.apply_properties,
         ).grid(row=len(rows) + 1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
 
+        allocation = ttk.LabelFrame(side, text="ROM allocation", padding=7)
+        allocation.pack(fill="x", pady=(8, 0))
+        self.allocation_label = ttk.Label(
+            allocation,
+            textvariable=self.allocation_text,
+            justify="left",
+            wraplength=420,
+        )
+        self.allocation_label.pack(anchor="w")
+
         records = ttk.LabelFrame(side, text="Room records", padding=7)
         records.pack(fill="both", expand=True, pady=(8, 0))
         self.record_tree = ttk.Treeview(
@@ -1755,6 +1768,37 @@ class LevelStudio(tk.Tk):
         for name in self.property_vars:
             if name != "spawn_lifetime":
                 self.property_vars[name].set(metadata[name])
+
+    @staticmethod
+    def allocation_fragment(label: str, used: int, capacity: int) -> str:
+        remaining = capacity - used
+        suffix = f"{remaining} free" if remaining >= 0 else f"OVER by {-remaining}"
+        return f"{label} {used}/{capacity} ({suffix})"
+
+    def refresh_allocation(self) -> None:
+        try:
+            encoded = encode_level_document(self.model.document, self.profile)
+            room_index = self.room_index.get()
+            enemy_used, enemy_capacity = encoded.usage["room_enemies"]
+            item_used, item_capacity = encoded.usage["room_items"]
+            mirror_used, mirror_capacity = encoded.usage["mirror_enemy_sets"]
+            self.allocation_text.set(
+                f"Room {room_index + 1:02d}: "
+                f"enemy {encoded.room_enemy_sizes[room_index]} B, "
+                f"items {encoded.room_item_sizes[room_index]} B\n"
+                + self.allocation_fragment("Enemy pool", enemy_used, enemy_capacity)
+                + "\n"
+                + self.allocation_fragment("Item pool", item_used, item_capacity)
+                + "\n"
+                + self.allocation_fragment("Mirror sets", mirror_used, mirror_capacity)
+            )
+            overflow = any(used > capacity for used, capacity in encoded.usage.values())
+            self.allocation_label.configure(
+                foreground="#b00020" if overflow else ""
+            )
+        except (LevelEditorError, RoomDataError) as exc:
+            self.allocation_text.set(f"Allocation unavailable: {exc}")
+            self.allocation_label.configure(foreground="#b00020")
 
     def apply_properties(self) -> None:
         try:
@@ -2159,6 +2203,7 @@ class LevelStudio(tk.Tk):
             )
             self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
         self.refresh_record_table()
+        self.refresh_allocation()
         self.set_status(
             f"Room {self.room_index.get() + 1:02d}: "
             f"CHR {preview.chr_bank}, "

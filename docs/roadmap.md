@@ -375,7 +375,9 @@ passes on the reviewed `main` commit.
   flattening their source representation. Direct item records can be promoted
   to the compact repeated-item stream form and extended visually from the room
   canvas, with shared-type, 32-position, undo, and round-trip guarantees. Its
-  shared-data dialog edits all 16 Demon Mirror schedules and all 17 cyclic
+  live allocation panel uses the build encoders to expose per-room stream sizes
+  and global enemy, item, and Demon Mirror pool pressure before Save or Build.
+  The shared-data dialog edits all 16 Demon Mirror schedules and all 17 cyclic
   enemy sets with room-reference, loop-boundary, enemy-type, and original
   allocation checks. Complete semantic enemy and item catalogs expose the raw
   byte together with family, direction, speed, visibility, and block-state

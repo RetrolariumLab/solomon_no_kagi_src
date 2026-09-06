@@ -702,9 +702,13 @@ class LevelPackingTests(unittest.TestCase):
 
     def test_build_and_decode_document(self) -> None:
         document, image, profile = empty_level_fixture()
+        encoded = level_editor.encode_level_document(document, profile)
         rebuilt, usage = level_editor.build_level_image(document, image, profile)
         self.assertEqual(len(rebuilt), len(image))
         self.assertEqual(usage["room_blocks"], (2544, 2544))
+        self.assertEqual(usage, encoded.usage)
+        self.assertEqual(len(encoded.room_enemy_sizes), 53)
+        self.assertEqual(len(encoded.room_item_sizes), 53)
         level_editor.validate_rebuilt_document(document, rebuilt, profile)
 
     def test_modified_room_map_pattern_survives_build_and_decode(self) -> None:
@@ -800,6 +804,11 @@ class LevelPackingTests(unittest.TestCase):
             {"type": 0x18, "position": {"x": index % 16, "y": index % 12}}
             for index in range(400)
         ]
+        encoded = level_editor.encode_level_document(document, profile)
+        self.assertGreater(
+            encoded.usage["room_enemies"][0],
+            encoded.usage["room_enemies"][1],
+        )
         with self.assertRaisesRegex(level_editor.LevelEditorError, "budget"):
             level_editor.build_level_image(document, image, profile)
 
