@@ -11,6 +11,7 @@ REVISION_TOOL := scripts/revision_profiles.py
 LEVEL_EDITOR := scripts/level_editor.py
 LEVEL_STUDIO := scripts/level_studio.py
 AUDIO_EDITOR := scripts/audio_editor.py
+SOUND_STUDIO := scripts/sound_studio.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -169,7 +170,7 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
 	smoke-level-playtest smoke-level-playtests \
 	export-audio validate-audio build-audio roundtrip-audio \
-	roundtrip-audio-profiles audio-summary \
+	roundtrip-audio-profiles audio-summary sound-studio check-sound-studio \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions
 
@@ -340,6 +341,17 @@ roundtrip-audio-profiles:
 audio-summary:
 	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
 		--input "$(AUDIO_DOCUMENT)"
+
+sound-studio:
+	$(PYTHON) "$(SOUND_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile "$(PROFILE)" --document "$(AUDIO_DOCUMENT)" \
+		--output "$(AUDIO_ROM)"
+
+check-sound-studio:
+	$(PYTHON) "$(SOUND_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile usa --check
+	$(PYTHON) "$(SOUND_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile europe --check
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \

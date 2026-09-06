@@ -394,7 +394,10 @@ passes on the reviewed `main` commit.
   physical stream command. Stable symbolic stream entries allow the encoder to
   reflow absolute jump/call/effect pointers, while exact allocation and
   decode-after-build checks protect adjacent code and vectors. Untouched audio
-  documents rebuild both complete regional ROMs byte for byte;
+  documents rebuild both complete regional ROMs byte for byte. Sound Studio
+  edits the complete physical stream graph, effect routing, envelope steps,
+  pitch periods, and regional durations over this single codec, with bounded
+  undo and headless checks for both profiles;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

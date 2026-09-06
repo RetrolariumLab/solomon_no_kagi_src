@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import audio_editor
+import sound_studio
 from audio_data import (
     AUDIO_STREAM_DATA,
     EUROPE_LAYOUT,
@@ -220,6 +221,74 @@ class AudioEditorTests(unittest.TestCase):
         boundary["effects"][1]["channels"][0]["selector"] &= 0x7F
         with self.assertRaisesRegex(audio_editor.AudioEditorError, "first channel"):
             audio_editor.encode_document(boundary, profile)
+
+
+class SoundStudioTests(unittest.TestCase):
+    def model(self, profile_id: str = "usa") -> sound_studio.SoundStudioDocument:
+        profile, reference = audio_case(profile_id)
+        image = reference.read_bytes()
+        document = audio_editor.export_document(parse_ines(image)["prg"], profile)
+        return sound_studio.SoundStudioDocument(
+            document,
+            profile,
+            image,
+            ROOT / "content/workspace" / profile_id / "audio.json",
+            ROOT / "build/content" / profile_id / "audio-test.nes",
+        )
+
+    def test_stream_projection_covers_all_symbolic_entries(self) -> None:
+        model = self.model()
+        spans = sound_studio.stream_spans(model.document["commands"])
+        self.assertEqual(list(spans), [audio_editor.stream_id(i) for i in range(114)])
+        self.assertTrue(all(start < end for start, end in spans.values()))
+
+    def test_command_edit_is_validated_dirty_and_undoable(self) -> None:
+        model = self.model()
+        index = next(
+            i
+            for i, command in enumerate(model.document["commands"])
+            if command["kind"] == "note" and "entry" not in command
+        )
+        original = model.document["commands"][index]["value"]
+        replacement = 1 if original != 1 else 2
+        self.assertTrue(model.edit_command(index, "note", f"${replacement:02X}"))
+        self.assertTrue(model.dirty)
+        self.assertNotEqual(model.rebuilt_image(), model.base_image)
+        self.assertTrue(model.undo())
+        self.assertFalse(model.dirty)
+        self.assertEqual(model.rebuilt_image(), model.base_image)
+
+    def test_rejects_command_kind_with_different_encoded_size(self) -> None:
+        model = self.model()
+        index = next(
+            i
+            for i, command in enumerate(model.document["commands"])
+            if command["kind"] == "note"
+        )
+        with self.assertRaisesRegex(audio_editor.AudioEditorError, "byte size"):
+            model.edit_command(index, "call", "stream_000")
+
+    def test_effect_envelope_and_timing_edits_use_one_undo_stack(self) -> None:
+        model = self.model("europe")
+        channel = model.document["effects"][0]["channels"][0]
+        virtual = (int(channel["selector"]) + 1) & 7
+        self.assertTrue(model.edit_effect_channel(0, 0, virtual, channel["stream"]))
+        self.assertEqual(
+            model.document["effects"][0]["channels"][0]["selector"],
+            virtual | 0x80,
+        )
+        step = model.document["envelopes"][0]["steps"][0]
+        self.assertTrue(
+            model.edit_envelope_step(0, 0, step["duration"], step["volume"] ^ 1)
+        )
+        self.assertTrue(model.edit_timing("durations", 0, 2))
+        self.assertEqual(len(model.undo_stack), 3)
+        model.validate()
+
+    def test_integer_parser_accepts_editor_notation(self) -> None:
+        self.assertEqual(sound_studio.parse_integer("$2A", "value"), 0x2A)
+        self.assertEqual(sound_studio.parse_integer("0x2a", "value"), 0x2A)
+        self.assertEqual(sound_studio.parse_integer("42", "value"), 42)
 
 
 if __name__ == "__main__":

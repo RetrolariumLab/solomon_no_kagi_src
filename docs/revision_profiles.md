@@ -454,7 +454,7 @@ both USA and Europe in addition to rendering every room background.
 
 ## Audio authoring document
 
-The first Sound Studio layer is the deterministic document codec in
+Sound Studio is backed by the deterministic document codec in
 `scripts/audio_editor.py`. Export either complete regional audio bank to an
 ignored workspace with:
 
@@ -508,8 +508,41 @@ make roundtrip-audio-profiles
 The USA and Europe documents differ where the PAL engine actually differs;
 neither inherits offsets, duration counts, stream bounds, or trailing bytes
 from the other. Both complete 65,552-byte images currently round-trip byte for
-byte. This command-line codec is the binary foundation for the visual Sound
-Studio; the GUI must use it rather than acquire a second serializer.
+byte.
+
+Open the visual editor with:
+
+```console
+make sound-studio PROFILE=usa
+make sound-studio PROFILE=europe
+```
+
+The Streams tab selects any of the 114 physical entry spans and shows each
+decoded command, symbolic entry/target, operand, and concise engine meaning.
+It permits in-place conversion only among commands with the same encoded size;
+this keeps an isolated edit within the fixed stream budget while the shared
+codec still performs a complete validation. Note, duration, control, sequence,
+loop, sweep, volume, call, jump, return, and stop records are all editable.
+
+The Effects tab exposes every channel of all 26 descriptors and keeps the
+first-record boundary bit derived rather than asking the author to maintain
+it manually. The Envelopes tab edits each duration/volume pair and plots the
+four-bit volume contour. The Timing tab edits all period words and regional
+duration bytes. All mutations share a bounded undo history; closing a dirty
+workspace asks before discarding it.
+
+`Save` first rebuilds and decodes the document before replacing the ignored
+JSON. `Build ROM` writes the same profile-derived content image as
+`make build-audio`; there is no GUI-only serializer. Exercise both regional
+models without opening Tk with:
+
+```console
+make check-sound-studio
+```
+
+This validates all 114 non-empty entry projections after a complete codec
+round trip. Auditory preview and higher-level composition naming remain later
+Sound Studio depth; they must build on this same physical command graph.
 
 ## Remaining Source 2.0 work
 
@@ -520,8 +553,8 @@ patching. The remaining release work is now evidence and authoring depth:
 
 1. add Europe-specific debugger symbols and deterministic PAL runtime traces;
 2. make the remaining structured-data audits profile-aware where PAL differs;
-3. add the visual Sound Studio over the audio document, then author the other
-   significant structured formats;
+3. add auditory composition/effect preview to Sound Studio, then author the
+   other significant structured formats;
 4. create the Source Reconstruction 2.0 manifest and aggregate release gate;
 5. keep Japanese reconstruction as a later, explicitly scoped profile.
 
