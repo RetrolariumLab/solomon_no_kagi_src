@@ -366,8 +366,10 @@ passes on the reviewed `main` commit.
   `docs/revision_profiles.md` are the first content-tooling deliverable. The
   document importer, validator, ROM builder, capacity checks, and byte-exact
   untouched round trips are complete for USA and Europe. The visual studio now
-  edits the complete logical room grid and profile-sensitive properties, with
-  save/build/play actions backed by the same validated codec;
+  edits the complete logical room grid and profile-sensitive properties, draws
+  native backgrounds from each room's original CHR bank, palette, RoomMap
+  records, and constellation pattern, and keeps save/build/play actions backed
+  by the same validated codec;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

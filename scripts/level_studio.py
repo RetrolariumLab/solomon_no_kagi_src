@@ -27,7 +27,8 @@ from level_editor import (
     save_document,
     validate_rebuilt_document,
 )
-from project import ProjectError, write_if_changed
+from level_preview import LevelPreviewError, LevelPreviewRenderer, METATILE_SIZE
+from project import ProjectError, parse_ines, write_if_changed
 from revision_profiles import (
     ROOT,
     get_profile,
@@ -38,7 +39,8 @@ from revision_profiles import (
 from room_data import RoomDataError
 
 
-CELL = 40
+PIXEL_SCALE = 2
+CELL = METATILE_SIZE * PIXEL_SCALE
 CANVAS_WIDTH = ROOM_WIDTH * CELL
 CANVAS_HEIGHT = ROOM_HEIGHT * CELL
 EDIT_MODES = (
@@ -315,6 +317,7 @@ class LevelStudio(tk.Tk):
         document_path: Path,
         output_path: Path,
         fceux: Path,
+        chr_data: bytes,
     ) -> None:
         super().__init__()
         self.model = model
@@ -323,6 +326,8 @@ class LevelStudio(tk.Tk):
         self.document_path = document_path
         self.output_path = output_path
         self.fceux = fceux
+        self.preview_renderer = LevelPreviewRenderer(model.document, chr_data)
+        self.preview_image: tk.PhotoImage | None = None
         self.room_index = tk.IntVar(value=0)
         self.room_choice = tk.StringVar(value="Room 01")
         self.mode = tk.StringVar(value="select")
@@ -551,16 +556,6 @@ class LevelStudio(tk.Tk):
         suffix = " *" if self.model.dirty else ""
         self.status.set(text + suffix)
 
-    def draw_cell(self, x: int, y: int, color: str) -> None:
-        self.canvas.create_rectangle(
-            x * CELL + 1,
-            y * CELL + 1,
-            (x + 1) * CELL - 1,
-            (y + 1) * CELL - 1,
-            fill=color,
-            outline="",
-        )
-
     def draw_label(self, position: dict[str, int], text: str, color: str) -> None:
         x, y = position["x"], position["y"]
         if y < 0 or y >= ROOM_HEIGHT:
@@ -576,12 +571,15 @@ class LevelStudio(tk.Tk):
     def redraw(self) -> None:
         self.canvas.delete("all")
         room = self.current_room()
-        for position in room["blocks"]["brown"]:
-            self.draw_cell(position["x"], position["y"], "#8a4f2a")
-        for position in room["blocks"]["white"]:
-            self.draw_cell(position["x"], position["y"], "#d7d7cf")
+        self.preview_renderer.document = self.model.document
+        preview = self.preview_renderer.render(self.room_index.get())
+        base = tk.PhotoImage(data=preview.ppm(), format="PPM")
+        self.preview_image = base.zoom(PIXEL_SCALE, PIXEL_SCALE)
+        self.canvas.create_image(0, 0, image=self.preview_image, anchor="nw")
         for x in range(ROOM_WIDTH + 1):
-            self.canvas.create_line(x * CELL, 0, x * CELL, CANVAS_HEIGHT, fill="#405060")
+            self.canvas.create_line(
+                x * CELL, 0, x * CELL, CANVAS_HEIGHT, fill="#405060"
+            )
         for y in range(ROOM_HEIGHT + 1):
             self.canvas.create_line(0, y * CELL, CANVAS_WIDTH, y * CELL, fill="#405060")
         metadata = room["items"]["metadata"]
@@ -624,6 +622,7 @@ class LevelStudio(tk.Tk):
             self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
         self.set_status(
             f"Room {self.room_index.get() + 1:02d}: "
+            f"CHR {preview.chr_bank}, "
             f"{len(room['enemies']['placements'])} enemies, "
             f"{len(self.model.item_placements(self.room_index.get()))} items"
         )
@@ -734,10 +733,13 @@ def main() -> int:
         base_image = reference.read_bytes()
         rebuilt, usage = build_level_image(document, base_image, profile)
         validate_rebuilt_document(document, rebuilt, profile)
+        preview_renderer = LevelPreviewRenderer(document, parse_ines(base_image)["chr"])
         if args.check:
+            previews = [preview_renderer.render(index) for index in range(ROOM_COUNT)]
             print(
                 f"[OK] Level Studio {profile['id']}: {ROOM_COUNT} rooms, "
-                f"{sum(used for used, _ in usage.values())} encoded bytes"
+                f"{sum(used for used, _ in usage.values())} encoded bytes, "
+                f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes"
             )
             return 0
         studio = LevelStudio(
@@ -747,6 +749,7 @@ def main() -> int:
             document_path,
             output_path,
             args.fceux,
+            parse_ines(base_image)["chr"],
         )
         studio.mainloop()
     except (
@@ -757,6 +760,7 @@ def main() -> int:
         ProjectError,
         RoomDataError,
         LevelEditorError,
+        LevelPreviewError,
     ) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1

@@ -220,7 +220,7 @@ make build-levels PROFILE=usa # build a ROM with the workspace's edited levels
 make roundtrip-level-profiles # prove untouched USA and Europe editor identity
 make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
 make level-studio PROFILE=usa # open the visual 16x12 room editor
-make check-level-studio # headless GUI-model and codec smoke check for USA/Europe
+make check-level-studio # render all native room previews and check both codecs
 make audio-profile-audits # decode and byte-round-trip USA and PAL audio data
 make build-revision PROFILE=europe # assemble the complete PAL source profile
 make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG

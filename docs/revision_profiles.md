@@ -314,11 +314,20 @@ make level-studio PROFILE=europe
 ```
 
 The studio creates the ignored workspace on first launch, then presents each
-room as its native 16 by 12 logical grid. Its toolbar can place brown or white
-blocks, erase a complete cell, move the player start, key, door, and either
-Demon Mirror, and add typed enemies or items. Existing direct, repeated, and
-constellation item records are all visible; erasing one repeated placement
-shrinks the command and removes it when its last position disappears.
+room as its native 16 by 12 logical grid. The background is rendered from the
+selected room's original 8 KiB CHR bank, the `$1000` background pattern table,
+the source-owned four-tile RoomMap records, and the palette produced by the
+room loader. Brown and white blocks, doors, keys, Demon Mirrors, exposed and
+embedded items, and the six-cell constellation layouts therefore use their
+game art rather than editor-only colored boxes. Grid labels and outlines stay
+above that image so overlapping enemy, item, and anchor records remain easy to
+select.
+
+The toolbar can place brown or white blocks, erase a complete cell, move the
+player start, key, door, and either Demon Mirror, and add typed enemies or
+items. Existing direct, repeated, and constellation item records are all
+visible; erasing one repeated placement shrinks the command and removes it
+when its last position disappears.
 
 The room-property panel exposes enemy spawn lifetime, key state, timer decrease
 rate, both mirror schedule selectors, and both mirror enemy-set selectors.
@@ -334,9 +343,12 @@ grid and property mutations, and closing a dirty workspace asks before
 discarding changes.
 
 The UI delegates every binary operation to `scripts/level_editor.py`; it has no
-private serializer or ROM patch path. This keeps GUI edits subject to the same
-pointer, capacity, coordinate, and decode-after-build checks used by Make and
-the unit suite. Use the headless smoke target when a display is unavailable:
+private serializer or ROM patch path. `scripts/level_preview.py` is likewise a
+read-only projection of that authored document and the verified private CHR,
+not a second level decoder. This keeps GUI edits subject to the same pointer,
+capacity, coordinate, and decode-after-build checks used by Make and the unit
+suite. Use the headless smoke target to render all 53 rooms for both profiles
+when a display is unavailable:
 
 ```console
 make check-level-studio

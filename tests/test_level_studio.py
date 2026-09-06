@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import level_studio
+import level_preview
 
 
 def room_metadata() -> dict[str, object]:
@@ -304,6 +305,141 @@ class StudioLoadingTests(unittest.TestCase):
     def test_hex_parser_rejects_invalid_value(self) -> None:
         with self.assertRaisesRegex(level_studio.LevelEditorError, "invalid type"):
             level_studio.LevelStudio.parse_hex("enemy", "type")
+
+
+def preview_patterns() -> list[dict[str, int]]:
+    return [
+        {
+            "index": index,
+            "palette": 0,
+            "top_left": index,
+            "top_right": index,
+            "bottom_left": index,
+            "bottom_right": index,
+        }
+        for index in range(58)
+    ]
+
+
+def chr_with_uniform_tiles(values: dict[tuple[int, int], int]) -> bytes:
+    chr_data = bytearray(level_preview.CHR_BANK_SIZE * 4)
+    for (bank, tile), pixel in values.items():
+        offset = (
+            bank * level_preview.CHR_BANK_SIZE
+            + (level_preview.BACKGROUND_PATTERN_BASE + tile)
+            * level_preview.CHR_TILE_SIZE
+        )
+        low = 0xFF if pixel & 1 else 0
+        high = 0xFF if pixel & 2 else 0
+        chr_data[offset : offset + 8] = bytes((low,)) * 8
+        chr_data[offset + 8 : offset + 16] = bytes((high,)) * 8
+    return bytes(chr_data)
+
+
+def preview_room() -> dict[str, object]:
+    metadata = room_metadata()
+    for field in ("player_start", "key", "door", "mirror_1", "mirror_2"):
+        metadata[field] = {"x": 0, "y": -1}
+    return {
+        "number": 1,
+        "blocks": {
+            "brown": [{"x": 0, "y": 0}],
+            "white": [{"x": 1, "y": 0}],
+        },
+        "enemies": {"spawn_lifetime": 0, "placements": []},
+        "items": {
+            "metadata": metadata,
+            "commands": [
+                {"kind": "item", "type": 8, "position": {"x": 2, "y": 0}},
+                {"kind": "end", "opcode": 0xE4},
+            ],
+        },
+    }
+
+
+class NativePreviewTests(unittest.TestCase):
+    def test_decodes_both_chr_bitplanes(self) -> None:
+        chr_data = chr_with_uniform_tiles({(1, 4): 3})
+        tiles = level_preview.decode_chr_tiles(chr_data)
+        tile_index = (
+            level_preview.CHR_TILES_PER_BANK
+            + level_preview.BACKGROUND_PATTERN_BASE
+            + 4
+        )
+        self.assertEqual(tiles[tile_index][0], (3,) * 8)
+
+    def test_derives_chr_bank_from_the_terminator(self) -> None:
+        self.assertEqual(level_preview.room_chr_bank(preview_room()), 1)
+        room = preview_room()
+        room["items"]["commands"][-1] = {
+            "kind": "constellation",
+            "opcode": 0xF8,
+            "position": {"x": 1, "y": 1},
+        }
+        self.assertEqual(level_preview.room_chr_bank(room), 2)
+
+    def test_room_map_matches_loader_precedence(self) -> None:
+        room = preview_room()
+        room["blocks"]["brown"].append({"x": 1, "y": 0})
+        values = level_preview.room_map_values(room)
+        self.assertEqual(values[0][0], level_preview.ROOM_MAP_BROWN_BLOCK)
+        self.assertEqual(values[0][1], level_preview.ROOM_MAP_WHITE_BLOCK)
+        self.assertEqual(values[0][2], 8)
+
+    def test_hidden_key_uses_the_decorated_map_class(self) -> None:
+        room = preview_room()
+        metadata = room["items"]["metadata"]
+        metadata["key"] = {"x": 3, "y": 4}
+        metadata["key_status"] = "hidden"
+        values = level_preview.room_map_values(room)
+        self.assertEqual(values[4][3], 0x46)
+        self.assertEqual(
+            level_preview.classify_pattern(values[4][3]),
+            level_preview.ROOM_MAP_EMPTY,
+        )
+
+    def test_special_room_palette_branch_is_reproduced(self) -> None:
+        palette = level_preview.room_palette(48)
+        self.assertEqual(tuple(palette[index] for index in (1, 5, 9, 13)), (0,) * 4)
+        self.assertEqual(palette[10], 0x16)
+
+    def test_constellation_selects_its_six_native_records(self) -> None:
+        command = {
+            "kind": "constellation",
+            "opcode": 0xF5,
+            "position": {"x": 4, "y": 3},
+        }
+        first = level_preview.constellation_pattern(command, 4, 3)
+        last = level_preview.constellation_pattern(command, 6, 4)
+        self.assertIsNotNone(first)
+        self.assertIsNotNone(last)
+        self.assertEqual(first.palette, level_preview.CONSTELLATION_PALETTES[5])
+        self.assertEqual(first.tiles[0] & 3, 0)
+        self.assertIsNone(level_preview.constellation_pattern(command, 7, 4))
+
+    def test_renders_native_patterns_from_the_selected_chr_bank(self) -> None:
+        document = {"tile_patterns": preview_patterns(), "rooms": [preview_room()]}
+        chr_data = chr_with_uniform_tiles(
+            {(1, 0): 1, (1, 3): 2, (1, 8): 3, (1, 16): 0}
+        )
+        preview = level_preview.LevelPreviewRenderer(document, chr_data).render(0)
+        self.assertEqual((preview.width, preview.height), (256, 192))
+        self.assertEqual(preview.chr_bank, 1)
+
+        def pixel(x: int, y: int) -> tuple[int, int, int]:
+            offset = (y * preview.width + x) * 3
+            return tuple(preview.rgb[offset : offset + 3])
+
+        palette = level_preview.room_palette(0)
+        self.assertEqual(pixel(0, 0), level_preview.NES_RGB[palette[1]])
+        self.assertEqual(pixel(16, 0), level_preview.NES_RGB[palette[2]])
+        self.assertEqual(pixel(32, 0), level_preview.NES_RGB[palette[3]])
+
+    def test_rejects_missing_chr_terminator(self) -> None:
+        room = preview_room()
+        room["items"]["commands"] = []
+        with self.assertRaisesRegex(level_preview.LevelPreviewError, "terminator"):
+            level_preview.room_chr_bank(room)
 
 
 if __name__ == "__main__":
