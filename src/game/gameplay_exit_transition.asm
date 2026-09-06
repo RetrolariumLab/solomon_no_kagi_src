@@ -273,14 +273,36 @@ CopyPostGameResultTemplate:
     STA PpuUpdateBuffer + PostGameResultOnesOffset
     JSR PublishPpuUpdateBuffer
 
+.if SolomonRevision = SolomonRevisionEurope
+    LDA CurrentRoomIndex
+    STA RegionalNewGameRoomIndex
+    LSR GameStateFlags
+    ASL GameStateFlags
+.endif
+
 WaitForPostGameDecision:
     LDA Joypad1Cached
+.if SolomonRevision = SolomonRevisionEurope
+    AND #JOY_BUTTON_START
+    BNE :++
+.else
     CMP #PostGameInputCode
     BEQ ResetForNewGameAfterResult
+.endif
     JSR SwitchThreads
     LDA FireballLifeCounter1Hi
     CMP #PostGameMinimumWaitHigh
     BCC WaitForPostGameDecision
+
+.if SolomonRevision = SolomonRevisionEurope
+    LDX #RegionalNewGameFlagCount - 1
+
+    :
+    LDA GameStateFlags,X
+    STA RegionalNewGameFlags,X
+    DEX
+    BPL :-
+.endif
 
 StartPostGameThread:
     LSR GameStateFlags
@@ -289,6 +311,16 @@ StartPostGameThread:
 SelectPostGameThread:
     LDA #PostGameThreadCode
     BNE StartGameplayExitThread
+
+.if SolomonRevision = SolomonRevisionEurope
+    :
+    LDA Joypad1Cached
+    AND #JOY_BUTTON_START
+    BNE :-
+    LDA #$01
+    ORA GameStateFlags
+    STA GameStateFlags
+.endif
 
 ResetForNewGameAfterResult:
     LDA #RoomStateNewGameMask
@@ -306,6 +338,7 @@ ClearScoreForNewGame:
     LDA #GameplayFlagsNewGameMask
     AND GameplayFlags
     STA GameplayFlags
+.if SolomonRevision <> SolomonRevisionEurope
     LDX #LastRegularRoomIndex
     CPX CurrentRoomIndex
     BCS SelectNewGameLives
@@ -313,6 +346,7 @@ ClearScoreForNewGame:
     BIT RoomStateFlags
     BNE StartPostGameThread
     STX CurrentRoomIndex
+.endif
 
 SelectNewGameLives:
     LDX #NewGameLives
@@ -340,4 +374,4 @@ StartGameplayExitThread:
     LDA #GameplayExitWorkerContext
     JSR StopThread
 
-.assert * - RunTimeOverTransition = $1F7, error, "unexpected gameplay-exit flow size"
+.assert * - RunTimeOverTransition = $1F7 + (SolomonRevision = SolomonRevisionEurope) * $10, error, "unexpected gameplay-exit flow size"

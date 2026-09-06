@@ -342,6 +342,29 @@ class ReferenceImageTests(unittest.TestCase):
             with self.assertRaisesRegex(project.ProjectError, "source range differs"):
                 revision_profiles.verify_source_ranges(built, reference, profile)
 
+    def test_verifies_complete_built_revision(self) -> None:
+        document, images = sample_document()
+        profile = revision_profiles.get_profile(document, "usa")
+        with tempfile.TemporaryDirectory() as directory:
+            reference = Path(directory) / "reference.nes"
+            built = Path(directory) / "built.nes"
+            reference.write_bytes(images["usa"])
+            built.write_bytes(images["usa"])
+            revision_profiles.verify_built_revision(built, reference, profile)
+
+    def test_rejects_changed_complete_built_revision(self) -> None:
+        document, images = sample_document()
+        profile = revision_profiles.get_profile(document, "usa")
+        changed = bytearray(images["usa"])
+        changed[16 + 120] ^= 0xFF
+        with tempfile.TemporaryDirectory() as directory:
+            reference = Path(directory) / "reference.nes"
+            built = Path(directory) / "built.nes"
+            reference.write_bytes(images["usa"])
+            built.write_bytes(changed)
+            with self.assertRaisesRegex(project.ProjectError, "built ROM sha1 mismatch"):
+                revision_profiles.verify_built_revision(built, reference, profile)
+
 
 class SplitAssetTests(unittest.TestCase):
     def test_writes_only_manifest_owned_slice(self) -> None:

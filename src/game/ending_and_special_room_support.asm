@@ -293,6 +293,9 @@ Room30SpecialBlockPlane:
 
 ; Bisqwit's map identifies this unreferenced tail as the filler before $C100
 FillerBeforeC100:
+.if SolomonRevision = SolomonRevisionEurope
+    .res $6E, $FF
+.else
     .byte $FF
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $FF, $00, $FF
@@ -309,5 +312,6 @@ FillerBeforeC100:
     .byte $02, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
     .byte $BF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $FF, $00, $FF
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00
+.endif
 
-.assert * - EndingPaletteValues = $36C, error, "unexpected ending support size"
+.assert * - EndingPaletteValues = $36C - (SolomonRevision = SolomonRevisionEurope) * $80, error, "unexpected ending support size"

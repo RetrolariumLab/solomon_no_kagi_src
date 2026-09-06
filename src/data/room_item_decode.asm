@@ -16,7 +16,11 @@ ConstellationTileLowBits:
     .byte $03, $03, $03, $03, $02, $03, $00, $02, $00, $01, $00, $01
 
 TimerDecrementSpeedTable:
+.if SolomonRevision = SolomonRevisionEurope
+    .byte $36, $29, $1e
+.else
     .byte $2d, $22, $19
+.endif
 
 SpecialRoomItemPositions:
     .byte $22, $69, $b2, $2c, $86, $bc, $24, $88

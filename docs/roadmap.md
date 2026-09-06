@@ -351,16 +351,17 @@ passes on the reviewed `main` commit.
 - all six decoded room families round-trip in both required profiles. Shared
   geometry, items, tile patterns, and mirror enemy sets are fingerprinted;
   European mirror schedules and enemy spawn lifetimes are explicitly distinct;
-- the European ca65 profile now selects the PAL layout, level timing, object
-  motion, and regional filler data. A source-range gate proves the continuous
-  8,192-byte level/object/room block against the European reference while the
-  profile remains honestly marked in progress;
+- the European ca65 profile now selects the PAL bootstrap, RAM layout,
+  gameplay flow, level timing, object motion, relocated calls, and regional
+  filler data. Its full 32 KiB PRG and 65,552-byte iNES image reproduce the
+  European reference byte for byte;
 - the complete relocated PAL audio bank is source-owned: shifted channel-state
   RAM fields, duration and extension tables, shared envelopes, one regional
   descriptor selector set, 114 streams, padding, and vectors add another
   4,224 verified European bytes without checked-in ROM fragments;
-- region-specific source builds and identity gates for Europe remain the next
-  reconstruction step, without importing assumptions between profiles;
+- `make verify-revision` checks one complete source-built profile and
+  `make verify-revisions` proves both required USA and Europe images without
+  importing assumptions between profiles;
 - the level authoring document and editor described in
   `docs/revision_profiles.md` are the first content-tooling deliverable. The
   document importer, validator, ROM builder, capacity checks, and byte-exact

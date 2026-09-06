@@ -405,6 +405,33 @@ def verify_source_ranges(
     print(f"[OK] {profile['id']}: {checked} verified source-range bytes")
 
 
+def verify_built_revision(
+    built_path: Path,
+    reference_path: Path,
+    profile: dict[str, Any],
+) -> None:
+    verify_reference(reference_path, profile)
+    if not built_path.is_file():
+        raise ProjectError(f"source-built revision image not found: {built_path}")
+    try:
+        built_image = built_path.read_bytes()
+        reference_image = reference_path.read_bytes()
+    except OSError as exc:
+        raise ProjectError(f"cannot read revision image: {exc}") from exc
+    parsed_built = parse_ines(built_image)
+    verify_payload(f"{profile['id']} built ROM", built_image, profile["rom"])
+    for name in IMAGE_REGIONS:
+        verify_payload(f"{profile['id']} built {name}", parsed_built[name], profile[name])
+    if built_image != reference_image:
+        raise ProjectError(
+            f"{profile['id']} built image differs despite matching recorded identity"
+        )
+    print(
+        f"[OK] {profile['id']}: complete source-built ROM matches "
+        f"{profile['rom']['sha256']}"
+    )
+
+
 def split_profile(
     profile: dict[str, Any],
     parsed: dict[str, Any],
@@ -573,6 +600,13 @@ def build_parser() -> argparse.ArgumentParser:
     verify_source.add_argument("--built", required=True, type=Path)
     verify_source.add_argument("--private-root", type=Path, default=ROOT)
     verify_source.add_argument("--reference-rom", type=Path)
+    verify_built = commands.add_parser(
+        "verify-built", help="verify a complete source-built revision image"
+    )
+    verify_built.add_argument("--profile", required=True)
+    verify_built.add_argument("--built", required=True, type=Path)
+    verify_built.add_argument("--private-root", type=Path, default=ROOT)
+    verify_built.add_argument("--reference-rom", type=Path)
     for name, help_text in (
         ("verify", "verify private reference images"),
         ("split", "extract manifest-owned private assets"),
@@ -652,6 +686,17 @@ def main() -> int:
                 profile, args.private_root, args.reference_rom
             )
             verify_source_ranges(args.built, reference, profile)
+        elif args.command == "verify-built":
+            profile = get_profile(document, args.profile)
+            require_buildable_source(profile)
+            if profile.get("source_status") != "complete":
+                raise ProjectError(
+                    f"{profile['id']} source profile is not marked complete"
+                )
+            reference = resolve_reference(
+                profile, args.private_root, args.reference_rom
+            )
+            verify_built_revision(args.built, reference, profile)
         elif args.command in {"verify", "split"}:
             profiles = selected_profiles(document, args.profile, args.all_profiles)
             run_selected(

@@ -163,7 +163,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	revision-room-report revision-room-audit compare-revision-rooms \
 	export-levels validate-levels build-levels roundtrip-levels \
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
-	build-revision verify-revision-source verify-revision-sources
+	build-revision verify-revision-source verify-revision-sources \
+	verify-revision verify-revisions
 
 all: verify
 
@@ -318,6 +319,14 @@ verify-revision-source: build-revision
 verify-revision-sources:
 	$(MAKE) verify-revision-source PROFILE=usa
 	$(MAKE) verify-revision-source PROFILE=europe
+
+verify-revision: build-revision
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \
+		verify-built --profile "$(PROFILE)" --built "$(REVISION_ROM)"
+
+verify-revisions:
+	$(MAKE) verify-revision PROFILE=usa
+	$(MAKE) verify-revision PROFILE=europe
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

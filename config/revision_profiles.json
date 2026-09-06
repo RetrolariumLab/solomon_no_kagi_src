@@ -69,7 +69,7 @@
       "region": "Europe",
       "timing": "pal",
       "room_layout": "europe",
-      "source_status": "in-progress",
+      "source_status": "complete",
       "assembly_define": 1,
       "reference_rom": "Solomon's Key (E) [!].nes",
       "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
@@ -103,44 +103,12 @@
       },
       "verified_source_ranges": [
         {
-          "id": "bootstrap_and_scheduler_prefix",
+          "id": "complete_prg",
           "region": "prg",
           "offset": 0,
-          "size": 3634,
-          "sha1": "630d3e33da3138b6d533d3d947ed0897993eebe5",
-          "sha256": "63b69d5a4847d33bcfe60f81a61b39086450a0f8bd5a2ba4d96788b51d7d06ab"
-        },
-        {
-          "id": "localized_ppu_streams",
-          "region": "prg",
-          "offset": 5318,
-          "size": 349,
-          "sha1": "678d3d6164a06c0239e62ed7a0967363f0f4caeb",
-          "sha256": "78e9a10dbbab13cb7e4c54f73b6682535ec98251c166b0019b679aa4074df73a"
-        },
-        {
-          "id": "pal_pre_special_room_padding",
-          "region": "prg",
-          "offset": 13553,
-          "size": 783,
-          "sha1": "fbdcc2dda45e020c795c92834368899eafb3aad2",
-          "sha256": "eafb107ed1d7627cdf5d92de3504da2dfebeb7d66e3badc04526546052021920"
-        },
-        {
-          "id": "level_object_room_data",
-          "region": "prg",
-          "offset": 20352,
-          "size": 8192,
-          "sha1": "c13355ec5eaad20e01c3b17a4fa4d40f3c886b17",
-          "sha256": "41d573ae0ce6b06f731393c519a496e115a9c1b40de2785f782cace2d1217a9d"
-        },
-        {
-          "id": "audio_and_vectors",
-          "region": "prg",
-          "offset": 28544,
-          "size": 4224,
-          "sha1": "bedb5f9b5893353e64ceadf447845a65f7844a6d",
-          "sha256": "653cf23b0000785e23f2125ea98ba3d5e40ff1a93a5ef422906eedb870a98aed"
+          "size": 32768,
+          "sha1": "80b6514e06f480bfc8ba18a70645516a96aed5c1",
+          "sha256": "3652cf993e369165774e2329062a90ee0167372d77c4dd3d81dc2bc874b5a051"
         }
       ],
       "extracted_assets": [

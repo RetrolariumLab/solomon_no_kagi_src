@@ -13,18 +13,17 @@ The profile layer has three responsibilities:
    `assets/generated/` tree;
 3. distinguish a verified reference from a source-complete profile.
 
-This last distinction is important during 2.0 development. USA remains the
-only complete source build at the start of the line. Europe is a verified PAL
-reference with a decoded room layout, but its executable and all remaining
-regional data differences still need to be reconstructed. Japan is recorded
-as a verified research input and is not required by the minimum 2.0 scope.
+This last distinction was important while the PAL reconstruction was partial.
+USA and Europe are now both complete source profiles whose PRG and complete
+iNES images reproduce their references byte for byte. Japan is recorded as a
+verified research input and is not required by the minimum 2.0 scope.
 
 ## Known private images
 
 | Profile | Timing | Complete SHA-256 | PRG SHA-256 | CHR relationship | Source status |
 | --- | --- | --- | --- | --- | --- |
 | `usa` | NTSC | `3d9f3bee199a3fbc04bab38e1d9d5cdeae1c6691dcca463a13c25e42f77bb03d` | `d86d94cd13a7199b9a58cfa0e372ea05ffeabee8ce301639e5d9f52ca860d6b7` | Shared with Europe | Complete |
-| `europe` | PAL | `e8dc7ad587133869eaf6101018be676e9c14c3b97b988d2e96f7e398b5c33acb` | `3652cf993e369165774e2329062a90ee0167372d77c4dd3d81dc2bc874b5a051` | Byte-identical to USA | In progress |
+| `europe` | PAL | `e8dc7ad587133869eaf6101018be676e9c14c3b97b988d2e96f7e398b5c33acb` | `3652cf993e369165774e2329062a90ee0167372d77c4dd3d81dc2bc874b5a051` | Byte-identical to USA | Complete |
 | `japan` | NTSC | `b90bb344eff516863bc5278d9efba7ffd2a83a1e6cf27a6b2a9ab57ec094ae83` | `876d40256ba20bc0aa49cee99a91b4636d4fe2ca2d6b4152381bdb0367a3ba55` | Japan-specific | Planned |
 
 All three inputs are 65,552-byte iNES mapper-3 images with a 32 KiB PRG and a
@@ -167,47 +166,52 @@ The regional build will follow the same separation used by `smb1_src`:
 - PAL runtime evidence runs the Europe image with PAL timing enabled.
 
 The USA default targets and the tagged Source 1.0 contract remain unchanged.
-The 2.0 profile targets are additive until Europe reaches byte identity.
+The 2.0 profile targets are additive and do not alter the frozen USA 1.0
+contract.
 
-The first regional assembly milestone is now active. `src/main.asm` accepts a
+The regional assembly milestone is complete. `src/main.asm` accepts a
 numeric `SolomonRevision` define, defaulting to USA so every 1.0 command keeps
 its original behavior. The Europe research build uses:
 
 ```console
 make build-revision PROFILE=europe
 make verify-revision-source PROFILE=europe
+make verify-revision PROFILE=europe
 ```
 
-The PAL source currently selects its bootstrap and new-game state restore,
+The PAL source selects its bootstrap and new-game state restore,
 the one-byte-shifted gameplay RAM layout, localized system PPU streams, the
 shorter pre-room layout, all sixteen European Demon Mirror schedules, the
-decoded PAL mapping for every room's enemy spawn lifetime, and all 35
-profile-selected fixed-point object-motion vectors. Regional filler is
-expressed as layout data rather than imported as an opaque blob. The source-range verifier
-proves that PRG `$4F80-$6F7F` in the resulting Europe image matches its private
-reference: one continuous 8,192-byte range covering room tile patterns,
-object animations and motion, mirror tables, room enemies, block planes, item
-metadata and commands, and the surrounding alignment bytes.
+decoded PAL mapping for every room's enemy spawn lifetime, all 35
+profile-selected fixed-point object-motion vectors, PAL timer rates, the
+relocated ending calls, and the PAL post-game restart flow. Regional filler is
+expressed as layout data rather than imported as an opaque blob.
 
-This is deliberately a range gate rather than `verify-revision`. The current
-Europe image still differs in the executable range before the level/object
-block and throughout the PAL audio region. Run the combined source milestone
-with:
+Run the combined source ownership gate with:
 
 ```console
 make verify-revision-sources
 ```
 
-It proves all 32,768 USA PRG bytes plus 17,182 European bytes: the accepted
-bootstrap/scheduler prefix, localized 349-byte PPU stream bank, PAL padding,
-8,192-byte level/object/room range, and the complete 4,224-byte audio/vector
-range at `$EF80-$FFFF`. The PAL audio engine preserves the same code shape
-while moving six channel-state fields one RAM byte higher. Its period table
-and envelopes remain shared; the duration table and 40-byte timing extension
-are profile-selected source. All 26 sound-effect descriptors and 114 streams
-are source-owned, with the 44 changed streams kept in one 488-line PAL module
-rather than split from the private ROM. The Europe profile stays `in-progress`
-until the remaining executable range is byte-identical.
+It proves all 32,768 PRG bytes for each required profile. The PAL audio engine
+preserves the same code shape while moving six channel-state fields one RAM
+byte higher. Its period table and envelopes remain shared; the duration table
+and 40-byte timing extension are profile-selected source. All 26 sound-effect
+descriptors and 114 streams are source-owned, with the 44 changed streams kept
+in one PAL module rather than split from the private ROM.
+
+The stronger complete-image gate assembles each profile, verifies the header,
+PRG, CHR, and full-ROM identities recorded in the manifest, and then compares
+the result directly with its private reference:
+
+```console
+make verify-revision PROFILE=europe
+make verify-revisions
+```
+
+Both required 65,552-byte images are byte-identical. No European executable,
+structured data, padding, or graphics difference is supplied through an
+opaque PRG asset.
 
 ## Level editor boundary
 
@@ -338,23 +342,18 @@ the unit suite. Use the headless smoke target when a display is unavailable:
 make check-level-studio
 ```
 
-## Remaining regional work
+## Remaining Source 2.0 work
 
-The profile inventory is evidence, not completion of the Europe build. The
-following items remain open:
+The complete European source build closes the regional byte-reconstruction
+milestone: semantic symbols align the profiles, every PRG difference is
+classified and source-owned, and both images reproduce without post-link
+patching. The remaining release work is now evidence and authoring depth:
 
-1. align the USA and Europe PRGs by semantic source symbols rather than raw
-   file offsets;
-2. classify every differing range as code, structured data, padding, address
-   relocation, or bounded opaque data;
-3. introduce revision entrypoints and a linker layout that reproduce both
-   images without post-link patching;
-4. ~~move decoded PAL room timings into profile-selected source;~~ complete;
-5. identify and reconstruct PAL timing, physics, audio, text, and any other
-   executable differences;
-6. add Europe-specific debugger symbols and deterministic PAL runtime traces;
-7. create the Source Reconstruction 2.0 manifest and aggregate release gate.
+1. add Europe-specific debugger symbols and deterministic PAL runtime traces;
+2. make the remaining structured-data audits profile-aware where PAL differs;
+3. deepen level authoring and add music and other content editors;
+4. create the Source Reconstruction 2.0 manifest and aggregate release gate;
+5. keep Japanese reconstruction as a later, explicitly scoped profile.
 
-Each step should be committed when its own identity, round-trip, or runtime
-evidence passes. Regional research must not weaken the byte-identical USA
-build or mutate the Source 1.0 manifest retroactively.
+Regional work must not weaken the byte-identical USA build or mutate the
+Source 1.0 manifest retroactively.

@@ -222,9 +222,11 @@ make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
 make level-studio PROFILE=usa # open the visual 16x12 room editor
 make check-level-studio # headless GUI-model and codec smoke check for USA/Europe
 make audio-profile-audits # decode and byte-round-trip USA and PAL audio data
-make build-revision PROFILE=europe # assemble the current in-progress PAL source
-make verify-revision-source PROFILE=europe # verify declared matching PAL ranges
-make verify-revision-sources # verify USA PRG and current Europe source ranges
+make build-revision PROFILE=europe # assemble the complete PAL source profile
+make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG
+make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
+make verify-revision PROFILE=europe # verify one complete regional ROM image
+make verify-revisions # verify complete USA and Europe source-built ROMs
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs

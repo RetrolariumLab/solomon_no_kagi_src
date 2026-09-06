@@ -19,8 +19,8 @@ EndingObjectActionBase = $08
 EndingRoomStateFlag = $08
 EndingFadeStepCount = $1F
 
-PrepareEndingPresentation = $CCCD
-RunEndingObjectOrbit = $935F
+PrepareEndingPresentation = DrawTitleLogoLayer
+RunEndingObjectOrbit = InitializeTransitionOrbitObject + $1A
 
 RunEndingRoomScript:
     LDA #$00
