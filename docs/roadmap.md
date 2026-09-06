@@ -389,6 +389,11 @@ passes on the reviewed `main` commit.
   opcode fields are independent.
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;
+- the disassembly author's independently produced level-block spreadsheet
+  agrees with all 10,176 USA room cells, including the ten positions where
+  both original block bitplanes are set. The optional checker consumes the
+  ignored external CSV and guards orientation and bit significance without
+  making third-party research input part of the build;
 - the first audio-authoring layer exports one editable USA or Europe document
   for timing tables, envelopes, overlapping effect descriptors, and every
   physical stream command. Stable symbolic stream entries allow the encoder to

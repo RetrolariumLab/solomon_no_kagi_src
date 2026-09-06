@@ -617,6 +617,40 @@ class LevelDocumentValueTests(unittest.TestCase):
                 {"kind": "repeat", "type": 0x18, "positions": []}
             )
 
+    def test_external_block_reference_preserves_both_bitplanes(self) -> None:
+        document, _, _ = empty_level_fixture()
+        document["rooms"][0]["blocks"]["brown"].append({"x": 3, "y": 4})
+        document["rooms"][0]["blocks"]["white"].append({"x": 3, "y": 4})
+        matrices = level_editor.document_block_matrices(document)
+        self.assertEqual(matrices[0][4][3], 3)
+        self.assertEqual(
+            level_editor.validate_level_block_reference(document, matrices),
+            53 * 16 * 12,
+        )
+
+    def test_external_block_reference_reports_first_cell_mismatch(self) -> None:
+        document, _, _ = empty_level_fixture()
+        matrices = level_editor.document_block_matrices(document)
+        matrices[7][2][5] = 2
+        with self.assertRaisesRegex(
+            level_editor.LevelEditorError, r"room 8, \(5, 2\)"
+        ):
+            level_editor.validate_level_block_reference(document, matrices)
+
+    def test_parses_complete_disassembly_block_csv(self) -> None:
+        rows = ["metadata,"]
+        empty = ",".join(["00"] * 16)
+        for room in range(1, 54):
+            rows.append(f"Level {room},")
+            for y in range(1, 13):
+                rows.append(f'"{empty}",{y}')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "levelBlocks.csv"
+            path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            parsed = level_editor.load_level_block_reference(path)
+        self.assertEqual(len(parsed), 53)
+        self.assertEqual(parsed[52][11], [0] * 16)
+
     def test_exports_only_editable_metadata_fields(self) -> None:
         metadata = {
             "mirror_2_schedule": 0,

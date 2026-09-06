@@ -221,6 +221,7 @@ make roundtrip-level-profiles # prove untouched USA and Europe editor identity
 make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
 make level-studio PROFILE=usa # edit rooms, tilesets, RoomMap art, and shared tables
 make check-level-studio # render all native room previews and check both codecs
+make check-level-block-reference # compare all 10,176 cells with the external CSV
 make smoke-level-playtests # enter selected USA/PAL rooms through real FCEUX hooks
 make audio-profile-audits # decode and byte-round-trip USA and PAL audio data
 make export-audio PROFILE=usa # create an ignored editable audio JSON document

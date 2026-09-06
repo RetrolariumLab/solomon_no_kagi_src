@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import csv
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -631,6 +632,99 @@ def command_summary(args: argparse.Namespace) -> None:
     )
 
 
+def load_level_block_reference(path: Path) -> list[list[list[int]]]:
+    """Read the author's 53-room, 16x12 combined-bitplane CSV export."""
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.reader(handle))
+    levels: list[list[list[int]]] = []
+    index = 0
+    while index < len(rows):
+        row = rows[index]
+        if not row or not row[0].startswith("Level "):
+            index += 1
+            continue
+        expected_name = f"Level {len(levels) + 1}"
+        if row[0] != expected_name:
+            raise LevelEditorError(
+                f"level-block CSV expected {expected_name}, found {row[0]!r}"
+            )
+        level: list[list[int]] = []
+        for y in range(ROOM_HEIGHT):
+            index += 1
+            if index >= len(rows):
+                raise LevelEditorError(f"{expected_name} ends before row {y + 1}")
+            data_row = rows[index]
+            if len(data_row) < 2 or data_row[1] != str(y + 1):
+                raise LevelEditorError(f"{expected_name} has invalid row {y + 1}")
+            try:
+                values = [int(token, 16) for token in data_row[0].split(",")]
+            except ValueError as exc:
+                raise LevelEditorError(
+                    f"{expected_name} row {y + 1} contains a non-hex cell"
+                ) from exc
+            if len(values) != ROOM_WIDTH or any(value not in range(4) for value in values):
+                raise LevelEditorError(
+                    f"{expected_name} row {y + 1} must contain 16 values 00..03"
+                )
+            level.append(values)
+        levels.append(level)
+        index += 1
+    if len(levels) != ROOM_COUNT:
+        raise LevelEditorError(
+            f"level-block CSV contains {len(levels)}/{ROOM_COUNT} levels"
+        )
+    return levels
+
+
+def document_block_matrices(document: dict[str, Any]) -> list[list[list[int]]]:
+    rooms = require_indexed_records(document.get("rooms"), "rooms", ROOM_COUNT)
+    matrices: list[list[list[int]]] = []
+    for room in rooms:
+        brown = {(cell["x"], cell["y"]) for cell in room["blocks"]["brown"]}
+        white = {(cell["x"], cell["y"]) for cell in room["blocks"]["white"]}
+        matrices.append(
+            [
+                [
+                    int((x, y) in brown) | (int((x, y) in white) << 1)
+                    for x in range(ROOM_WIDTH)
+                ]
+                for y in range(ROOM_HEIGHT)
+            ]
+        )
+    return matrices
+
+
+def validate_level_block_reference(
+    document: dict[str, Any], reference: list[list[list[int]]]
+) -> int:
+    actual = document_block_matrices(document)
+    for room in range(ROOM_COUNT):
+        for y in range(ROOM_HEIGHT):
+            for x in range(ROOM_WIDTH):
+                if actual[room][y][x] != reference[room][y][x]:
+                    raise LevelEditorError(
+                        f"level-block mismatch at room {room + 1}, ({x}, {y}): "
+                        f"CSV={reference[room][y][x]:02X}, ROM={actual[room][y][x]:02X}"
+                    )
+    return ROOM_COUNT * ROOM_WIDTH * ROOM_HEIGHT
+
+
+def command_check_block_reference(
+    args: argparse.Namespace, profiles: dict[str, Any]
+) -> None:
+    profile = get_profile(profiles, args.profile)
+    reference_path = resolve_reference(profile, args.private_root, args.base_rom)
+    parsed = verify_reference(reference_path, profile)
+    document = export_document(parsed, profile)
+    cell_count = validate_level_block_reference(
+        document, load_level_block_reference(args.csv)
+    )
+    print(
+        f"[OK] {profile['id']}: {cell_count} room cells match {args.csv} "
+        f"including both block bitplanes"
+    )
+
+
 def add_private_input_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--private-root", type=Path, default=ROOT)
     parser.add_argument("--base-rom", type=Path)
@@ -668,6 +762,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     summary = commands.add_parser("summary", help="summarize an editor document")
     summary.add_argument("--input", required=True, type=Path)
+
+    block_reference = commands.add_parser(
+        "check-block-reference", help="compare room geometry with an external CSV"
+    )
+    block_reference.add_argument("--profile", required=True)
+    block_reference.add_argument("--csv", required=True, type=Path)
+    add_private_input_arguments(block_reference)
     return parser
 
 
@@ -680,6 +781,7 @@ def main() -> int:
             "build": command_build,
             "validate": command_validate,
             "roundtrip": command_roundtrip,
+            "check-block-reference": command_check_block_reference,
         }
         if args.command == "summary":
             command_summary(args)

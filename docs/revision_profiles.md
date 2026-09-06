@@ -452,6 +452,33 @@ make check-level-studio
 On untouched workspaces this reports 310/310 native placed-enemy sprites for
 both USA and Europe in addition to rendering every room background.
 
+### Independent level-block spreadsheet
+
+The disassembly author's `Solomon's Key (NES) - levelBlocks.csv` is useful as
+an external check on the highest-priority editor format. It identifies the
+source range as `$E02C-$EA1B` and records all 53 rooms as 16 by 12 values:
+zero for empty, one for the brown bitplane, two for the white bitplane, and
+three when both original planes are set. The latter matters because the
+spreadsheet's rendered columns show white precedence, while its packed first
+column preserves all ten dual-plane cells.
+
+The locally supplied file has SHA-256
+`4380f0888fbbf23d65bb45e4de32e4dc9409789845a838d8f40c8489fb69271b`.
+It remains under ignored `references/`; neither the third-party spreadsheet
+nor a ROM-derived copy is committed. With that file at
+`references/levelBlocks.csv`, run:
+
+```console
+make check-level-block-reference PROFILE=usa
+```
+
+The checker parses the quoted hexadecimal rows instead of trusting the lossy
+display columns, reconstructs the two bitplanes independently from the
+verified USA ROM through the level document codec, and compares all 10,176
+cells. The current result is zero mismatches, including the ten value-3 cells.
+This corroborates grid orientation, row order, room order, bit significance,
+and combined-block handling through a source independent of this repository.
+
 ## Audio authoring document
 
 Sound Studio is backed by the deterministic document codec in

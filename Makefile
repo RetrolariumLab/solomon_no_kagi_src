@@ -18,6 +18,7 @@ RIGHT_PROFILE ?= europe
 LEVEL_DOCUMENT ?= content/workspace/$(PROFILE)/levels.json
 LEVEL_ROM ?= build/content/$(PROFILE)/solomons_key_levels.nes
 LEVEL_PLAYTEST_ROOM ?= 1
+LEVEL_BLOCK_REFERENCE ?= references/levelBlocks.csv
 AUDIO_DOCUMENT ?= content/workspace/$(PROFILE)/audio.json
 AUDIO_ROM ?= build/content/$(PROFILE)/solomons_key_audio.nes
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
@@ -168,7 +169,7 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	revision-room-report revision-room-audit compare-revision-rooms \
 	export-levels validate-levels build-levels roundtrip-levels \
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
-	smoke-level-playtest smoke-level-playtests \
+	check-level-block-reference smoke-level-playtest smoke-level-playtests \
 	export-audio validate-audio build-audio roundtrip-audio \
 	roundtrip-audio-profiles audio-summary sound-studio check-sound-studio \
 	build-revision verify-revision-source verify-revision-sources \
@@ -307,6 +308,11 @@ check-level-studio:
 		--profile usa --check
 	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
 		--profile europe --check
+
+check-level-block-reference:
+	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" \
+		check-block-reference --profile "$(PROFILE)" \
+		--csv "$(LEVEL_BLOCK_REFERENCE)"
 
 smoke-level-playtest:
 	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
