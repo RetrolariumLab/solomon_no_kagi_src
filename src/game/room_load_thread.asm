@@ -144,7 +144,7 @@ InitializeDanaForLoadedRoom:
     ROR A
     BCC StartLoadedRoomGameplay
     INY
-    LDA $0429
+    LDA FireballState
     BEQ SelectRoomEntrySound
     INY
 

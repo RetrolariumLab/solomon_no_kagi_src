@@ -45,7 +45,9 @@ range is understood.
 | `$0423-$0425` | three sound-effect request slots | confirmed |
 | `$0426-$0427` | split enemy spawn-lifetime threshold | high |
 | `$0428` | zero-based current room index | confirmed |
-| `$0429-$043D` | fireball, inventory, and lifetime state; `$0429` temporarily saves the prior room index during special-room loading | mixed/high |
+| `$0429` (USA), `$042A` (Europe) onward | fireball, inventory, and lifetime state; the first byte temporarily saves the prior room index during special-room loading | mixed/high |
+| `$0429` (Europe only) | preserved starting-room index consumed by the PAL new-game reset | high |
+| `$008B-$008F` (Europe only) | five PAL startup values copied to global game-state bytes `$0078-$007C` | high |
 | `$042B` | number of usable two-bit fireball inventory slots, maximum 8 | confirmed |
 | `$042E-$042F` | eight packed two-bit fireball inventory slots | confirmed |
 | `$0430` | four-way fireball direction index: right, left, up, down | confirmed |
@@ -61,12 +63,12 @@ range is understood.
 | `$044A-$0451` | eight unpacked decimal score digits, most significant first | confirmed |
 | `$0452` | remaining lives | high |
 | `$0453-$0454` | collected and queued fairies | high |
-| `$0456-$04D5` | eight 16-byte virtual audio-channel records | confirmed |
-| `$04D6-$04F5` | eight interleaved duration/reload/envelope/volume records | confirmed |
-| `$04F6` | rotating active virtual-channel bitset | confirmed |
+| `$0456-$04D5` (USA), `$0457-$04D6` (Europe) | eight 16-byte virtual audio-channel records | confirmed |
+| `$04D6-$04F5` (USA), `$04D7-$04F6` (Europe) | eight interleaved duration/reload/envelope/volume records | confirmed |
+| `$04F6` (USA), `$04F7` (Europe) | rotating active virtual-channel bitset | confirmed |
 | `$05BE` | total extra lives acquired; overlaps auxiliary-object byte 3 | high |
-| `$04F7-$057E` | 17 eight-byte enemy AI records; complete shared layout documented | confirmed |
-| `$057F-$070F` | 21 `$14`-byte gameplay object records; complete shared layout documented | confirmed |
+| `$04F7-$057E` (USA), `$04F8-$057F` (Europe) | 17 eight-byte enemy AI records; complete shared layout documented | confirmed |
+| `$057F-$070F` (USA), `$0580-$0710` (Europe) | 21 `$14`-byte gameplay object records; complete shared layout documented | confirmed |
 
 The last object base is `$070F`; a full `$14`-byte record therefore reaches
 `$0722`. Exact ownership above that boundary still needs write-watch evidence.

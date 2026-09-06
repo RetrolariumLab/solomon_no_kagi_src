@@ -178,11 +178,12 @@ make build-revision PROFILE=europe
 make verify-revision-source PROFILE=europe
 ```
 
-The PAL source currently selects the shorter pre-room layout, all sixteen
-European Demon Mirror schedules, the decoded PAL mapping for every room's
-enemy spawn lifetime, and all 35 profile-selected fixed-point object-motion
-vectors. Regional filler before the mirror and audio tables is expressed as
-layout data rather than imported as an opaque blob. The source-range verifier
+The PAL source currently selects its bootstrap and new-game state restore,
+the one-byte-shifted gameplay RAM layout, localized system PPU streams, the
+shorter pre-room layout, all sixteen European Demon Mirror schedules, the
+decoded PAL mapping for every room's enemy spawn lifetime, and all 35
+profile-selected fixed-point object-motion vectors. Regional filler is
+expressed as layout data rather than imported as an opaque blob. The source-range verifier
 proves that PRG `$4F80-$6F7F` in the resulting Europe image matches its private
 reference: one continuous 8,192-byte range covering room tile patterns,
 object animations and motion, mirror tables, room enemies, block planes, item
@@ -197,8 +198,9 @@ with:
 make verify-revision-sources
 ```
 
-It proves all 32,768 USA PRG bytes plus 12,416 European bytes: the accepted
-8,192-byte level/object/room range and the complete 4,224-byte audio/vector
+It proves all 32,768 USA PRG bytes plus 17,182 European bytes: the accepted
+bootstrap/scheduler prefix, localized 349-byte PPU stream bank, PAL padding,
+8,192-byte level/object/room range, and the complete 4,224-byte audio/vector
 range at `$EF80-$FFFF`. The PAL audio engine preserves the same code shape
 while moving six channel-state fields one RAM byte higher. Its period table
 and envelopes remain shared; the duration table and 40-byte timing extension

@@ -169,7 +169,7 @@ EnemyCollisionInventoryHandlers:
     .addr IncreaseInventorySlotLimit, ApplyRedTzoItem, QueueFairyItem
 
 UpgradeSmallFireballInventory:
-    LDA $042B
+    LDA InventorySlotCount
     STA $03
     LDX #$01
     LDA #$40
@@ -180,7 +180,7 @@ ScanPreviousFireballInventoryByte:
 
 ScanPreviousFireballInventorySlot:
     LDA $01
-    AND $042E,X
+    AND InventorySlotsHigh,X
     CMP $01
     BEQ UpgradeSmallFireballSlot
     DEC $03
@@ -198,8 +198,8 @@ FinishSmallFireballUpgrade:
 UpgradeSmallFireballSlot:
     ASL A
     ORA $01
-    EOR $042E,X
-    STA $042E,X
+    EOR InventorySlotsHigh,X
+    STA InventorySlotsHigh,X
     RTS
 
 RunType04To07EnemyAi:

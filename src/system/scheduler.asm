@@ -115,8 +115,17 @@ InitialThreadStackPointers:
     .byte $fc, $dc, $bc, $9c, $7c, $5c, $3c, $1c
 
 ThreadEntryTableBases:
-    .byte $17, $8e, $17, $8e, $29, $8e, $2f, $8e
-    .byte $3b, $8e, $43, $8e, $45, $8e
+; Each base addresses one contiguous subtable below. Keeping the offsets
+; relative makes the table follow the longer PAL startup without changing
+; the already released USA symbol inventory
+    .addr ThreadEntryTableBases + $0E
+    .addr ThreadEntryTableBases + $0E
+    .addr ThreadEntryTableBases + $20
+    .addr ThreadEntryTableBases + $26
+    .addr ThreadEntryTableBases + $32
+    .addr ThreadEntryTableBases + $3A
+    .addr ThreadEntryTableBases + $3C
+
     .addr NewGameRoomLoadThread - 1
     .addr CastOrRemoveBlock - 1
     .addr HandleDanaHeadCollision - 1
@@ -126,18 +135,23 @@ ThreadEntryTableBases:
     .addr PreparePostGameResult - 1
     .addr RunPostGameAttractThread - 1
     .addr StartDemoPlayback - 1
-    .byte $9e, $8e
+
+    .addr PublishPpuUpdateBuffer - 2
     .addr PauseGameThread - 1
     .addr RunDemoInputPlayback - 1
+
     .byte $ff, $9f
     .addr RunDanaDeathTransition - 1
-    .byte $86, $c5
+    .addr EnterRoomDoor - 1
     .addr RunTimeOverTransition - 1
     .addr RunKeyCollectionPresentation - 1
     .addr FinalizeGameplayExit - 1
+
     .addr RunMapItemPresentation - 1
     .addr RunExtraLifeMapItemPresentation - 1
     .addr RunEnemyItemPresentation - 1
     .addr RunExtraLifeEnemyItemPresentation - 1
+
     .addr ProcessDefeatedEnemyDrops - 1
+
     .addr RunSpecialRoomScriptThread - 1

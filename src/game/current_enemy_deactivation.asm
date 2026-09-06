@@ -48,6 +48,9 @@ FinishEnemyLifetimeThreshold:
 
 ; Bisqwit's map identifies this unreferenced tail as the filler before $B800
 FillerBeforeB800:
+.if SolomonRevision = SolomonRevisionEurope
+    .res $30F, $FF
+.else
     .byte $00, $FF
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $FF, $00, $FF
@@ -98,6 +101,7 @@ FillerBeforeB800:
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $FF, $00, $FF
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00
+.endif
 
 .assert FillerBeforeB800 - ApplyEnemyLifetimeThreshold = $2D, error, "unexpected enemy-lifetime size"
 .assert * - FillerBeforeB800 = $30F, error, "unexpected pre-special-room filler size"

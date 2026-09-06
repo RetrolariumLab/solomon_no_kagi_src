@@ -115,7 +115,13 @@ StaticPpuUpdateStream10:
 StaticPpuUpdateStream11:
     PpuUpdateCommand $2A26, PpuUpdateLiteral, 16
     .byte $2a, $24, $1d, $0e, $0c, $16, $18, $25
-    .byte $15, $1d, $0d, $29, $01, $09, $08, $07, $00
+    .byte $15, $1d, $0d, $29, $01, $09, $08
+.if SolomonRevision = SolomonRevisionEurope
+    .byte $09
+.else
+    .byte $07
+.endif
+    .byte $00
 
 StaticPpuUpdateStream12:
     PpuUpdateCommand $23E8, PpuUpdateRepeat, 24
@@ -133,16 +139,28 @@ StaticPpuUpdateStream15:
 StaticPpuUpdateStream16:
     PpuUpdateCommand $2983, PpuUpdateLiteral, 24
     .byte $1d, $16, $24, $0a, $17, $0d, $24, $2a
-    .byte $24, $01, $09, $08, $07, $24, $1d, $0e
+    .byte $24, $01, $09, $08
+.if SolomonRevision = SolomonRevisionEurope
+    .byte $09
+.else
+    .byte $07
+.endif
+    .byte $24, $1d, $0e
     .byte $0c, $16, $18, $25, $15, $1d, $0d, $29, $00
 
 StaticPpuUpdateStream17:
+.if SolomonRevision = SolomonRevisionEurope
+    PpuUpdateCommand $2A05, PpuUpdateLiteral, 20
+    .byte $15, $12, $0c, $0e, $17, $1c, $0e, $0d, $24, $0b
+    .byte $22, $24, $17, $12, $17, $1d, $0e, $17, $0d, $18, $00
+.else
     PpuUpdateCommand $29C9, PpuUpdateLiteral, 11
     .byte $15, $12, $0c, $0e, $17, $1c, $0e, $0d, $24, $0b, $22
     PpuUpdateCommand $2A03, PpuUpdateLiteral, 24
     .byte $17, $12, $17, $1d, $0e, $17, $0d, $18
     .byte $24, $18, $0f, $24, $0a, $16, $0e, $1b
     .byte $12, $0c, $0a, $24, $12, $17, $0c, $29, $00
+.endif
 
 StaticPpuUpdateStream05:
     PpuUpdateCommand $3F00, PpuUpdateLiteral, 16

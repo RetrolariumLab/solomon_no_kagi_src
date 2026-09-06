@@ -45,7 +45,7 @@ CopySpecialRoomNameTile:
     INY
     CPY #$08
     BNE CopySpecialRoomNameTile
-    LDX $0429
+    LDX FireballState
     BNE UseSavedRoomIntroMarker
     LDX CurrentRoomIndex
     INX

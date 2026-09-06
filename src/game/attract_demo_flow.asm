@@ -23,8 +23,8 @@ DemoInventoryBits = $54
 DemoStateFlag = $80
 DemoInputCount = $22
 
-AttractWaitCounterLo = $043C
-AttractWaitCounterHi = $043D
+AttractWaitCounterLo = RoomItemRuntimeData
+AttractWaitCounterHi = RoomItemRuntimeData + 1
 DemoPlaybackMode = $0080
 DemoInputIndex = $0081
 ; Context 1 entry $17. A negative RoomStateFlags value means a demo was

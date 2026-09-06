@@ -7,7 +7,7 @@ PauseFlagsClearMask = $F9
 PauseDebounceFrames = $28
 PauseThreadIndex = $02
 PauseSoundEffect = $0C
-ResumeSoundEffect = $0E
+ResumeSoundEffect = $0E - (SolomonRevision = SolomonRevisionEurope) * 2
 
 PauseGameThread:
     LDY #PauseSoundEffect

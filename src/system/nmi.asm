@@ -99,9 +99,9 @@ IncrementGameplayFrameCounters:
     INC FireballLifeCounter1Hi
 
 AdvanceDemonMirrorSpawnTimer:
-    INC $043C
+    INC DemonMirrorSpawnTimerLo
     BNE HandleDanaNmiActions
-    INC $043D
+    INC DemonMirrorSpawnTimerHi
 
 HandleDanaNmiActions:
     LDA DanaObject

@@ -124,6 +124,15 @@ CopyWarmBootDefaultState:
     STA WarmBootMarker
 
 InitializeThreadStacks:
+.if SolomonRevision = SolomonRevisionEurope
+    LDA #$00
+    STA RegionalNewGameRoomIndex
+    STA RegionalNewGameFlags + 0
+    STA RegionalNewGameFlags + 1
+    STA RegionalNewGameFlags + 2
+    STA RegionalNewGameFlags + 3
+    STA RegionalNewGameFlags + 4
+.endif
     LDA #$1C
     LDX #ThreadStackPointerCount-1
 
@@ -153,9 +162,9 @@ InitializeIdleThreadFrames:
     STA TempPointer00
     DEY
     BNE InitializeIdleThreadFrames
-    LDA #$C0
+    LDA #<RoomLoadPaletteTemplate
     STA $1A
-    LDA #$8E
+    LDA #>RoomLoadPaletteTemplate
     STA $1B
     LDA #$17
     JSR StartThread
