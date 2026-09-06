@@ -111,12 +111,12 @@
           "sha256": "41d573ae0ce6b06f731393c519a496e115a9c1b40de2785f782cace2d1217a9d"
         },
         {
-          "id": "audio_engine_timing_envelopes",
+          "id": "audio_and_vectors",
           "region": "prg",
           "offset": 28544,
-          "size": 1188,
-          "sha1": "e4ddba26fc529653105550674d9861cc6e105ba8",
-          "sha256": "6f817bc8841868696fe2a4e44a22604346a8ca4b469730fa2e5d37f3ba867452"
+          "size": 4224,
+          "sha1": "bedb5f9b5893353e64ceadf447845a65f7844a6d",
+          "sha256": "653cf23b0000785e23f2125ea98ba3d5e40ff1a93a5ef422906eedb870a98aed"
         }
       ],
       "extracted_assets": [

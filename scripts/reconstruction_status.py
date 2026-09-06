@@ -79,7 +79,9 @@ def source_labels(project_root: Path) -> dict[str, SourceLabel]:
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             match = LABEL_RE.match(line)
             if match:
-                labels[match.group(1)] = SourceLabel(relative, line_number)
+                # The default-profile module owns names reused by later
+                # mutually exclusive regional source alternatives.
+                labels.setdefault(match.group(1), SourceLabel(relative, line_number))
     return labels
 
 

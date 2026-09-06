@@ -10,6 +10,7 @@ from scripts.reconstruction_status import (
     collect_metrics,
     collect_provenance_metrics,
     parse_make_targets,
+    source_labels,
     validate,
     validate_release,
 )
@@ -116,6 +117,13 @@ class ReconstructionStatusTests(unittest.TestCase):
                 "unknown_provenance": 0,
             },
         )
+
+    def test_default_source_owns_duplicate_regional_label(self) -> None:
+        root, _manifest, _ledger, _map, _labels = self.make_fixture()
+        alternative = root / "src" / "system" / "nmi_europe.asm"
+        alternative.write_text("NMI:\n    RTI\n", encoding="utf-8")
+        labels = source_labels(root)
+        self.assertEqual(labels["NMI"].path, Path("src/system/nmi.asm"))
 
     def test_accepts_consistent_module_and_provenance(self) -> None:
         root, manifest, ledger, map_path, labels_path = self.make_fixture()

@@ -79,7 +79,7 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	src/game/room_block_decode.asm src/data/room_blocks.asm \
 	src/data/room_items.asm \
 	src/system/audio_engine.asm \
-	src/data/audio.asm \
+	src/data/audio.asm src/data/audio_streams_europe.asm \
 	src/game/dana_actions.asm \
 	src/system/counter_wait.asm \
 	src/game/map_interactions.asm src/game/coordinate_object_overlap.asm \

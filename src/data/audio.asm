@@ -5,6 +5,14 @@
     .word stream
 .endmacro
 
+.macro AudioRegionalChannelStart ntsc_selector, pal_selector, stream
+    .if SolomonRevision = SolomonRevisionEurope
+        AudioChannelStart pal_selector, stream
+    .else
+        AudioChannelStart ntsc_selector, stream
+    .endif
+.endmacro
+
 .macro AudioJump stream
     .byte $F2
     .word stream
@@ -129,9 +137,9 @@ SoundEffectDescriptor04:
     AudioChannelStart $07, AudioStream041
 
 SoundEffectDescriptor05:
-    AudioChannelStart $80, AudioStream043
-    AudioChannelStart $02, AudioStream044
-    AudioChannelStart $04, AudioStream045
+    AudioRegionalChannelStart $80, $81, AudioStream043
+    AudioRegionalChannelStart $02, $03, AudioStream044
+    AudioRegionalChannelStart $04, $05, AudioStream045
     AudioChannelStart $07, AudioStream046
 
 SoundEffectDescriptor06:
@@ -237,6 +245,7 @@ SoundEffectDescriptor26:
 
 .segment "PRG_AUDIO_STREAMS"
 
+.if SolomonRevision <> SolomonRevisionEurope
 AudioStream000:
     .byte $F0, $06, $F1, $09, $F8, $00, $88, $13, $84, $15, $13, $88, $12, $84, $13, $12
     .byte $88, $11, $84, $12, $11, $88, $10, $84, $11, $10, $87, $0B, $10, $12, $13
@@ -721,17 +730,24 @@ AudioStream112:
     AudioJump AudioStream112
 AudioStream113:
     .byte $F0, $00, $F1, $0F, $80, $01, $F9
+.else
+    .include "data/audio_streams_europe.asm"
+.endif
 
-.assert * - AudioStream000 = $0A68, error, "unexpected audio stream data size"
+.assert * - AudioStream000 = $0A68 + (SolomonRevision = SolomonRevisionEurope) * $3D, error, "unexpected audio stream data size"
 
 .if SolomonRevision = SolomonRevisionEurope
-; Temporary tail compensation until the longer PAL streams are reconstructed
-    .res $58, $FF
+    .res $1B, $FF
 .endif
 
 .segment "VECTORS"
 
 CpuVectors:
-    .word NMI, Reset, $00FF
+    .word NMI, Reset
+.if SolomonRevision = SolomonRevisionEurope
+    .word $FFFF
+.else
+    .word $00FF
+.endif
 
 .assert * - CpuVectors = 6, error, "unexpected CPU vector size"

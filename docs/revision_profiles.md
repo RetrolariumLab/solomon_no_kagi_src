@@ -197,15 +197,15 @@ with:
 make verify-revision-sources
 ```
 
-It proves all 32,768 USA PRG bytes plus 9,380 European bytes: the accepted
-8,192-byte level/object/room range and the 1,188-byte audio engine, PAL timing,
-and envelope range at `$EF80-$F423`. The PAL audio engine preserves the same
-code shape while moving six channel-state fields one RAM byte higher. Its
-period table and envelopes remain shared; the duration table and 40-byte
-timing extension are profile-selected source. Sound-effect descriptors and
-the 44 changed music streams remain outside this accepted range. The Europe
-profile stays `in-progress` until the complete image, not just declared
-ranges, is byte-identical.
+It proves all 32,768 USA PRG bytes plus 12,416 European bytes: the accepted
+8,192-byte level/object/room range and the complete 4,224-byte audio/vector
+range at `$EF80-$FFFF`. The PAL audio engine preserves the same code shape
+while moving six channel-state fields one RAM byte higher. Its period table
+and envelopes remain shared; the duration table and 40-byte timing extension
+are profile-selected source. All 26 sound-effect descriptors and 114 streams
+are source-owned, with the 44 changed streams kept in one 488-line PAL module
+rather than split from the private ROM. The Europe profile stays `in-progress`
+until the remaining executable range is byte-identical.
 
 ## Level editor boundary
 

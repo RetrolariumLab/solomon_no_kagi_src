@@ -355,9 +355,10 @@ passes on the reviewed `main` commit.
   motion, and regional filler data. A source-range gate proves the continuous
   8,192-byte level/object/room block against the European reference while the
   profile remains honestly marked in progress;
-- the relocated PAL audio engine, shifted channel-state RAM fields, duration
-  table, timing extension, and shared envelopes add another 1,188 verified
-  European source bytes; sound descriptors and streams remain open;
+- the complete relocated PAL audio bank is source-owned: shifted channel-state
+  RAM fields, duration and extension tables, shared envelopes, one regional
+  descriptor selector set, 114 streams, padding, and vectors add another
+  4,224 verified European bytes without checked-in ROM fragments;
 - region-specific source builds and identity gates for Europe remain the next
   reconstruction step, without importing assumptions between profiles;
 - the level authoring document and editor described in
