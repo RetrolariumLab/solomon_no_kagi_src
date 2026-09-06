@@ -713,6 +713,13 @@ AudioStream113:
 
 .assert * - AudioStream000 = $0A68, error, "unexpected audio stream data size"
 
+.if SolomonRevision = SolomonRevisionEurope
+; Temporary layout compensation while PAL audio data is reconstructed
+; The European room/audio region begins $80 bytes earlier, while vectors keep
+; their fixed CPU addresses at $FFFA-$FFFF
+    .res $80, $FF
+.endif
+
 .segment "VECTORS"
 
 CpuVectors:

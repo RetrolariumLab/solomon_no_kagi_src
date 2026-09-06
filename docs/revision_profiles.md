@@ -169,6 +169,35 @@ The regional build will follow the same separation used by `smb1_src`:
 The USA default targets and the tagged Source 1.0 contract remain unchanged.
 The 2.0 profile targets are additive until Europe reaches byte identity.
 
+The first regional assembly milestone is now active. `src/main.asm` accepts a
+numeric `SolomonRevision` define, defaulting to USA so every 1.0 command keeps
+its original behavior. The Europe research build uses:
+
+```console
+make build-revision PROFILE=europe
+make verify-revision-source PROFILE=europe
+```
+
+The PAL source currently selects the shorter pre-room layout, all sixteen
+European Demon Mirror schedules, and the decoded PAL mapping for every room's
+enemy spawn lifetime. The source-range verifier proves that PRG
+`$5B80-$6F43` in the resulting Europe image matches its private reference:
+all 5,060 bytes of schedule tables, schedules, mirror enemy sets, room enemy
+pointers and streams, block planes, item pointers, metadata, and item streams.
+
+This is deliberately a range gate rather than `verify-revision`. The current
+Europe image still differs before the room data, in 44 animation/motion bytes,
+in 32 bytes of pre-audio padding, and throughout the PAL audio region. Run the
+combined source milestone with:
+
+```console
+make verify-revision-sources
+```
+
+It proves all 32,768 USA PRG bytes and the accepted 5,060-byte Europe room
+range. The Europe profile remains `in-progress` until the complete image, not
+just declared ranges, is byte-identical.
+
 ## Level editor boundary
 
 The level editor is the first authoring deliverable. Its canonical document
@@ -309,7 +338,7 @@ following items remain open:
    relocation, or bounded opaque data;
 3. introduce revision entrypoints and a linker layout that reproduce both
    images without post-link patching;
-4. move decoded PAL room timings into profile-selected source;
+4. ~~move decoded PAL room timings into profile-selected source;~~ complete;
 5. identify and reconstruct PAL timing, physics, audio, text, and any other
    executable differences;
 6. add Europe-specific debugger symbols and deterministic PAL runtime traces;

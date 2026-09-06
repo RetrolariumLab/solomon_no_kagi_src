@@ -221,6 +221,9 @@ make roundtrip-level-profiles # prove untouched USA and Europe editor identity
 make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
 make level-studio PROFILE=usa # open the visual 16x12 room editor
 make check-level-studio # headless GUI-model and codec smoke check for USA/Europe
+make build-revision PROFILE=europe # assemble the current in-progress PAL source
+make verify-revision-source PROFILE=europe # verify declared matching PAL ranges
+make verify-revision-sources # verify USA PRG and current Europe source ranges
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs

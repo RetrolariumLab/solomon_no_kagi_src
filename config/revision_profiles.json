@@ -10,6 +10,7 @@
       "timing": "ntsc",
       "room_layout": "usa",
       "source_status": "complete",
+      "assembly_define": 0,
       "reference_rom": "Solomon's Key (U) [!].nes",
       "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
       "rom": {
@@ -40,6 +41,16 @@
         "room_enemies": "7ad1675ca580c15f970d89dbc0fa999ac1e1c555f8944a9d8bd753ac50c90602",
         "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
       },
+      "verified_source_ranges": [
+        {
+          "id": "complete_prg",
+          "region": "prg",
+          "offset": 0,
+          "size": 32768,
+          "sha1": "4e8c6c33897e6c0dc6297f67e8f5699b1b5ca4e6",
+          "sha256": "d86d94cd13a7199b9a58cfa0e372ea05ffeabee8ce301639e5d9f52ca860d6b7"
+        }
+      ],
       "extracted_assets": [
         {
           "id": "shared_usa_europe_chr",
@@ -59,6 +70,7 @@
       "timing": "pal",
       "room_layout": "europe",
       "source_status": "in-progress",
+      "assembly_define": 1,
       "reference_rom": "Solomon's Key (E) [!].nes",
       "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
       "rom": {
@@ -89,6 +101,16 @@
         "room_enemies": "94febd22d889658f8c50fc723f3b0d363ee7b22883ae64c8af603d7f070ad35f",
         "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
       },
+      "verified_source_ranges": [
+        {
+          "id": "room_streams",
+          "region": "prg",
+          "offset": 23424,
+          "size": 5060,
+          "sha1": "3a697b4f4bfaa3d1dda33c55539640629c96dc3b",
+          "sha256": "e8c5f3ce914353ab451c3afcf6427b9d8c94be2888479a5a9ba2e86279d13e5a"
+        }
+      ],
       "extracted_assets": [
         {
           "id": "shared_usa_europe_chr",
@@ -108,6 +130,7 @@
       "timing": "ntsc",
       "room_layout": "japan",
       "source_status": "planned",
+      "assembly_define": null,
       "reference_rom": "Solomon no Kagi (J).nes",
       "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
       "rom": {
@@ -138,6 +161,7 @@
         "room_enemies": "7ad1675ca580c15f970d89dbc0fa999ac1e1c555f8944a9d8bd753ac50c90602",
         "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
       },
+      "verified_source_ranges": [],
       "extracted_assets": [
         {
           "id": "japan_chr",

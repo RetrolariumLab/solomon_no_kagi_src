@@ -196,6 +196,9 @@ DemoInputValues:
 
 ; Bisqwit's map classifies this complete gap as FillerBeforeD000_203bytes
 FillerBeforeRoomTilePatterns:
+.if SolomonRevision = SolomonRevisionEurope
+    .res 75, $FF
+.else
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $04, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $FE, $20, $FF
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
@@ -209,5 +212,6 @@ FillerBeforeRoomTilePatterns:
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $FF, $00, $FF
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00
+.endif
 
-.assert * - FillerBeforeRoomTilePatterns = 203, error, "unexpected pre-room-tile filler size"
+.assert * - FillerBeforeRoomTilePatterns = 203 - (SolomonRevision = SolomonRevisionEurope) * 128, error, "unexpected pre-room-tile filler size"

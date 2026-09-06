@@ -47,6 +47,7 @@ def sample_profile(
         "timing": "ntsc",
         "room_layout": "usa",
         "source_status": source_status,
+        "assembly_define": None if source_status == "planned" else 0,
         "reference_rom": f"{profile_id}.nes",
         "reference_provenance": "Synthetic unit-test image.",
         "rom": region_descriptor(image),
@@ -57,6 +58,7 @@ def sample_profile(
             family: project.digest(family.encode("ascii"), "sha256")
             for family in revision_profiles.ROOM_FAMILIES
         },
+        "verified_source_ranges": [],
         "extracted_assets": [
             {
                 "id": f"{profile_id}_chr",
@@ -186,6 +188,37 @@ class ManifestValidationTests(unittest.TestCase):
             errors,
         )
 
+    def test_rejects_planned_profile_with_assembly_define(self) -> None:
+        document, images = sample_document()
+        planned = sample_profile("japan", images["usa"], source_status="planned")
+        planned["assembly_define"] = 2
+        document["profiles"].append(planned)
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn("japan planned source has an assembly define", errors)
+
+    def test_rejects_overlapping_verified_source_ranges(self) -> None:
+        document, images = sample_document()
+        profile = document["profiles"][0]
+        parsed = project.parse_ines(images["usa"])
+        first = parsed["prg"][10:30]
+        second = parsed["prg"][20:40]
+        profile["verified_source_ranges"] = [
+            {
+                "id": "first",
+                "region": "prg",
+                "offset": 10,
+                **region_descriptor(first),
+            },
+            {
+                "id": "second",
+                "region": "prg",
+                "offset": 20,
+                **region_descriptor(second),
+            },
+        ]
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn("usa has overlapping verified source ranges", errors)
+
     def test_loader_rejects_duplicate_json_keys(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             manifest = Path(directory) / "profiles.json"
@@ -224,6 +257,17 @@ class ProfileSelectionTests(unittest.TestCase):
             ["usa", "europe", "japan"],
         )
 
+    def test_requires_assembly_define_for_buildable_source(self) -> None:
+        document, _ = sample_document()
+        profile = revision_profiles.get_profile(document, "europe")
+        self.assertEqual(revision_profiles.require_buildable_source(profile), 0)
+
+    def test_rejects_planned_source_build(self) -> None:
+        document, images = sample_document()
+        profile = sample_profile("japan", images["usa"], source_status="planned")
+        with self.assertRaisesRegex(project.ProjectError, "no buildable source"):
+            revision_profiles.require_buildable_source(profile)
+
 
 class ReferenceImageTests(unittest.TestCase):
     def test_verifies_every_image_region(self) -> None:
@@ -254,6 +298,49 @@ class ReferenceImageTests(unittest.TestCase):
         document, _ = sample_document()
         with self.assertRaisesRegex(project.ProjectError, "no unique profile"):
             revision_profiles.identify_profile(document, sample_image(0x99))
+
+    def test_verifies_declared_source_range(self) -> None:
+        document, images = sample_document()
+        profile = revision_profiles.get_profile(document, "usa")
+        parsed = project.parse_ines(images["usa"])
+        payload = parsed["prg"][100:180]
+        profile["verified_source_ranges"] = [
+            {
+                "id": "sample",
+                "region": "prg",
+                "offset": 100,
+                **region_descriptor(payload),
+            }
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            reference = Path(directory) / "reference.nes"
+            built = Path(directory) / "built.nes"
+            reference.write_bytes(images["usa"])
+            built.write_bytes(images["usa"])
+            revision_profiles.verify_source_ranges(built, reference, profile)
+
+    def test_rejects_changed_source_range(self) -> None:
+        document, images = sample_document()
+        profile = revision_profiles.get_profile(document, "usa")
+        parsed = project.parse_ines(images["usa"])
+        payload = parsed["prg"][100:180]
+        profile["verified_source_ranges"] = [
+            {
+                "id": "sample",
+                "region": "prg",
+                "offset": 100,
+                **region_descriptor(payload),
+            }
+        ]
+        changed = bytearray(images["usa"])
+        changed[16 + 120] ^= 0xFF
+        with tempfile.TemporaryDirectory() as directory:
+            reference = Path(directory) / "reference.nes"
+            built = Path(directory) / "built.nes"
+            reference.write_bytes(images["usa"])
+            built.write_bytes(changed)
+            with self.assertRaisesRegex(project.ProjectError, "source range differs"):
+                revision_profiles.verify_source_ranges(built, reference, profile)
 
 
 class SplitAssetTests(unittest.TestCase):

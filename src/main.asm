@@ -10,6 +10,16 @@
 ; https://github.com/rbmichael/solomons_key_disassembly
 
 .setcpu "6502x"
+
+SolomonRevisionUsa = 0
+SolomonRevisionEurope = 1
+
+.ifndef SolomonRevision
+SolomonRevision = SolomonRevisionUsa
+.endif
+
+.assert SolomonRevision = SolomonRevisionUsa .or SolomonRevision = SolomonRevisionEurope, error, "unsupported Solomon's Key revision profile"
+
 .segment "HEADER"
 
     .byte "NES", $1a  ; Magic string that always begins an iNES header

@@ -134,6 +134,40 @@ DemonMirrorEnemySetPointerHighTable:
 
 .segment "PRG_DEMON_MIRROR_SCHEDULE_DATA"
 
+.if SolomonRevision = SolomonRevisionEurope
+DemonMirrorSchedule00:
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
+DemonMirrorSchedule01:
+    .byte $92, $49, $92, $49, $24, $92, $49, $24
+DemonMirrorSchedule02:
+    .byte $88, $88, $88, $88, $88, $88, $88, $88
+DemonMirrorSchedule03:
+    .byte $01, $24, $92, $49, $24, $92, $49, $24
+DemonMirrorSchedule04:
+    .byte $92, $49, $24, $92, $24, $92, $49, $24
+DemonMirrorSchedule05:
+    .byte $24, $92, $49, $24, $92, $49, $24, $92
+DemonMirrorSchedule06:
+    .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+DemonMirrorSchedule07:
+    .byte $EA, $49, $EA, $49, $EA, $49, $EA, $49
+DemonMirrorSchedule08:
+    .byte $0A, $AA, $AA, $AA, $AA, $AA, $AA, $AA
+DemonMirrorSchedule09:
+    .byte $00, $00, $00, $00, $00, $00, $00, $01
+DemonMirrorSchedule10:
+    .byte $81, $02, $04, $08, $10, $20, $40, $82
+DemonMirrorSchedule11:
+    .byte $A1, $42, $85, $0A, $14, $28, $50, $A1
+DemonMirrorSchedule12:
+    .byte $49, $24, $92, $49, $24, $92, $49, $24
+DemonMirrorSchedule13:
+    .byte $00, $08, $00, $00, $00, $00, $00, $00
+DemonMirrorSchedule14:
+    .byte $00, $49, $24, $92, $49, $24, $92, $49
+DemonMirrorSchedule15:
+    .byte $00, $12, $49, $24, $92, $49, $24, $92
+.else
 DemonMirrorSchedule00:
     .byte $00, $00, $00, $00, $00, $00, $00, $00
 DemonMirrorSchedule01:
@@ -166,6 +200,7 @@ DemonMirrorSchedule14:
     .byte $00, $11, $11, $11, $11, $11, $11, $11
 DemonMirrorSchedule15:
     .byte $00, $22, $22, $22, $22, $22, $22, $22
+.endif
 
 .assert * - DemonMirrorSchedule00 = DemonMirrorScheduleCount * DemonMirrorScheduleSize, error, "unexpected Demon Mirror schedule data size"
 

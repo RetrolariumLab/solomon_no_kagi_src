@@ -14,6 +14,12 @@ LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
 LEVEL_DOCUMENT ?= content/workspace/$(PROFILE)/levels.json
 LEVEL_ROM ?= build/content/$(PROFILE)/solomons_key_levels.nes
+REVISION_BUILD_DIR = build/revisions/$(PROFILE)
+REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
+REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
+REVISION_DEFINE_usa = 0
+REVISION_DEFINE_europe = 1
+REVISION_DEFINE = $(REVISION_DEFINE_$(PROFILE))
 
 BUILD_DIR := build/native
 GENERATED_ASSET_DIR := assets/generated
@@ -151,7 +157,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	verify-revision-references split-revision-assets split-all \
 	revision-room-report revision-room-audit compare-revision-rooms \
 	export-levels validate-levels build-levels roundtrip-levels \
-	roundtrip-level-profiles level-summary level-studio check-level-studio
+	roundtrip-level-profiles level-summary level-studio check-level-studio \
+	build-revision verify-revision-source verify-revision-sources
 
 all: verify
 
@@ -286,6 +293,26 @@ check-level-studio:
 		--profile usa --check
 	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
 		--profile europe --check
+
+build-revision: $(CHR_ASSET) verify-build-toolchain
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \
+		source-check --profile "$(PROFILE)"
+	$(PYTHON) scripts/project.py mkdir --path "$(REVISION_BUILD_DIR)"
+	$(CA65) -D SolomonRevision=$(REVISION_DEFINE) --debug-info -g \
+		-o "$(REVISION_OBJECT)" -l "$(REVISION_BUILD_DIR)/solomons_key.lst" \
+		"src/main.asm"
+	$(LD65) -C config/linker/cnrom.cfg -o "$(REVISION_ROM)" \
+		"$(REVISION_OBJECT)" -Ln "$(REVISION_BUILD_DIR)/solomons_key.lbl" \
+		-m "$(REVISION_BUILD_DIR)/solomons_key.map" \
+		--dbgfile "$(REVISION_BUILD_DIR)/solomons_key.dbg"
+
+verify-revision-source: build-revision
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \
+		verify-source --profile "$(PROFILE)" --built "$(REVISION_ROM)"
+
+verify-revision-sources:
+	$(MAKE) verify-revision-source PROFILE=usa
+	$(MAKE) verify-revision-source PROFILE=europe
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

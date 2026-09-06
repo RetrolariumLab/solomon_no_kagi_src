@@ -119,6 +119,36 @@ def validate_asset(
             errors.append(f"{profile_id}/{asset_id} has invalid {hash_name}")
 
 
+def validate_source_range(
+    profile_id: str,
+    descriptor: object,
+    profile: dict[str, Any],
+    errors: list[str],
+) -> None:
+    if not isinstance(descriptor, dict):
+        errors.append(f"{profile_id} has an invalid verified source range")
+        return
+    range_id = descriptor.get("id")
+    region = descriptor.get("region")
+    offset = descriptor.get("offset")
+    size = descriptor.get("size")
+    if not isinstance(range_id, str) or not range_id:
+        errors.append(f"{profile_id} has a source range without an id")
+    if region not in IMAGE_REGIONS:
+        errors.append(f"{profile_id}/{range_id} has an invalid source region")
+        return
+    if not isinstance(offset, int) or offset < 0:
+        errors.append(f"{profile_id}/{range_id} has an invalid source offset")
+    if not isinstance(size, int) or size <= 0:
+        errors.append(f"{profile_id}/{range_id} has an invalid source size")
+    if isinstance(offset, int) and isinstance(size, int):
+        if offset + size > int(profile[region]["size"]):
+            errors.append(f"{profile_id}/{range_id} exceeds {region}")
+    for hash_name, length in HASH_FIELDS:
+        if not valid_hash(descriptor.get(hash_name), length):
+            errors.append(f"{profile_id}/{range_id} has invalid source {hash_name}")
+
+
 def validate_profiles(document: object) -> list[str]:
     errors: list[str] = []
     if not isinstance(document, dict) or document.get("schema_version") != 1:
@@ -146,6 +176,12 @@ def validate_profiles(document: object) -> list[str]:
             errors.append(f"{profile_id} has an unknown room layout")
         if profile.get("source_status") not in PROFILE_STATES:
             errors.append(f"{profile_id} has an invalid source status")
+        assembly_define = profile.get("assembly_define")
+        if profile.get("source_status") == "planned":
+            if assembly_define is not None:
+                errors.append(f"{profile_id} planned source has an assembly define")
+        elif not isinstance(assembly_define, int) or assembly_define < 0:
+            errors.append(f"{profile_id} has no assembly define")
         reference = profile.get("reference_rom")
         if (
             not isinstance(reference, str)
@@ -198,6 +234,31 @@ def validate_profiles(document: object) -> list[str]:
                     errors.append(f"asset path has conflicting profile data: {path}")
         if len(asset_ids) != len(set(asset_ids)):
             errors.append(f"{profile_id} has duplicate extracted asset ids")
+        source_ranges = profile.get("verified_source_ranges")
+        if not isinstance(source_ranges, list):
+            errors.append(f"{profile_id} has no verified source range list")
+        else:
+            range_ids: list[object] = []
+            occupied: dict[str, list[tuple[int, int]]] = {}
+            for source_range in source_ranges:
+                validate_source_range(profile_id, source_range, profile, errors)
+                if not isinstance(source_range, dict):
+                    continue
+                range_ids.append(source_range.get("id"))
+                region = source_range.get("region")
+                offset = source_range.get("offset")
+                size = source_range.get("size")
+                if not isinstance(region, str) or not isinstance(offset, int) or not isinstance(size, int):
+                    continue
+                span = (offset, offset + size)
+                for previous in occupied.setdefault(region, []):
+                    if span[0] < previous[1] and previous[0] < span[1]:
+                        errors.append(
+                            f"{profile_id} has overlapping verified source ranges"
+                        )
+                occupied[region].append(span)
+            if len(range_ids) != len(set(range_ids)):
+                errors.append(f"{profile_id} has duplicate verified source range ids")
         fingerprints = profile.get("room_fingerprints")
         if not isinstance(fingerprints, dict):
             errors.append(f"{profile_id} has no room fingerprints")
@@ -292,6 +353,56 @@ def verify_reference(path: Path, profile: dict[str, Any]) -> dict[str, Any]:
     for name in IMAGE_REGIONS:
         verify_payload(f"{profile['id']} {name}", parsed[name], profile[name])
     return parsed
+
+
+def require_buildable_source(profile: dict[str, Any]) -> int:
+    value = profile.get("assembly_define")
+    if profile.get("source_status") == "planned" or not isinstance(value, int):
+        raise ProjectError(f"{profile['id']} has no buildable source profile")
+    return value
+
+
+def verify_source_ranges(
+    built_path: Path,
+    reference_path: Path,
+    profile: dict[str, Any],
+) -> None:
+    parsed_reference = verify_reference(reference_path, profile)
+    if not built_path.is_file():
+        raise ProjectError(f"source-built revision image not found: {built_path}")
+    parsed_built = parse_ines(built_path.read_bytes())
+    source_ranges = profile["verified_source_ranges"]
+    if not source_ranges:
+        raise ProjectError(f"{profile['id']} has no verified source ranges")
+    checked = 0
+    for descriptor in source_ranges:
+        region_name = descriptor["region"]
+        start = descriptor["offset"]
+        end = start + descriptor["size"]
+        expected = parsed_reference[region_name][start:end]
+        actual = parsed_built[region_name][start:end]
+        verify_payload(
+            f"{profile['id']}/{descriptor['id']} reference",
+            expected,
+            descriptor,
+        )
+        if actual != expected:
+            difference = next(
+                index
+                for index, (left, right) in enumerate(zip(actual, expected))
+                if left != right
+            )
+            raise ProjectError(
+                f"{profile['id']}/{descriptor['id']} source range differs at "
+                f"{region_name} + ${start + difference:04X}: "
+                f"${actual[difference]:02X} != ${expected[difference]:02X}"
+            )
+        checked += len(actual)
+        print(
+            f"[OK] {profile['id']}/{descriptor['id']}: "
+            f"{len(actual)} source-built bytes match"
+        )
+    print(f"[OK] {profile['id']}: {checked} verified source-range bytes")
 
 
 def split_profile(
@@ -451,6 +562,17 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("list", help="list known profiles")
     identify = commands.add_parser("identify", help="identify a private ROM by SHA-256")
     identify.add_argument("--image", required=True, type=Path)
+    source_check = commands.add_parser(
+        "source-check", help="require a buildable source profile"
+    )
+    source_check.add_argument("--profile", required=True)
+    verify_source = commands.add_parser(
+        "verify-source", help="verify declared source-built ranges"
+    )
+    verify_source.add_argument("--profile", required=True)
+    verify_source.add_argument("--built", required=True, type=Path)
+    verify_source.add_argument("--private-root", type=Path, default=ROOT)
+    verify_source.add_argument("--reference-rom", type=Path)
     for name, help_text in (
         ("verify", "verify private reference images"),
         ("split", "extract manifest-owned private assets"),
@@ -516,6 +638,20 @@ def main() -> int:
             image = args.image.read_bytes()
             profile = identify_profile(document, image)
             print_profile(profile)
+        elif args.command == "source-check":
+            profile = get_profile(document, args.profile)
+            value = require_buildable_source(profile)
+            print(
+                f"[OK] {profile['id']}: source={profile['source_status']} "
+                f"assembly define={value}"
+            )
+        elif args.command == "verify-source":
+            profile = get_profile(document, args.profile)
+            require_buildable_source(profile)
+            reference = resolve_reference(
+                profile, args.private_root, args.reference_rom
+            )
+            verify_source_ranges(args.built, reference, profile)
         elif args.command in {"verify", "split"}:
             profiles = selected_profiles(document, args.profile, args.all_profiles)
             run_selected(

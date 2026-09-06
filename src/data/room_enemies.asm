@@ -2,8 +2,34 @@
 
 RoomEnemyStreamCount = 53
 
-.macro RoomEnemySpawnLifetime encoded_value
-    .byte encoded_value
+.macro RoomEnemySpawnLifetime ntsc_value
+    .if SolomonRevision = SolomonRevisionEurope
+        .if ntsc_value = $20
+            .byte $20
+        .elseif ntsc_value = $02
+            .byte $A1
+        .elseif ntsc_value = $82
+            .byte $02
+        .elseif ntsc_value = $41
+            .byte $01
+        .elseif ntsc_value = $C0
+            .byte $80
+        .elseif ntsc_value = $01
+            .byte $A0
+        .elseif ntsc_value = $81
+            .byte $21
+        .elseif ntsc_value = $C1
+            .byte $61
+        .elseif ntsc_value = $42
+            .byte $A1
+        .elseif ntsc_value = $E1
+            .byte $81
+        .else
+            .error "unmapped PAL room enemy spawn lifetime"
+        .endif
+    .else
+        .byte ntsc_value
+    .endif
 .endmacro
 
 .macro RoomEnemyRecord enemy_type, map_position
