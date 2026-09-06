@@ -15,6 +15,20 @@ import level_studio
 import level_preview
 
 
+def blank_tile_patterns() -> list[dict[str, int]]:
+    return [
+        {
+            "index": index,
+            "palette": 0,
+            "top_left": 0,
+            "top_right": 0,
+            "bottom_left": 0,
+            "bottom_right": 0,
+        }
+        for index in range(58)
+    ]
+
+
 def room_metadata() -> dict[str, object]:
     return {
         "mirror_2_schedule": 0,
@@ -38,7 +52,7 @@ def studio_document() -> dict[str, object]:
         "source_profile": "usa",
         "source_rom_sha256": "0" * 64,
         "dimensions": {"width": 16, "height": 12},
-        "tile_patterns": [],
+        "tile_patterns": blank_tile_patterns(),
         "mirror_schedules": [],
         "mirror_enemy_sets": [],
         "rooms": [
@@ -148,6 +162,16 @@ class TypeCatalogTests(unittest.TestCase):
                 ):
                     level_studio.parse_type_choice(invalid, "item type")
 
+    def test_room_map_catalog_covers_every_shared_pattern(self) -> None:
+        self.assertEqual(len(level_studio.ROOM_MAP_PATTERN_CHOICES), 58)
+        self.assertEqual(
+            level_studio.room_map_pattern_name(0x00),
+            "Brown block / default solid cell",
+        )
+        self.assertEqual(
+            level_studio.room_map_pattern_name(0x38), "White Tecmo Bunny"
+        )
+
 
 class DirtyStateTests(unittest.TestCase):
     def test_new_model_is_clean(self) -> None:
@@ -178,6 +202,38 @@ class DirtyStateTests(unittest.TestCase):
         for index in range(120):
             model.set_anchor(0, "key", index % 16, (index // 16) % 12)
         self.assertLessEqual(len(model.undo_stack), 100)
+
+
+class TilePatternEditingTests(unittest.TestCase):
+    def test_updates_shared_pattern_as_one_undoable_change(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.set_tile_pattern(8, 2, (0x40, 0x41, 0x42, 0x43)))
+        self.assertEqual(
+            model.document["tile_patterns"][8],
+            {
+                "index": 8,
+                "palette": 2,
+                "top_left": 0x40,
+                "top_right": 0x41,
+                "bottom_left": 0x42,
+                "bottom_right": 0x43,
+            },
+        )
+        self.assertTrue(model.undo())
+        self.assertEqual(model.document["tile_patterns"][8]["top_left"], 0)
+
+    def test_unchanged_pattern_does_not_create_undo_record(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertFalse(model.set_tile_pattern(8, 0, (0, 0, 0, 0)))
+        self.assertEqual(model.undo_stack, [])
+
+    def test_rejects_palette_overlap_and_invalid_table(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "low two bits"):
+            model.set_tile_pattern(8, 0, (0x41, 0x42, 0x43, 0x44))
+        model.document["tile_patterns"].pop()
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "58 records"):
+            model.set_tile_pattern(8, 0, (0x40, 0x42, 0x43, 0x44))
 
 
 class BlockEditingTests(unittest.TestCase):
@@ -751,6 +807,18 @@ class NativePreviewTests(unittest.TestCase):
         self.assertEqual(pixel(0, 0), level_preview.NES_RGB[palette[1]])
         self.assertEqual(pixel(16, 0), level_preview.NES_RGB[palette[2]])
         self.assertEqual(pixel(32, 0), level_preview.NES_RGB[palette[3]])
+
+    def test_renders_one_shared_pattern_for_the_selected_room_art(self) -> None:
+        document = {"tile_patterns": preview_patterns(), "rooms": [preview_room()]}
+        chr_data = chr_with_uniform_tiles({(1, 8): 2})
+        preview = level_preview.LevelPreviewRenderer(document, chr_data).render_pattern(
+            0, 8
+        )
+        self.assertEqual(
+            (preview.width, preview.height, preview.chr_bank), (16, 16, 1)
+        )
+        palette = level_preview.room_palette(0)
+        self.assertEqual(tuple(preview.rgb[:3]), level_preview.NES_RGB[palette[2]])
 
     def test_projects_packed_flags_to_both_oam_attributes(self) -> None:
         self.assertEqual(level_preview.sprite_attributes(0xF0), (0xC3, 0x00))

@@ -450,6 +450,32 @@ class LevelPreviewRenderer:
         index = bank * CHR_TILES_PER_BANK + BACKGROUND_PATTERN_BASE + tile
         return self.tiles[index]
 
+    def render_pattern(self, room_index: int, pattern_index: int) -> RoomPreview:
+        """Render one shared RoomMap pattern with a room's CHR and palette."""
+        rooms = self.document.get("rooms")
+        if not isinstance(rooms, list) or not 0 <= room_index < len(rooms):
+            raise LevelPreviewError("room index is outside the level document")
+        bank = room_chr_bank(rooms[room_index])
+        palette = room_palette(room_index)
+        rgb = bytearray(METATILE_SIZE * METATILE_SIZE * 3)
+        self._draw_metatile(
+            rgb,
+            METATILE_SIZE,
+            0,
+            0,
+            bank,
+            palette,
+            document_pattern(self.document, pattern_index),
+        )
+        return RoomPreview(
+            METATILE_SIZE,
+            METATILE_SIZE,
+            bytes(rgb),
+            bank,
+            palette,
+            (),
+        )
+
     def render(self, room_index: int) -> RoomPreview:
         rooms = self.document.get("rooms")
         if not isinstance(rooms, list) or not 0 <= room_index < len(rooms):

@@ -357,6 +357,17 @@ when the same byte appears as the payload of a repeat command. Names are
 cross-checked against `skchain`, while gameplay-effect wording follows this
 reconstruction's handler analysis in `docs/room_map_tiles.md`.
 
+`RoomMap art` edits all 58 shared four-tile graphics records used by initial
+room rendering and incremental cell updates. Each record exposes its semantic
+identity, background subpalette, and four NES tile indices. The dialog renders
+the selected record with the active room's real CHR bank and palette, and lists
+every initial room preview that currently references it with per-room cell
+counts; records used only by transitions remain available explicitly. Because
+the original format overlays the two palette bits on the top-left tile byte,
+the editor requires that tile index to be a multiple of four. Edits are global,
+undoable, immediately redraw the room, and are encoded through the existing
+fixed-size 232-byte round-trip codec.
+
 `Tileset` edits the terminating item-stream command. Ordinary rooms can select
 any of the four CHR banks while preserving the terminator's otherwise unused
 low bits. A room may also be converted to or from a positioned zodiac command;

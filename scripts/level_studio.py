@@ -30,7 +30,16 @@ from level_editor import (
     save_document,
     validate_rebuilt_document,
 )
-from level_preview import LevelPreviewError, LevelPreviewRenderer, METATILE_SIZE
+from level_preview import (
+    METATILE_SIZE,
+    ROOM_MAP_EMPTY,
+    LevelPreviewError,
+    LevelPreviewRenderer,
+    classify_pattern,
+    constellation_command,
+    constellation_pattern,
+    room_map_values,
+)
 from project import ProjectError, parse_ines, write_if_changed
 from revision_profiles import (
     ROOT,
@@ -39,7 +48,12 @@ from revision_profiles import (
     resolve_reference,
     verify_reference,
 )
-from room_data import ENEMY_TYPE_MAXIMUM, ENEMY_TYPE_MINIMUM, RoomDataError
+from room_data import (
+    ENEMY_TYPE_MAXIMUM,
+    ENEMY_TYPE_MINIMUM,
+    ROOM_TILE_PATTERN_COUNT,
+    RoomDataError,
+)
 
 
 PIXEL_SCALE = 2
@@ -296,6 +310,29 @@ CONSTELLATION_TYPE_CHOICES = tuple(
 )
 
 
+def room_map_pattern_name(value: int) -> str:
+    structural_names = {
+        0x00: "Brown block / default solid cell",
+        0x01: "Damaged or covered brown block",
+        0x02: "Closed door",
+        0x03: "White block / immutable cell",
+        0x06: "Key",
+        0x07: "Open door",
+        0x10: "Empty cell",
+        0x34: "Door transition",
+        0x35: "Deferred door / extra-life graphic",
+    }
+    return structural_names.get(
+        value, ITEM_IDENTITY_NAMES.get(value, "Unclassified RoomMap pattern")
+    )
+
+
+ROOM_MAP_PATTERN_CHOICES = tuple(
+    type_choice(value, room_map_pattern_name(value))
+    for value in range(ROOM_TILE_PATTERN_COUNT)
+)
+
+
 def combined_block_positions(blocks: dict[str, Any]) -> set[tuple[int, int]]:
     brown = {(position["x"], position["y"]) for position in blocks["brown"]}
     white = {(position["x"], position["y"]) for position in blocks["white"]}
@@ -537,6 +574,54 @@ class StudioDocument:
             for key, value in new_values.items():
                 if key != "spawn_lifetime":
                     metadata[key] = value
+            return True
+
+        return self.mutate(apply)
+
+    def set_tile_pattern(
+        self,
+        pattern_index: int,
+        palette: int,
+        tiles: tuple[int, int, int, int],
+    ) -> bool:
+        patterns = self.document.get("tile_patterns")
+        if (
+            not isinstance(patterns, list)
+            or len(patterns) != ROOM_TILE_PATTERN_COUNT
+        ):
+            raise LevelEditorError(
+                f"RoomMap tile pattern table must have {ROOM_TILE_PATTERN_COUNT} records"
+            )
+        if (
+            not isinstance(pattern_index, int)
+            or not 0 <= pattern_index < ROOM_TILE_PATTERN_COUNT
+        ):
+            raise LevelEditorError(
+                f"RoomMap tile pattern index must be 0..{ROOM_TILE_PATTERN_COUNT - 1}"
+            )
+        if not isinstance(palette, int) or not 0 <= palette <= 3:
+            raise LevelEditorError("RoomMap tile pattern palette must be 0..3")
+        if len(tiles) != 4 or any(
+            not isinstance(tile, int) or not 0 <= tile <= 0xFF for tile in tiles
+        ):
+            raise LevelEditorError("RoomMap tile bytes must be within $00..$FF")
+        if tiles[0] & 3:
+            raise LevelEditorError(
+                "RoomMap top-left tile must leave its low two bits for the palette"
+            )
+        replacement = {
+            "index": pattern_index,
+            "palette": palette,
+            "top_left": tiles[0],
+            "top_right": tiles[1],
+            "bottom_left": tiles[2],
+            "bottom_right": tiles[3],
+        }
+
+        def apply() -> bool:
+            if patterns[pattern_index] == replacement:
+                return False
+            patterns[pattern_index] = replacement
             return True
 
         return self.mutate(apply)
@@ -1050,6 +1135,190 @@ class RoomTerminatorDialog(tk.Toplevel):
             messagebox.showerror("Invalid room ending", str(exc), parent=self)
 
 
+class RoomMapPatternDialog(tk.Toplevel):
+    """Edit the 58 shared four-tile records used by RoomMap rendering."""
+
+    PREVIEW_SCALE = 8
+
+    def __init__(self, studio: "LevelStudio") -> None:
+        super().__init__(studio)
+        self.studio = studio
+        self.pattern_choice = tk.StringVar(value=ROOM_MAP_PATTERN_CHOICES[0])
+        self.palette = tk.IntVar(value=0)
+        self.tile_values = [tk.StringVar() for _ in range(4)]
+        self.references = tk.StringVar()
+        self.preview_summary = tk.StringVar()
+        self.preview_image: tk.PhotoImage | None = None
+        self.title(f"RoomMap tile patterns [{studio.profile['id']}]")
+        self.resizable(False, False)
+        self.transient(studio)
+        self.build_ui()
+        self.load_pattern()
+
+    def build_ui(self) -> None:
+        body = ttk.Frame(self, padding=10)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text="Shared pattern").grid(row=0, column=0, sticky="w")
+        pattern_box = ttk.Combobox(
+            body,
+            textvariable=self.pattern_choice,
+            values=ROOM_MAP_PATTERN_CHOICES,
+            state="readonly",
+            width=49,
+        )
+        pattern_box.grid(row=0, column=1, columnspan=2, sticky="ew", padx=(8, 0))
+        pattern_box.bind("<<ComboboxSelected>>", self.load_pattern)
+
+        fields = ttk.LabelFrame(body, text="Encoded four-tile record", padding=8)
+        fields.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        ttk.Label(fields, text="Palette").grid(row=0, column=0, sticky="w")
+        ttk.Spinbox(
+            fields,
+            from_=0,
+            to=3,
+            textvariable=self.palette,
+            width=5,
+        ).grid(row=0, column=1, sticky="w", padx=(8, 0))
+        for row, (label, variable) in enumerate(
+            zip(
+                ("Top left", "Top right", "Bottom left", "Bottom right"),
+                self.tile_values,
+            ),
+            start=1,
+        ):
+            ttk.Label(fields, text=label).grid(
+                row=row, column=0, sticky="w", pady=(5, 0)
+            )
+            ttk.Entry(fields, textvariable=variable, width=8).grid(
+                row=row, column=1, sticky="w", padx=(8, 0), pady=(5, 0)
+            )
+        ttk.Label(
+            fields,
+            text=(
+                "Hexadecimal NES background tile indices. The top-left byte's "
+                "low two bits store the palette, so its tile value must be a "
+                "multiple of four."
+            ),
+            wraplength=300,
+            justify="left",
+        ).grid(row=0, column=2, rowspan=5, sticky="nw", padx=(14, 0))
+
+        preview_frame = ttk.LabelFrame(body, text="Native preview", padding=8)
+        preview_frame.grid(row=2, column=0, sticky="nw", pady=(10, 0))
+        size = METATILE_SIZE * self.PREVIEW_SCALE
+        self.preview_canvas = tk.Canvas(
+            preview_frame,
+            width=size,
+            height=size,
+            bg="#101820",
+            highlightthickness=0,
+        )
+        self.preview_canvas.pack()
+        ttk.Label(
+            preview_frame,
+            textvariable=self.preview_summary,
+            wraplength=size,
+            justify="left",
+        ).pack(anchor="w", pady=(6, 0))
+
+        ttk.Label(
+            body,
+            textvariable=self.references,
+            wraplength=360,
+            justify="left",
+        ).grid(
+            row=2,
+            column=1,
+            columnspan=2,
+            sticky="nw",
+            padx=(12, 0),
+            pady=(12, 0),
+        )
+        ttk.Button(body, text="Apply shared pattern", command=self.apply).grid(
+            row=3, column=0, columnspan=3, sticky="ew", pady=(10, 0)
+        )
+
+    def selected_index(self) -> int:
+        return parse_type_choice(self.pattern_choice.get(), "RoomMap pattern")
+
+    def reference_summary(self, pattern_index: int) -> str:
+        room_counts: list[tuple[int, int]] = []
+        for room_index, room in enumerate(self.studio.model.document["rooms"]):
+            command = constellation_command(room)
+            count = 0
+            for y, row in enumerate(room_map_values(room)):
+                for x, value in enumerate(row):
+                    if (
+                        value == ROOM_MAP_EMPTY
+                        and constellation_pattern(command, x, y) is not None
+                    ):
+                        continue
+                    if classify_pattern(value) == pattern_index:
+                        count += 1
+            if count:
+                room_counts.append((room_index + 1, count))
+        total = sum(count for _, count in room_counts)
+        room_text = ", ".join(
+            f"{number:02d} ({count})" for number, count in room_counts
+        )
+        if not room_text:
+            room_text = "none; this may be a transition-only pattern"
+        return (
+            f"Initial native room previews use this shared record in {total} "
+            f"cell(s).\nRooms (cell count): {room_text}"
+        )
+
+    def refresh_preview(self, pattern_index: int) -> None:
+        self.studio.preview_renderer.document = self.studio.model.document
+        room_index = self.studio.room_index.get()
+        preview = self.studio.preview_renderer.render_pattern(room_index, pattern_index)
+        base = tk.PhotoImage(data=preview.ppm(), format="PPM")
+        self.preview_image = base.zoom(self.PREVIEW_SCALE, self.PREVIEW_SCALE)
+        self.preview_canvas.delete("all")
+        self.preview_canvas.create_image(
+            0, 0, image=self.preview_image, anchor="nw"
+        )
+        self.preview_summary.set(
+            f"Room {room_index + 1:02d}\nCHR bank {preview.chr_bank}, "
+            f"palette {self.palette.get()}"
+        )
+
+    def load_pattern(self, _event: object = None) -> None:
+        try:
+            pattern_index = self.selected_index()
+            pattern = self.studio.model.document["tile_patterns"][pattern_index]
+            self.palette.set(pattern["palette"])
+            for variable, field in zip(
+                self.tile_values,
+                ("top_left", "top_right", "bottom_left", "bottom_right"),
+            ):
+                variable.set(f"${pattern[field]:02X}")
+            self.references.set(self.reference_summary(pattern_index))
+            self.refresh_preview(pattern_index)
+        except (IndexError, KeyError, LevelEditorError, LevelPreviewError) as exc:
+            messagebox.showerror("Invalid RoomMap pattern", str(exc), parent=self)
+
+    def apply(self) -> None:
+        try:
+            pattern_index = self.selected_index()
+            tiles = tuple(
+                parse_type_choice(variable.get(), "RoomMap tile")
+                for variable in self.tile_values
+            )
+            changed = self.studio.model.set_tile_pattern(
+                pattern_index,
+                self.palette.get(),
+                tiles,
+            )
+            self.studio.redraw()
+            self.load_pattern()
+            self.studio.set_status(
+                "Shared RoomMap pattern updated" if changed else "No change"
+            )
+        except (tk.TclError, LevelEditorError, LevelPreviewError) as exc:
+            messagebox.showerror("Invalid RoomMap pattern", str(exc), parent=self)
+
+
 class MirrorDataDialog(tk.Toplevel):
     """Edit the shared schedule and cyclic enemy-set tables used by rooms."""
 
@@ -1314,6 +1583,7 @@ class LevelStudio(tk.Tk):
             ("Save", self.save),
             ("Build ROM", self.build_rom),
             ("Tileset", self.open_room_terminator),
+            ("RoomMap art", self.open_room_map_patterns),
             ("Mirror data", self.open_mirror_data),
             ("Play", self.play),
             ("Stop", self.stop_playtest),
@@ -1462,6 +1732,9 @@ class LevelStudio(tk.Tk):
 
     def open_mirror_data(self) -> None:
         MirrorDataDialog(self)
+
+    def open_room_map_patterns(self) -> None:
+        RoomMapPatternDialog(self)
 
     def open_room_terminator(self) -> None:
         RoomTerminatorDialog(self)

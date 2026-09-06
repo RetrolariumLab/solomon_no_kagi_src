@@ -707,6 +707,20 @@ class LevelPackingTests(unittest.TestCase):
         self.assertEqual(usage["room_blocks"], (2544, 2544))
         level_editor.validate_rebuilt_document(document, rebuilt, profile)
 
+    def test_modified_room_map_pattern_survives_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["tile_patterns"][8] = {
+            "index": 8,
+            "palette": 3,
+            "top_left": 0x40,
+            "top_right": 0x41,
+            "bottom_left": 0x42,
+            "bottom_right": 0x43,
+        }
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(decoded["tile_patterns"][8], document["tile_patterns"][8])
+
     def test_modified_combined_block_survives_build_and_decode(self) -> None:
         document, image, profile = empty_level_fixture()
         document["rooms"][0]["blocks"]["brown"].append({"x": 4, "y": 5})

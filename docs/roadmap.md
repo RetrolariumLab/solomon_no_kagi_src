@@ -379,9 +379,12 @@ passes on the reviewed `main` commit.
   enemy sets with room-reference, loop-boundary, enemy-type, and original
   allocation checks. Complete semantic enemy and item catalogs expose the raw
   byte together with family, direction, speed, visibility, and block-state
-  meaning. The room-terminator editor also exposes all four CHR banks and safe
-  conversion between normal and positioned zodiac endings without pretending
-  their shared opcode fields are independent.
+  meaning. Its RoomMap-art dialog edits all 58 shared palette/four-tile records,
+  previews them with the active room's native CHR and palette, and reports
+  initial-room references without hiding transition-only patterns. The
+  room-terminator editor also exposes all four CHR banks and safe conversion
+  between normal and positioned zodiac endings without pretending their shared
+  opcode fields are independent.
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
