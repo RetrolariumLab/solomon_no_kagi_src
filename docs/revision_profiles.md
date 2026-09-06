@@ -493,9 +493,13 @@ make export-audio PROFILE=europe
 The defaults are `content/workspace/usa/audio.json` and
 `content/workspace/europe/audio.json`. Like a level document, each file binds
 itself to one source profile and the complete source-ROM SHA-256. It exposes
-the 12 pitch periods, 26 duration values, regional timing tail, eight volume
-envelopes, all 26 sound-effect descriptors, 114 stream entry points, the
-complete physical command area, and regional trailing bytes up to the vectors.
+the 12 pitch periods, 26 NTSC or 64 PAL duration values, regional timing tail,
+eight volume envelopes, all 26 sound-effect descriptors, 114 stream entry
+points, the complete physical command area, and regional trailing bytes up to
+the vectors. PAL needs the full six-bit duration index space: stock commands
+use indices through 52, so only the final two bytes before the envelope pointer
+table are non-duration tail data. Schema 2 corrects the earlier 26/40 split;
+schema-1 workspaces are migrated losslessly when loaded.
 
 Audio control flow is authored symbolically. The exporter assigns stable
 `stream_000` through `stream_113` identities to every entry and uses those
@@ -568,8 +572,27 @@ make check-sound-studio
 ```
 
 This validates all 114 non-empty entry projections after a complete codec
-round trip. Auditory preview and higher-level composition naming remain later
-Sound Studio depth; they must build on this same physical command graph.
+round trip and traces every effect through the command VM for 180 frames.
+
+`Preview effect` traces the selected descriptor through the reconstructed
+eight-channel sequencer and writes an ignored WAV beside the content ROM.
+Call, jump, return, counted-loop, duration, envelope, control, and primary-over-
+secondary channel behavior follow `src/system/audio_engine.asm`. The renderer
+then models both pulse channels, triangle, short/long noise LFSR modes, the NES
+nonlinear pulse/TND mixer, and the two-high-pass/one-low-pass output chain.
+NTSC uses 60.0988 Hz and the 1.789773 MHz CPU clock; PAL uses 50.0070 Hz, the
+1.662607 MHz clock, and its own noise periods.
+
+Render the same preview without opening Tk with:
+
+```console
+make preview-audio PROFILE=usa AUDIO_EFFECT=5 AUDIO_PREVIEW_SECONDS=12
+```
+
+The synthetic preview is intended for fast authoring feedback. The current
+renderer does not emulate the pulse sweep unit cycle for cycle, so final sound
+decisions must still be checked in the built ROM. Higher-level composition
+naming remains later Sound Studio depth.
 
 ## Remaining Source 2.0 work
 
@@ -580,8 +603,8 @@ patching. The remaining release work is now evidence and authoring depth:
 
 1. add Europe-specific debugger symbols and deterministic PAL runtime traces;
 2. make the remaining structured-data audits profile-aware where PAL differs;
-3. add auditory composition/effect preview to Sound Studio, then author the
-   other significant structured formats;
+3. add higher-level composition naming and final emulator audition to Sound
+   Studio, then author the other significant structured formats;
 4. create the Source Reconstruction 2.0 manifest and aggregate release gate;
 5. keep Japanese reconstruction as a later, explicitly scoped profile.
 

@@ -12,6 +12,7 @@ from tkinter import messagebox, ttk
 from typing import Any, Callable
 
 import audio_editor
+import audio_preview
 from project import ProjectError, write_if_changed
 from revision_profiles import (
     ROOT,
@@ -215,6 +216,15 @@ class SoundStudioDocument:
     def build(self) -> str:
         return write_if_changed(self.output, self.rebuilt_image())
 
+    def preview(
+        self, effect_number: int, seconds: float
+    ) -> tuple[Path, audio_preview.PreviewTrace]:
+        path = self.output.with_name(f"effect{effect_number:02d}-preview.wav")
+        trace = audio_preview.write_preview(
+            self.document, self.profile, effect_number, path, seconds
+        )
+        return path, trace
+
 
 def load_studio_document(
     profile: dict[str, Any], reference: Path, path: Path, output: Path
@@ -239,6 +249,7 @@ class SoundStudio(tk.Tk):
         self.effect_number = tk.IntVar(value=1)
         self.effect_channel = tk.StringVar(value=CHANNEL_NAMES[0])
         self.effect_stream = tk.StringVar(value="stream_000")
+        self.preview_seconds = tk.StringVar(value="12")
         self.envelope_number = tk.IntVar(value=0)
         self.envelope_duration = tk.StringVar()
         self.envelope_volume = tk.StringVar()
@@ -360,6 +371,13 @@ class SoundStudio(tk.Tk):
         )
         box.pack(side="left", padx=6)
         box.bind("<<ComboboxSelected>>", lambda _event: self.refresh_effect())
+        ttk.Label(row, text="Preview seconds").pack(side="left", padx=(16, 0))
+        ttk.Entry(row, width=7, textvariable=self.preview_seconds).pack(
+            side="left", padx=6
+        )
+        ttk.Button(row, text="Preview effect", command=self.preview_effect).pack(
+            side="left", padx=4
+        )
         body = ttk.Panedwindow(parent, orient="horizontal")
         body.pack(fill="both", expand=True)
         listing = ttk.Frame(body)
@@ -665,6 +683,34 @@ class SoundStudio(tk.Tk):
         if action is not None:
             self.status.set(f"[{action}] audio ROM: {self.model.output}")
 
+    def preview_effect(self) -> None:
+        try:
+            seconds = float(self.preview_seconds.get())
+        except ValueError:
+            messagebox.showerror(
+                "Sound Studio", "Preview seconds is not a number", parent=self
+            )
+            return
+        result = self.guarded(
+            lambda: self.model.preview(self.effect_number.get(), seconds)
+        )
+        if result is None:
+            return
+        path, trace = result
+        try:
+            import winsound
+
+            winsound.PlaySound(
+                str(path), winsound.SND_FILENAME | winsound.SND_ASYNC
+            )
+            action = "playing"
+        except (ImportError, RuntimeError):
+            action = "wrote"
+        self.status.set(
+            f"{action} effect {self.effect_number.get():02d}: "
+            f"{len(trace.frames)} frames, {trace.note_events} notes — {path}"
+        )
+
     def close(self) -> None:
         if self.model.dirty and not messagebox.askyesno(
             "Sound Studio", "Discard unsaved audio changes?", parent=self
@@ -686,7 +732,13 @@ def check_profile(profile: dict[str, Any], reference: Path) -> str:
     spans = stream_spans(model.document["commands"])
     if len(spans) != 114 or any(start >= end for start, end in spans.values()):
         raise audio_editor.AudioEditorError("invalid Sound Studio stream projection")
-    return audio_editor.document_summary(model.document)
+    traces = [
+        audio_preview.trace_effect(model.document, effect, 180)
+        for effect in range(1, 27)
+    ]
+    if any(not trace.frames or trace.note_events == 0 for trace in traces):
+        raise audio_preview.AudioPreviewError("an effect produced no preview notes")
+    return f"{audio_editor.document_summary(model.document)}, 26 traced effects"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -716,6 +768,7 @@ def main() -> int:
         SoundStudio(load_studio_document(profile, reference, document, output)).mainloop()
     except (
         audio_editor.AudioEditorError,
+        audio_preview.AudioPreviewError,
         RoomDataError,
         ProjectError,
         OSError,

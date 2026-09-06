@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -17,7 +18,6 @@ from audio_data import (
     AudioLayout,
     collect_command_map,
     cpu_slice,
-    decode_durations,
     decode_envelopes,
     decode_periods,
     decode_sound_effects,
@@ -34,7 +34,7 @@ from revision_profiles import (
 from room_data import RoomDataError
 
 
-DOCUMENT_SCHEMA = 1
+DOCUMENT_SCHEMA = 2
 DOCUMENT_GAME = "solomons-key-nes-audio"
 STREAM_ENTRY_COUNT = 114
 COMMAND_NAMES = {
@@ -122,6 +122,11 @@ def profile_layout(profile: dict[str, Any]) -> AudioLayout:
     return AUDIO_LAYOUTS[identifier]
 
 
+def editable_duration_count(layout: AudioLayout) -> int:
+    """Expose every byte reachable through the engine's six-bit duration index."""
+    return min(0x40, layout.envelope_pointer_table - layout.duration_table)
+
+
 def export_document(prg: bytes, profile: dict[str, Any]) -> dict[str, Any]:
     layout = profile_layout(profile)
     _, envelopes = decode_envelopes(prg, layout)
@@ -143,7 +148,8 @@ def export_document(prg: bytes, profile: dict[str, Any]) -> dict[str, Any]:
         commands.append(record)
         cursor += 1 + len(command.arguments)
 
-    timing_tail_start = layout.duration_table + layout.duration_count
+    duration_count = editable_duration_count(layout)
+    timing_tail_start = layout.duration_table + duration_count
     timing_tail = (
         list(
             cpu_slice(
@@ -168,7 +174,14 @@ def export_document(prg: bytes, profile: dict[str, Any]) -> dict[str, Any]:
         "source_profile": profile["id"],
         "source_rom_sha256": profile["rom"]["sha256"],
         "periods": decode_periods(prg, layout),
-        "durations": decode_durations(prg, layout),
+        "durations": list(
+            cpu_slice(
+                prg,
+                layout.duration_table,
+                layout.duration_table + duration_count - 1,
+                "audio durations",
+            )
+        ),
         "timing_tail": timing_tail,
         "envelopes": [
             {
@@ -293,14 +306,15 @@ def encode_document(
     if any(not isinstance(period, int) or not 0 <= period <= 0xFFFF for period in periods):
         raise AudioEditorError("audio period is outside $0000..$FFFF")
     durations = document.get("durations")
-    if not isinstance(durations, list) or len(durations) != layout.duration_count:
-        raise AudioEditorError(f"durations must contain {layout.duration_count} bytes")
+    duration_count = editable_duration_count(layout)
+    if not isinstance(durations, list) or len(durations) != duration_count:
+        raise AudioEditorError(f"durations must contain {duration_count} bytes")
     duration_bytes = bytes(
         byte_value(duration, "duration") for duration in durations
     )
     timing_tail = document.get("timing_tail")
     tail_size = layout.envelope_pointer_table - (
-        layout.duration_table + layout.duration_count
+        layout.duration_table + duration_count
     )
     if not isinstance(timing_tail, list) or len(timing_tail) != tail_size:
         raise AudioEditorError(f"audio timing tail must contain {tail_size} bytes")
@@ -438,7 +452,29 @@ def load_document(path: Path) -> dict[str, Any]:
         raise AudioEditorError(f"cannot read audio document {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise AudioEditorError("audio document is not an object")
-    return value
+    return upgrade_document(value)
+
+
+def upgrade_document(document: dict[str, Any]) -> dict[str, Any]:
+    """Migrate the short-lived schema 1 PAL duration/tail split losslessly."""
+    if document.get("schema_version") == DOCUMENT_SCHEMA:
+        return document
+    if document.get("schema_version") != 1:
+        return document
+    upgraded = copy.deepcopy(document)
+    durations = upgraded.get("durations")
+    timing_tail = upgraded.get("timing_tail")
+    if not isinstance(durations, list) or not isinstance(timing_tail, list):
+        return upgraded
+    if upgraded.get("source_profile") == "europe":
+        if len(durations) != 26 or len(timing_tail) != 40:
+            return upgraded
+        durations.extend(timing_tail[:38])
+        upgraded["timing_tail"] = timing_tail[38:]
+    elif len(durations) != 26 or timing_tail:
+        return upgraded
+    upgraded["schema_version"] = DOCUMENT_SCHEMA
+    return upgraded
 
 
 def save_document(path: Path, document: dict[str, Any]) -> str:

@@ -55,7 +55,7 @@ Ordinary bytes encode notes. `$80-$EF` select a duration through the table at
 | `$F5` | push a counted-loop frame |
 | `$F6` | decrement/repeat or pop a counted-loop frame |
 | `$F7` | write one hardware sweep register |
-| `$F8` | replace the low six control bits |
+| `$F8` | preserve the low six control bits and merge one control byte |
 | `$F9` | clear the current active bit and leave stream decoding |
 
 The per-channel record provides a compact stack beginning at offset 9 for
@@ -87,3 +87,11 @@ identities before decoding 26 effects and 114 reachable stream entries per
 profile. The PAL audit records 2,255 commands and proves that its complete
 stream range round-trips byte-for-byte; this structural evidence is the base
 for the 2.0 music editor and for profile-selected stream source.
+
+The PAL gap from `$F300` to `$F341` is not merely a 26-byte primary duration
+table plus opaque padding. Stream tokens mask their duration index to six bits,
+and PAL stock streams use indices through 52. Sound Studio therefore exposes
+the first 64 bytes as the complete addressable PAL duration table and retains
+only the final two bytes as timing tail. NTSC stock streams use indices through
+24 and its envelope pointer table begins immediately after the 26 declared
+duration bytes.

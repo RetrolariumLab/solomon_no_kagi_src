@@ -3,12 +3,15 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+import wave
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import audio_editor
+import audio_preview
 import sound_studio
 from audio_data import (
     AUDIO_STREAM_DATA,
@@ -166,6 +169,32 @@ class AudioEditorTests(unittest.TestCase):
                 self.assertEqual(rebuilt, original)
                 audio_editor.validate_rebuilt_document(document, rebuilt, profile)
 
+    def test_pal_document_exposes_the_full_six_bit_duration_table(self) -> None:
+        profile, reference = audio_case("europe")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        referenced = [
+            command["value"] & 0x3F
+            for command in document["commands"]
+            if command["kind"] == "duration"
+        ]
+        self.assertEqual(len(document["durations"]), 64)
+        self.assertEqual(len(document["timing_tail"]), 2)
+        self.assertGreater(max(referenced), 25)
+        self.assertLess(max(referenced), len(document["durations"]))
+
+    def test_migrates_schema_one_pal_duration_storage_without_loss(self) -> None:
+        profile, reference = audio_case("europe")
+        current = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        legacy = copy.deepcopy(current)
+        legacy["schema_version"] = 1
+        legacy["timing_tail"] = legacy["durations"][26:] + legacy["timing_tail"]
+        legacy["durations"] = legacy["durations"][:26]
+        self.assertEqual(audio_editor.upgrade_document(legacy), current)
+
     def test_reflows_symbolic_stream_entries_when_command_sizes_change(self) -> None:
         profile, reference = audio_case("usa")
         original = reference.read_bytes()
@@ -289,6 +318,40 @@ class SoundStudioTests(unittest.TestCase):
         self.assertEqual(sound_studio.parse_integer("$2A", "value"), 0x2A)
         self.assertEqual(sound_studio.parse_integer("0x2a", "value"), 0x2A)
         self.assertEqual(sound_studio.parse_integer("42", "value"), 42)
+
+
+class AudioPreviewTests(unittest.TestCase):
+    def test_traces_every_effect_for_both_console_timings(self) -> None:
+        for profile_id in ("usa", "europe"):
+            profile, reference = audio_case(profile_id)
+            document = audio_editor.export_document(
+                parse_ines(reference.read_bytes())["prg"], profile
+            )
+            for effect in range(1, 27):
+                with self.subTest(profile=profile_id, effect=effect):
+                    trace = audio_preview.trace_effect(document, effect, 180)
+                    self.assertTrue(trace.frames)
+                    self.assertGreater(trace.note_events, 0)
+                    self.assertEqual(len(trace.frames[0]), 4)
+
+    def test_writes_non_silent_mono_preview_at_requested_sample_rate(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "effect.wav"
+            trace = audio_preview.write_preview(
+                document, profile, 5, path, 0.2, sample_rate=8_000
+            )
+            with wave.open(str(path), "rb") as source:
+                self.assertEqual(source.getnchannels(), 1)
+                self.assertEqual(source.getsampwidth(), 2)
+                self.assertEqual(source.getframerate(), 8_000)
+                payload = source.readframes(source.getnframes())
+        self.assertTrue(payload)
+        self.assertTrue(any(payload))
+        self.assertGreater(trace.note_events, 0)
 
 
 if __name__ == "__main__":

@@ -229,6 +229,7 @@ make validate-audio PROFILE=usa # validate and decode a rebuilt audio image
 make build-audio PROFILE=usa # build a ROM with the workspace's edited audio
 make roundtrip-audio-profiles # prove untouched USA and Europe audio identity
 make audio-summary PROFILE=usa # summarize effects, envelopes, and stream commands
+make preview-audio PROFILE=usa AUDIO_EFFECT=5 # render an APU-like WAV preview
 make sound-studio PROFILE=usa # edit streams, effects, envelopes, and timing
 make check-sound-studio # headlessly validate both regional studio projections
 make build-revision PROFILE=europe # assemble the complete PAL source profile
@@ -340,6 +341,7 @@ scripts/revision_profiles.py regional verification, split, and room comparison
 scripts/level_editor.py    deterministic level document import/build pipeline
 scripts/level_studio.py    visual room editor with build and FCEUX play actions
 scripts/audio_editor.py    deterministic audio document import/build pipeline
+scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
 scripts/sound_studio.py    visual audio-bank editor over the shared codec
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit

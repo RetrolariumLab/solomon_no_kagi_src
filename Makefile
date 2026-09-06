@@ -12,6 +12,7 @@ LEVEL_EDITOR := scripts/level_editor.py
 LEVEL_STUDIO := scripts/level_studio.py
 AUDIO_EDITOR := scripts/audio_editor.py
 SOUND_STUDIO := scripts/sound_studio.py
+AUDIO_PREVIEW_TOOL := scripts/audio_preview.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -21,6 +22,9 @@ LEVEL_PLAYTEST_ROOM ?= 1
 LEVEL_BLOCK_REFERENCE ?= references/levelBlocks.csv
 AUDIO_DOCUMENT ?= content/workspace/$(PROFILE)/audio.json
 AUDIO_ROM ?= build/content/$(PROFILE)/solomons_key_audio.nes
+AUDIO_EFFECT ?= 1
+AUDIO_PREVIEW_SECONDS ?= 12
+AUDIO_PREVIEW ?= build/content/$(PROFILE)/effect$(AUDIO_EFFECT)-preview.wav
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
@@ -171,7 +175,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
 	check-level-block-reference smoke-level-playtest smoke-level-playtests \
 	export-audio validate-audio build-audio roundtrip-audio \
-	roundtrip-audio-profiles audio-summary sound-studio check-sound-studio \
+	roundtrip-audio-profiles audio-summary preview-audio sound-studio \
+	check-sound-studio \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions
 
@@ -347,6 +352,12 @@ roundtrip-audio-profiles:
 audio-summary:
 	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
 		--input "$(AUDIO_DOCUMENT)"
+
+preview-audio:
+	$(PYTHON) "$(AUDIO_PREVIEW_TOOL)" --profiles "$(REVISION_MANIFEST)" \
+		--input "$(AUDIO_DOCUMENT)" --profile "$(PROFILE)" \
+		--effect "$(AUDIO_EFFECT)" --seconds "$(AUDIO_PREVIEW_SECONDS)" \
+		--output "$(AUDIO_PREVIEW)"
 
 sound-studio:
 	$(PYTHON) "$(SOUND_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
