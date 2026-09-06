@@ -10,12 +10,15 @@ REVISION_MANIFEST := config/revision_profiles.json
 REVISION_TOOL := scripts/revision_profiles.py
 LEVEL_EDITOR := scripts/level_editor.py
 LEVEL_STUDIO := scripts/level_studio.py
+AUDIO_EDITOR := scripts/audio_editor.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
 LEVEL_DOCUMENT ?= content/workspace/$(PROFILE)/levels.json
 LEVEL_ROM ?= build/content/$(PROFILE)/solomons_key_levels.nes
 LEVEL_PLAYTEST_ROOM ?= 1
+AUDIO_DOCUMENT ?= content/workspace/$(PROFILE)/audio.json
+AUDIO_ROM ?= build/content/$(PROFILE)/solomons_key_audio.nes
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
@@ -165,6 +168,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	export-levels validate-levels build-levels roundtrip-levels \
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
 	smoke-level-playtest smoke-level-playtests \
+	export-audio validate-audio build-audio roundtrip-audio \
+	roundtrip-audio-profiles audio-summary \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions
 
@@ -311,6 +316,30 @@ smoke-level-playtest:
 smoke-level-playtests:
 	$(MAKE) smoke-level-playtest PROFILE=usa LEVEL_PLAYTEST_ROOM=1
 	$(MAKE) smoke-level-playtest PROFILE=europe LEVEL_PLAYTEST_ROOM=30
+
+export-audio:
+	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" export \
+		--profile "$(PROFILE)" --output "$(AUDIO_DOCUMENT)"
+
+validate-audio:
+	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" validate \
+		--input "$(AUDIO_DOCUMENT)"
+
+build-audio:
+	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" build \
+		--input "$(AUDIO_DOCUMENT)" --output "$(AUDIO_ROM)"
+
+roundtrip-audio:
+	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" roundtrip \
+		--profile "$(PROFILE)"
+
+roundtrip-audio-profiles:
+	$(MAKE) roundtrip-audio PROFILE=usa
+	$(MAKE) roundtrip-audio PROFILE=europe
+
+audio-summary:
+	$(PYTHON) "$(AUDIO_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
+		--input "$(AUDIO_DOCUMENT)"
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \

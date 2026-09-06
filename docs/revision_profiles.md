@@ -452,6 +452,65 @@ make check-level-studio
 On untouched workspaces this reports 310/310 native placed-enemy sprites for
 both USA and Europe in addition to rendering every room background.
 
+## Audio authoring document
+
+The first Sound Studio layer is the deterministic document codec in
+`scripts/audio_editor.py`. Export either complete regional audio bank to an
+ignored workspace with:
+
+```console
+make export-audio PROFILE=usa
+make export-audio PROFILE=europe
+```
+
+The defaults are `content/workspace/usa/audio.json` and
+`content/workspace/europe/audio.json`. Like a level document, each file binds
+itself to one source profile and the complete source-ROM SHA-256. It exposes
+the 12 pitch periods, 26 duration values, regional timing tail, eight volume
+envelopes, all 26 sound-effect descriptors, 114 stream entry points, the
+complete physical command area, and regional trailing bytes up to the vectors.
+
+Audio control flow is authored symbolically. The exporter assigns stable
+`stream_000` through `stream_113` identities to every entry and uses those
+names in effect descriptors, jumps, and calls. The encoder first lays out the
+physical command list and then resolves every pointer, so equal-sized edits
+may move an entry without leaving stale absolute addresses. Overlapping
+reachable streams do not duplicate commands in JSON: every physical command
+has one owner, while any entry at that address is attached to the record.
+
+The sound-effect format has its own deliberate overlap. Bit 7 on the first
+channel selector starts an effect and ends the preceding descriptor. The
+document presents 26 ordinary channel lists; the encoder regenerates that
+boundary convention and the single final `$FF` marker. Envelopes similarly
+remain structured duration/volume steps instead of unchecked byte arrays.
+
+Validate or build an edited document with:
+
+```console
+make validate-audio PROFILE=usa
+make build-audio PROFILE=usa
+make audio-summary PROFILE=usa
+```
+
+Validation enforces the original fixed allocations for timing, envelopes,
+effect descriptors, command bytes, and the small regional trailing area. It
+rejects invalid note/duration classes, unknown stream targets, duplicate or
+missing entries, illegal virtual channels, malformed effect boundaries, and
+growth into adjacent code or vectors. A successful build is decoded again and
+must reproduce the canonical input document before its ROM is written.
+
+Run the untouched identity proof for both required revisions with:
+
+```console
+make roundtrip-audio-profiles
+```
+
+The USA and Europe documents differ where the PAL engine actually differs;
+neither inherits offsets, duration counts, stream bounds, or trailing bytes
+from the other. Both complete 65,552-byte images currently round-trip byte for
+byte. This command-line codec is the binary foundation for the visual Sound
+Studio; the GUI must use it rather than acquire a second serializer.
+
 ## Remaining Source 2.0 work
 
 The complete European source build closes the regional byte-reconstruction
@@ -461,7 +520,8 @@ patching. The remaining release work is now evidence and authoring depth:
 
 1. add Europe-specific debugger symbols and deterministic PAL runtime traces;
 2. make the remaining structured-data audits profile-aware where PAL differs;
-3. deepen level authoring and add music and other content editors;
+3. add the visual Sound Studio over the audio document, then author the other
+   significant structured formats;
 4. create the Source Reconstruction 2.0 manifest and aggregate release gate;
 5. keep Japanese reconstruction as a later, explicitly scoped profile.
 

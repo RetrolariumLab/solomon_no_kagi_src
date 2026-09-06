@@ -389,6 +389,12 @@ passes on the reviewed `main` commit.
   opcode fields are independent.
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;
+- the first audio-authoring layer exports one editable USA or Europe document
+  for timing tables, envelopes, overlapping effect descriptors, and every
+  physical stream command. Stable symbolic stream entries allow the encoder to
+  reflow absolute jump/call/effect pointers, while exact allocation and
+  decode-after-build checks protect adjacent code and vectors. Untouched audio
+  documents rebuild both complete regional ROMs byte for byte;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

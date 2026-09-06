@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import copy
+from pathlib import Path
+import sys
 import unittest
 
-from scripts.audio_data import (
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import audio_editor
+from audio_data import (
     AUDIO_STREAM_DATA,
     EUROPE_LAYOUT,
     AudioCommand,
@@ -14,6 +21,17 @@ from scripts.audio_data import (
     encode_stream,
     validate_report,
 )
+from project import parse_ines
+from revision_profiles import get_profile, load_profiles
+
+
+def audio_case(profile_id: str) -> tuple[dict, Path]:
+    profiles = load_profiles(ROOT / "config/revision_profiles.json")
+    profile = get_profile(profiles, profile_id)
+    reference = ROOT / profile["reference_rom"]
+    if not reference.is_file():
+        raise unittest.SkipTest(f"{profile_id} reference ROM is not present")
+    return profile, reference
 
 
 class AudioDataTests(unittest.TestCase):
@@ -120,6 +138,88 @@ class AudioDataTests(unittest.TestCase):
         manifest["coverage_complete"] = True
         errors = validate_report(report, manifest)
         self.assertEqual(len(errors), 3)
+
+
+class AudioEditorTests(unittest.TestCase):
+    def test_exports_one_owner_for_each_physical_audio_command(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        entries = [
+            command["entry"] for command in document["commands"] if "entry" in command
+        ]
+        self.assertEqual(entries, [audio_editor.stream_id(index) for index in range(114)])
+        self.assertEqual(len(document["effects"]), 26)
+        self.assertEqual(len(document["envelopes"]), 8)
+
+    def test_round_trips_both_profile_audio_banks_byte_for_byte(self) -> None:
+        for profile_id in ("usa", "europe"):
+            with self.subTest(profile=profile_id):
+                profile, reference = audio_case(profile_id)
+                original = reference.read_bytes()
+                document = audio_editor.export_document(
+                    parse_ines(original)["prg"], profile
+                )
+                rebuilt = audio_editor.build_audio_image(document, original, profile)
+                self.assertEqual(rebuilt, original)
+                audio_editor.validate_rebuilt_document(document, rebuilt, profile)
+
+    def test_reflows_symbolic_stream_entries_when_command_sizes_change(self) -> None:
+        profile, reference = audio_case("usa")
+        original = reference.read_bytes()
+        document = audio_editor.export_document(parse_ines(original)["prg"], profile)
+        commands = document["commands"]
+        entry_indices = [
+            index for index, command in enumerate(commands) if "entry" in command
+        ]
+        note_index = value_index = entry_index = -1
+        for candidate in entry_indices:
+            notes = [
+                index
+                for index in range(candidate)
+                if commands[index]["kind"] == "note" and "entry" not in commands[index]
+            ]
+            values = [
+                index
+                for index in range(candidate + 1, len(commands))
+                if commands[index]["kind"] in audio_editor.VALUE_COMMANDS
+                and "entry" not in commands[index]
+            ]
+            if notes and values:
+                note_index, value_index, entry_index = notes[-1], values[0], candidate
+                break
+        self.assertGreaterEqual(entry_index, 0)
+        target = commands[entry_index]["entry"]
+        layout = audio_editor.profile_layout(profile)
+        _, original_entries = audio_editor.encode_commands(commands, layout)
+
+        modified = copy.deepcopy(document)
+        modified["commands"][note_index] = {"kind": "set_control", "value": 0}
+        modified["commands"][value_index] = {"kind": "note", "value": 0x10}
+        _, modified_entries = audio_editor.encode_commands(
+            modified["commands"], layout
+        )
+        self.assertEqual(modified_entries[target], original_entries[target] + 1)
+
+        rebuilt = audio_editor.build_audio_image(modified, original, profile)
+        self.assertNotEqual(rebuilt, original)
+        audio_editor.validate_rebuilt_document(modified, rebuilt, profile)
+
+    def test_rejects_stream_growth_and_invalid_effect_boundary(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        grown = copy.deepcopy(document)
+        grown["commands"].append({"kind": "note", "value": 0})
+        with self.assertRaisesRegex(audio_editor.AudioEditorError, "encode to"):
+            audio_editor.encode_document(grown, profile)
+
+        boundary = copy.deepcopy(document)
+        boundary["effects"][1]["channels"][0]["selector"] &= 0x7F
+        with self.assertRaisesRegex(audio_editor.AudioEditorError, "first channel"):
+            audio_editor.encode_document(boundary, profile)
 
 
 if __name__ == "__main__":

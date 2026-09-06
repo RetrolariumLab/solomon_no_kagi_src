@@ -223,6 +223,11 @@ make level-studio PROFILE=usa # edit rooms, tilesets, RoomMap art, and shared ta
 make check-level-studio # render all native room previews and check both codecs
 make smoke-level-playtests # enter selected USA/PAL rooms through real FCEUX hooks
 make audio-profile-audits # decode and byte-round-trip USA and PAL audio data
+make export-audio PROFILE=usa # create an ignored editable audio JSON document
+make validate-audio PROFILE=usa # validate and decode a rebuilt audio image
+make build-audio PROFILE=usa # build a ROM with the workspace's edited audio
+make roundtrip-audio-profiles # prove untouched USA and Europe audio identity
+make audio-summary PROFILE=usa # summarize effects, envelopes, and stream commands
 make build-revision PROFILE=europe # assemble the complete PAL source profile
 make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
@@ -331,6 +336,7 @@ scripts/room_data.py       room-format decoder
 scripts/revision_profiles.py regional verification, split, and room comparison
 scripts/level_editor.py    deterministic level document import/build pipeline
 scripts/level_studio.py    visual room editor with build and FCEUX play actions
+scripts/audio_editor.py    deterministic audio document import/build pipeline
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit
