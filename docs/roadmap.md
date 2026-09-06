@@ -368,7 +368,8 @@ passes on the reviewed `main` commit.
   untouched round trips are complete for USA and Europe. The visual studio now
   edits the complete logical room grid and profile-sensitive properties, draws
   native backgrounds from each room's original CHR bank, palette, RoomMap
-  records, and constellation pattern, and keeps save/build/play actions backed
+  records, constellation pattern, and two-sprite enemy animation records, and
+  keeps save/build/play actions backed
   by the same validated codec. Its record inspector edits or deletes existing
   enemies, direct items, repeat positions, and constellation commands without
   flattening their source representation. Profile-specific FCEUX hooks enter the

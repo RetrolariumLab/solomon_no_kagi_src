@@ -390,19 +390,54 @@ def preview_patterns() -> list[dict[str, int]]:
     ]
 
 
+def write_uniform_chr_tile(
+    chr_data: bytearray,
+    bank: int,
+    tile: int,
+    pixel: int,
+) -> None:
+    offset = bank * level_preview.CHR_BANK_SIZE + tile * level_preview.CHR_TILE_SIZE
+    low = 0xFF if pixel & 1 else 0
+    high = 0xFF if pixel & 2 else 0
+    chr_data[offset : offset + 8] = bytes((low,)) * 8
+    chr_data[offset + 8 : offset + 16] = bytes((high,)) * 8
+
+
 def chr_with_uniform_tiles(values: dict[tuple[int, int], int]) -> bytes:
     chr_data = bytearray(level_preview.CHR_BANK_SIZE * 4)
     for (bank, tile), pixel in values.items():
-        offset = (
-            bank * level_preview.CHR_BANK_SIZE
-            + (level_preview.BACKGROUND_PATTERN_BASE + tile)
-            * level_preview.CHR_TILE_SIZE
+        write_uniform_chr_tile(
+            chr_data,
+            bank,
+            level_preview.BACKGROUND_PATTERN_BASE + tile,
+            pixel,
         )
-        low = 0xFF if pixel & 1 else 0
-        high = 0xFF if pixel & 2 else 0
-        chr_data[offset : offset + 8] = bytes((low,)) * 8
-        chr_data[offset + 8 : offset + 16] = bytes((high,)) * 8
     return bytes(chr_data)
+
+
+def enemy_preview_data() -> tuple[bytes, bytes, dict[str, str]]:
+    prg = bytearray(0x8000)
+    pointer_address = 0xD000
+    configuration_address = 0xA400
+    enemy_type = 0x1C
+    pointer_offset = pointer_address - level_preview.PRG_BASE + (enemy_type >> 2) * 2
+    prg[pointer_offset : pointer_offset + 2] = bytes((0x00, 0xD2))
+    prg[configuration_address - level_preview.PRG_BASE + 1] = 0x0A
+    descriptor_offset = 0xD200 - level_preview.PRG_BASE
+    prg[descriptor_offset : descriptor_offset + 4] = bytes(
+        (0x10, 0x08, 0x00, 0xD3)
+    )
+    frame_offset = 0xD300 - level_preview.PRG_BASE
+    prg[frame_offset : frame_offset + 3] = bytes((0x02, 0x04, 0x00))
+
+    chr_data = bytearray(level_preview.CHR_BANK_SIZE * 4)
+    for tile in (0x02, 0x03, 0x04, 0x05):
+        write_uniform_chr_tile(chr_data, 1, tile, 1)
+    contract = {
+        "object_animation_pointer_address": hex(pointer_address),
+        "enemy_type_configuration_address": hex(configuration_address),
+    }
+    return bytes(prg), bytes(chr_data), contract
 
 
 def preview_room() -> dict[str, object]:
@@ -503,6 +538,49 @@ class NativePreviewTests(unittest.TestCase):
         self.assertEqual(pixel(0, 0), level_preview.NES_RGB[palette[1]])
         self.assertEqual(pixel(16, 0), level_preview.NES_RGB[palette[2]])
         self.assertEqual(pixel(32, 0), level_preview.NES_RGB[palette[3]])
+
+    def test_projects_packed_flags_to_both_oam_attributes(self) -> None:
+        self.assertEqual(level_preview.sprite_attributes(0xF0), (0xC3, 0x00))
+        self.assertEqual(level_preview.sprite_attributes(0x0F), (0x00, 0xC3))
+
+    def test_enemy_decoder_follows_type_action_and_frame_pointers(self) -> None:
+        prg, _, contract = enemy_preview_data()
+        decoder = level_preview.EnemySpriteDecoder(prg, contract)
+        self.assertEqual(decoder.initial_action(0x1C), 0)
+        self.assertEqual(decoder.initial_frame_offset(0x10), 0)
+        self.assertEqual(
+            decoder.frame(0x1C),
+            level_preview.SpriteFrame(0x02, 0x04, 0x00),
+        )
+
+    def test_renders_enemy_as_two_native_8_by_16_sprites(self) -> None:
+        prg, chr_data, contract = enemy_preview_data()
+        room = preview_room()
+        room["enemies"]["placements"] = [
+            {"type": 0x1C, "position": {"x": 0, "y": 0}}
+        ]
+        document = {"tile_patterns": preview_patterns(), "rooms": [room]}
+        preview = level_preview.LevelPreviewRenderer(
+            document, chr_data, prg, contract
+        ).render(0)
+        sprite_color = bytes(
+            level_preview.NES_RGB[level_preview.ROOM_SPRITE_PALETTE[1]]
+        )
+        self.assertEqual(preview.rgb[0:3], sprite_color)
+        self.assertEqual(preview.rgb[8 * 3 : 9 * 3], sprite_color)
+        self.assertEqual(preview.rendered_enemy_indices, (0,))
+
+    def test_unknown_enemy_type_remains_available_for_editor_fallback(self) -> None:
+        prg, chr_data, contract = enemy_preview_data()
+        room = preview_room()
+        room["enemies"]["placements"] = [
+            {"type": 0xFF, "position": {"x": 0, "y": 0}}
+        ]
+        document = {"tile_patterns": preview_patterns(), "rooms": [room]}
+        preview = level_preview.LevelPreviewRenderer(
+            document, chr_data, prg, contract
+        ).render(0)
+        self.assertEqual(preview.rendered_enemy_indices, ())
 
     def test_rejects_missing_chr_terminator(self) -> None:
         room = preview_room()

@@ -11,6 +11,10 @@
       "room_layout": "usa",
       "source_status": "complete",
       "assembly_define": 0,
+      "level_preview": {
+        "object_animation_pointer_address": "0xd0e8",
+        "enemy_type_configuration_address": "0xa44e"
+      },
       "playtest": {
         "room_load_address": "0x9021",
         "gameplay_address": "0xa000",
@@ -78,6 +82,10 @@
       "room_layout": "europe",
       "source_status": "complete",
       "assembly_define": 1,
+      "level_preview": {
+        "object_animation_pointer_address": "0xd068",
+        "enemy_type_configuration_address": "0xa44e"
+      },
       "playtest": {
         "room_load_address": "0x9030",
         "gameplay_address": "0xa000",

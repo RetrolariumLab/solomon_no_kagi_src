@@ -48,6 +48,10 @@ def sample_profile(
         "room_layout": "usa",
         "source_status": source_status,
         "assembly_define": None if source_status == "planned" else 0,
+        "level_preview": None if source_status == "planned" else {
+            "object_animation_pointer_address": "0xd000",
+            "enemy_type_configuration_address": "0xa400",
+        },
         "playtest": None if source_status == "planned" else {
             "room_load_address": "0x9000",
             "gameplay_address": "0xa000",
@@ -208,6 +212,23 @@ class ManifestValidationTests(unittest.TestCase):
         del document["profiles"][0]["playtest"]
         errors = revision_profiles.validate_profiles(document)
         self.assertIn("usa has no playtest contract", errors)
+
+    def test_rejects_buildable_profile_without_level_preview_contract(self) -> None:
+        document, _ = sample_document()
+        del document["profiles"][0]["level_preview"]
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn("usa has no level preview contract", errors)
+
+    def test_rejects_invalid_level_preview_address(self) -> None:
+        document, _ = sample_document()
+        document["profiles"][0]["level_preview"][
+            "object_animation_pointer_address"
+        ] = "0x10000"
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn(
+            "usa has invalid level preview object_animation_pointer_address",
+            errors,
+        )
 
     def test_rejects_invalid_playtest_address(self) -> None:
         document, _ = sample_document()

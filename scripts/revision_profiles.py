@@ -184,6 +184,19 @@ def validate_playtest(profile_id: str, value: object, errors: list[str]) -> None
         errors.append(f"{profile_id} has invalid playtest ready_frames")
 
 
+def validate_level_preview(profile_id: str, value: object, errors: list[str]) -> None:
+    if not isinstance(value, dict):
+        errors.append(f"{profile_id} has no level preview contract")
+        return
+    for field in (
+        "object_animation_pointer_address",
+        "enemy_type_configuration_address",
+    ):
+        address = parse_manifest_integer(value.get(field))
+        if address is None or not 0x8000 <= address <= 0xFFFF:
+            errors.append(f"{profile_id} has invalid level preview {field}")
+
+
 def validate_profiles(document: object) -> list[str]:
     errors: list[str] = []
     if not isinstance(document, dict) or document.get("schema_version") != 1:
@@ -218,6 +231,7 @@ def validate_profiles(document: object) -> list[str]:
         elif not isinstance(assembly_define, int) or assembly_define < 0:
             errors.append(f"{profile_id} has no assembly define")
         else:
+            validate_level_preview(profile_id, profile.get("level_preview"), errors)
             validate_playtest(profile_id, profile.get("playtest"), errors)
         reference = profile.get("reference_rom")
         if (

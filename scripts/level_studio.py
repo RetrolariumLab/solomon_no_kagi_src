@@ -551,6 +551,7 @@ class LevelStudio(tk.Tk):
         output_path: Path,
         fceux: Path,
         chr_data: bytes,
+        prg_data: bytes,
     ) -> None:
         super().__init__()
         self.model = model
@@ -559,7 +560,12 @@ class LevelStudio(tk.Tk):
         self.document_path = document_path
         self.output_path = output_path
         self.fceux = fceux
-        self.preview_renderer = LevelPreviewRenderer(model.document, chr_data)
+        self.preview_renderer = LevelPreviewRenderer(
+            model.document,
+            chr_data,
+            prg_data,
+            profile["level_preview"],
+        )
         self.preview_image: tk.PhotoImage | None = None
         self.playtest_process: subprocess.Popen[bytes] | None = None
         self.selection: tuple[str, int, int | None] | None = None
@@ -1078,18 +1084,31 @@ class LevelStudio(tk.Tk):
             ("mirror_2", "M2", "#bb66ff"),
         ):
             self.draw_label(metadata[field], text, color)
-        for enemy in room["enemies"]["placements"]:
+        rendered_enemies = set(preview.rendered_enemy_indices)
+        for enemy_index, enemy in enumerate(room["enemies"]["placements"]):
             position = enemy["position"]
             x, y = position["x"], position["y"]
-            self.canvas.create_oval(
-                x * CELL + 5,
-                y * CELL + 5,
-                (x + 1) * CELL - 5,
-                (y + 1) * CELL - 5,
-                fill="#bb3344",
-                outline="#ff99aa",
-            )
-            self.draw_label(position, f"{enemy['type']:02X}", "white")
+            if y < 0 or y >= ROOM_HEIGHT:
+                continue
+            if enemy_index not in rendered_enemies:
+                self.canvas.create_oval(
+                    x * CELL + 5,
+                    y * CELL + 5,
+                    (x + 1) * CELL - 5,
+                    (y + 1) * CELL - 5,
+                    fill="#bb3344",
+                    outline="#ff99aa",
+                )
+                self.draw_label(position, f"{enemy['type']:02X}", "white")
+            else:
+                self.canvas.create_text(
+                    x * CELL + 3,
+                    y * CELL + 3,
+                    text=f"{enemy['type']:02X}",
+                    fill="white",
+                    font=("Consolas", 8, "bold"),
+                    anchor="nw",
+                )
         for item in self.model.item_placements(self.room_index.get()):
             x, y = item.position["x"], item.position["y"]
             if y < 0 or y >= ROOM_HEIGHT:
@@ -1256,15 +1275,29 @@ def main() -> int:
         document = load_studio_document(profile, reference, document_path)
         model = StudioDocument(document)
         base_image = reference.read_bytes()
+        parsed_image = parse_ines(base_image)
         rebuilt, usage = build_level_image(document, base_image, profile)
         validate_rebuilt_document(document, rebuilt, profile)
-        preview_renderer = LevelPreviewRenderer(document, parse_ines(base_image)["chr"])
+        preview_renderer = LevelPreviewRenderer(
+            document,
+            parsed_image["chr"],
+            parsed_image["prg"],
+            profile["level_preview"],
+        )
         if args.check:
             previews = [preview_renderer.render(index) for index in range(ROOM_COUNT)]
+            placed_enemies = sum(
+                len(room["enemies"]["placements"])
+                for room in document["rooms"]
+            )
+            native_enemies = sum(
+                len(preview.rendered_enemy_indices) for preview in previews
+            )
             print(
                 f"[OK] Level Studio {profile['id']}: {ROOM_COUNT} rooms, "
                 f"{sum(used for used, _ in usage.values())} encoded bytes, "
-                f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes"
+                f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes, "
+                f"{native_enemies}/{placed_enemies} native enemy sprites"
             )
             return 0
         if args.check_playtest:
@@ -1290,7 +1323,8 @@ def main() -> int:
             document_path,
             output_path,
             args.fceux,
-            parse_ines(base_image)["chr"],
+            parsed_image["chr"],
+            parsed_image["prg"],
         )
         studio.mainloop()
     except (

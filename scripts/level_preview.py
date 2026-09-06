@@ -9,6 +9,7 @@ from typing import Any, Iterable
 
 ROOM_WIDTH = 16
 ROOM_HEIGHT = 12
+PRG_BASE = 0x8000
 CHR_BANK_SIZE = 8192
 CHR_TILE_SIZE = 16
 CHR_TILES_PER_BANK = CHR_BANK_SIZE // CHR_TILE_SIZE
@@ -68,6 +69,14 @@ ROOM_GROUP_COLORS = (
     0x80,
     0x80,
 )
+ROOM_SPRITE_PALETTE = (
+    0x0F, 0x26, 0x29, 0x30,
+    0x0F, 0x30, 0x16, 0x27,
+    0x0F, 0x16, 0x10, 0x30,
+    0x0F, 0x2C, 0x26, 0x30,
+)
+ENEMY_TYPE_CONFIGURATION_COUNT = 27
+OBJECT_ANIMATION_POINTER_COUNT = 33
 
 # Four six-metatile constellation layouts. The decoder selects one layout
 # with opcode bits 0-1 and applies a separate palette value to every record.
@@ -129,10 +138,125 @@ class RoomPreview:
     rgb: bytes
     chr_bank: int
     palette: tuple[int, ...]
+    rendered_enemy_indices: tuple[int, ...]
 
     def ppm(self) -> bytes:
         header = f"P6\n{self.width} {self.height}\n255\n".encode("ascii")
         return header + self.rgb
+
+
+@dataclass(frozen=True)
+class SpriteFrame:
+    left_tile: int
+    right_tile: int
+    flags: int
+
+
+def manifest_address(value: object, field: str) -> int:
+    try:
+        address = int(value, 0) if isinstance(value, str) else int(value)
+    except (TypeError, ValueError) as exc:
+        raise LevelPreviewError(f"invalid level preview {field}: {value!r}") from exc
+    if not PRG_BASE <= address <= 0xFFFF:
+        raise LevelPreviewError(f"level preview {field} is outside PRG")
+    return address
+
+
+def cpu_offset(address: int, size: int, prg_size: int) -> int:
+    offset = address - PRG_BASE
+    if address < PRG_BASE or size < 0 or offset + size > prg_size:
+        raise LevelPreviewError(
+            f"level preview read ${address:04X}+${size:X} is outside PRG"
+        )
+    return offset
+
+
+def sprite_attributes(flags: int) -> tuple[int, int]:
+    """Project packed object flags through the game's two OAM transforms."""
+    left = (
+        ((flags & 0x20) << 2)
+        | ((flags & 0x10) << 2)
+        | ((flags & 0x80) >> 7)
+        | ((flags & 0x40) >> 5)
+    )
+    right = (
+        ((flags & 0x01) << 7)
+        | ((flags & 0x02) << 5)
+        | ((flags & 0x08) >> 2)
+        | ((flags & 0x04) >> 2)
+    )
+    return left, right
+
+
+class EnemySpriteDecoder:
+    """Resolve room spawn types through the original animation tables."""
+
+    def __init__(self, prg: bytes, preview_contract: dict[str, Any]) -> None:
+        if len(prg) != 0x8000:
+            raise LevelPreviewError(
+                f"Solomon's Key PRG must be 32768 bytes, got {len(prg)}"
+            )
+        self.prg = prg
+        self.pointer_address = manifest_address(
+            preview_contract.get("object_animation_pointer_address"),
+            "object_animation_pointer_address",
+        )
+        self.configuration_address = manifest_address(
+            preview_contract.get("enemy_type_configuration_address"),
+            "enemy_type_configuration_address",
+        )
+        cpu_offset(
+            self.pointer_address,
+            OBJECT_ANIMATION_POINTER_COUNT * 2,
+            len(prg),
+        )
+        cpu_offset(
+            self.configuration_address,
+            ENEMY_TYPE_CONFIGURATION_COUNT,
+            len(prg),
+        )
+
+    def byte(self, address: int) -> int:
+        return self.prg[cpu_offset(address, 1, len(self.prg))]
+
+    def word(self, address: int) -> int:
+        offset = cpu_offset(address, 2, len(self.prg))
+        return self.prg[offset] | (self.prg[offset + 1] << 8)
+
+    def initial_action(self, enemy_type: int) -> int | None:
+        if not 0x18 <= enemy_type < 0x18 + ENEMY_TYPE_CONFIGURATION_COUNT * 4:
+            return None
+        configuration_index = (enemy_type - 0x18) >> 2
+        flags = self.byte(self.configuration_address + configuration_index)
+        action = enemy_type & 3
+        return action if flags & 0x08 else action | 0x18
+
+    @staticmethod
+    def initial_frame_offset(initial_phase: int) -> int:
+        phase_sum = initial_phase + 0xF0
+        phase = phase_sum & 0xFF
+        if phase_sum <= 0xFF:
+            phase = (phase & 0x0F) * 0x11
+        return (phase >> 3) + (phase >> 4)
+
+    def frame(self, enemy_type: int) -> SpriteFrame | None:
+        action = self.initial_action(enemy_type)
+        pointer_index = enemy_type >> 2
+        if action is None or not 0 <= pointer_index < OBJECT_ANIMATION_POINTER_COUNT:
+            return None
+        descriptor_group = self.word(self.pointer_address + pointer_index * 2)
+        descriptor = descriptor_group + action * 4
+        initial_phase = self.byte(descriptor)
+        flags = self.byte(descriptor + 1)
+        frame_pointer = self.word(descriptor + 2)
+        if flags & 1:
+            frame_pointer = self.word(frame_pointer + (enemy_type & 3) * 2)
+        frame_pointer += self.initial_frame_offset(initial_phase)
+        return SpriteFrame(
+            self.byte(frame_pointer),
+            self.byte(frame_pointer + 1),
+            self.byte(frame_pointer + 2),
+        )
 
 
 def decode_chr_tiles(chr_data: bytes) -> tuple[tuple[tuple[int, ...], ...], ...]:
@@ -301,9 +425,24 @@ def constellation_pattern(
 class LevelPreviewRenderer:
     """Decode CHR once and render any authored room into a 256x192 RGB frame."""
 
-    def __init__(self, document: dict[str, Any], chr_data: bytes) -> None:
+    def __init__(
+        self,
+        document: dict[str, Any],
+        chr_data: bytes,
+        prg_data: bytes | None = None,
+        preview_contract: dict[str, Any] | None = None,
+    ) -> None:
         self.document = document
         self.tiles = decode_chr_tiles(chr_data)
+        if (prg_data is None) != (preview_contract is None):
+            raise LevelPreviewError(
+                "enemy previews require both PRG data and a preview contract"
+            )
+        self.enemy_decoder = (
+            EnemySpriteDecoder(prg_data, preview_contract)
+            if prg_data is not None and preview_contract is not None
+            else None
+        )
 
     def tile(self, bank: int, tile: int) -> tuple[tuple[int, ...], ...]:
         if not 0 <= bank < 4 or not 0 <= tile <= 0xFF:
@@ -332,7 +471,34 @@ class LevelPreviewRenderer:
                 if pattern is None:
                     pattern = document_pattern(self.document, classify_pattern(value))
                 self._draw_metatile(rgb, width, cell_x, cell_y, bank, palette, pattern)
-        return RoomPreview(width, height, bytes(rgb), bank, palette)
+        rendered_enemy_indices: list[int] = []
+        if self.enemy_decoder is not None:
+            placements = room.get("enemies", {}).get("placements", ())
+            for index, enemy in enumerate(placements):
+                position = enemy.get("position") if isinstance(enemy, dict) else None
+                enemy_type = enemy.get("type") if isinstance(enemy, dict) else None
+                if not visible(position) or not isinstance(enemy_type, int):
+                    continue
+                frame = self.enemy_decoder.frame(enemy_type)
+                if frame is None:
+                    continue
+                self._draw_enemy_sprite(
+                    rgb,
+                    width,
+                    position["x"],
+                    position["y"],
+                    bank,
+                    frame,
+                )
+                rendered_enemy_indices.append(index)
+        return RoomPreview(
+            width,
+            height,
+            bytes(rgb),
+            bank,
+            palette,
+            tuple(rendered_enemy_indices),
+        )
 
     def _draw_metatile(
         self,
@@ -353,4 +519,38 @@ class LevelPreviewRenderer:
                     palette_index = pattern.palette * 4 + pixel
                     color = NES_RGB[palette[palette_index] & 0x3F]
                     offset = ((origin_y + pixel_y) * output_width + origin_x + pixel_x) * 3
+                    output[offset : offset + 3] = bytes(color)
+
+    def _draw_enemy_sprite(
+        self,
+        output: bytearray,
+        output_width: int,
+        cell_x: int,
+        cell_y: int,
+        bank: int,
+        frame: SpriteFrame,
+    ) -> None:
+        attributes = sprite_attributes(frame.flags)
+        for half, tile_byte in enumerate((frame.left_tile, frame.right_tile)):
+            attribute = attributes[half]
+            horizontal_flip = bool(attribute & 0x40)
+            vertical_flip = bool(attribute & 0x80)
+            palette_offset = (attribute & 3) * 4
+            pattern_base = (tile_byte & 1) * 0x100
+            top_tile = tile_byte & 0xFE
+            for source_y in range(16):
+                tile_index = pattern_base + top_tile + source_y // 8
+                tile = self.tiles[bank * CHR_TILES_PER_BANK + tile_index]
+                row = tile[source_y & 7]
+                output_y = 15 - source_y if vertical_flip else source_y
+                for source_x, pixel in enumerate(row):
+                    if pixel == 0:
+                        continue
+                    output_x = 7 - source_x if horizontal_flip else source_x
+                    x = cell_x * METATILE_SIZE + half * 8 + output_x
+                    y = cell_y * METATILE_SIZE + output_y
+                    color = NES_RGB[
+                        ROOM_SPRITE_PALETTE[palette_offset + pixel] & 0x3F
+                    ]
+                    offset = (y * output_width + x) * 3
                     output[offset : offset + 3] = bytes(color)

@@ -323,6 +323,14 @@ game art rather than editor-only colored boxes. Grid labels and outlines stay
 above that image so overlapping enemy, item, and anchor records remain easy to
 select.
 
+Placed enemies are rendered through the engine's own type configuration,
+33-entry animation pointer table, initial action descriptor, three-byte frame
+record, 8x16 sprite-table convention, packed palette/flip flags, and room CHR
+bank. The European animation table is independently located at `$D068`
+instead of inheriting the USA `$D0E8` address; both values live in the
+validated revision manifest. A type outside the decoded engine range remains
+visible as an explicit editor marker rather than being assigned invented art.
+
 The toolbar can place brown or white blocks, erase a complete cell, move the
 player start, key, door, and either Demon Mirror, and add typed enemies or
 items. Existing direct, repeated, and constellation item records are all
@@ -384,6 +392,9 @@ when a display is unavailable:
 ```console
 make check-level-studio
 ```
+
+On untouched workspaces this reports 310/310 native placed-enemy sprites for
+both USA and Europe in addition to rendering every room background.
 
 ## Remaining Source 2.0 work
 
