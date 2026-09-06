@@ -351,9 +351,10 @@ passes on the reviewed `main` commit.
 - all six decoded room families round-trip in both required profiles. Shared
   geometry, items, tile patterns, and mirror enemy sets are fingerprinted;
   European mirror schedules and enemy spawn lifetimes are explicitly distinct;
-- the European ca65 profile now selects the PAL layout and timing data, and a
-  source-range gate proves all 5,060 room-stream bytes against the European
-  reference while the profile remains honestly marked in progress;
+- the European ca65 profile now selects the PAL layout, level timing, object
+  motion, and regional filler data. A source-range gate proves the continuous
+  8,192-byte level/object/room block against the European reference while the
+  profile remains honestly marked in progress;
 - region-specific source builds and identity gates for Europe remain the next
   reconstruction step, without importing assumptions between profiles;
 - the level authoring document and editor described in

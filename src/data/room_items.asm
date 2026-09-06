@@ -592,6 +592,9 @@ RoomItemStream53:
 .segment "PRG_FILLER_BEFORE_AUDIO"
 
 PreAudioPadding:
+.if SolomonRevision = SolomonRevisionEurope
+    .res $003C, $FF
+.else
     .byte $00, $FF, $00, $FF, $00, $FF, $00, $FF
     .byte $00, $FF, $00, $FF, $FF, $00, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $BF, $00
@@ -600,5 +603,6 @@ PreAudioPadding:
     .byte $00, $FF, $00, $BF, $FF, $00, $FF, $00
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00
     .byte $FF, $00, $FF, $00
+.endif
 
 .assert * - PreAudioPadding = $003C, error, "unexpected pre-audio padding size"

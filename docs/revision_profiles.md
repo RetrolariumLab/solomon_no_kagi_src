@@ -179,24 +179,27 @@ make verify-revision-source PROFILE=europe
 ```
 
 The PAL source currently selects the shorter pre-room layout, all sixteen
-European Demon Mirror schedules, and the decoded PAL mapping for every room's
-enemy spawn lifetime. The source-range verifier proves that PRG
-`$5B80-$6F43` in the resulting Europe image matches its private reference:
-all 5,060 bytes of schedule tables, schedules, mirror enemy sets, room enemy
-pointers and streams, block planes, item pointers, metadata, and item streams.
+European Demon Mirror schedules, the decoded PAL mapping for every room's
+enemy spawn lifetime, and all 35 profile-selected fixed-point object-motion
+vectors. Regional filler before the mirror and audio tables is expressed as
+layout data rather than imported as an opaque blob. The source-range verifier
+proves that PRG `$4F80-$6F7F` in the resulting Europe image matches its private
+reference: one continuous 8,192-byte range covering room tile patterns,
+object animations and motion, mirror tables, room enemies, block planes, item
+metadata and commands, and the surrounding alignment bytes.
 
 This is deliberately a range gate rather than `verify-revision`. The current
-Europe image still differs before the room data, in 44 animation/motion bytes,
-in 32 bytes of pre-audio padding, and throughout the PAL audio region. Run the
-combined source milestone with:
+Europe image still differs in the executable range before the level/object
+block and throughout the PAL audio region. Run the combined source milestone
+with:
 
 ```console
 make verify-revision-sources
 ```
 
-It proves all 32,768 USA PRG bytes and the accepted 5,060-byte Europe room
-range. The Europe profile remains `in-progress` until the complete image, not
-just declared ranges, is byte-identical.
+It proves all 32,768 USA PRG bytes and the accepted 8,192-byte Europe
+level/object/room range. The Europe profile remains `in-progress` until the
+complete image, not just declared ranges, is byte-identical.
 
 ## Level editor boundary
 

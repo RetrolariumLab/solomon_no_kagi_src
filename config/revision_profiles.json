@@ -103,12 +103,12 @@
       },
       "verified_source_ranges": [
         {
-          "id": "room_streams",
+          "id": "level_object_room_data",
           "region": "prg",
-          "offset": 23424,
-          "size": 5060,
-          "sha1": "3a697b4f4bfaa3d1dda33c55539640629c96dc3b",
-          "sha256": "e8c5f3ce914353ab451c3afcf6427b9d8c94be2888479a5a9ba2e86279d13e5a"
+          "offset": 20352,
+          "size": 8192,
+          "sha1": "c13355ec5eaad20e01c3b17a4fa4d40f3c886b17",
+          "sha256": "41d573ae0ce6b06f731393c519a496e115a9c1b40de2785f782cace2d1217a9d"
         }
       ],
       "extracted_assets": [
