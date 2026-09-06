@@ -195,6 +195,71 @@ and focused emulator playtest. The UI is not allowed to become the only route
 to validate or reproduce edited content; all core operations remain callable
 from Make and unit tests.
 
+### Authoring document workflow
+
+The command-line document model is implemented in `scripts/level_editor.py`.
+Create a private, ignored workspace from either required profile:
+
+```console
+make export-levels PROFILE=usa
+make export-levels PROFILE=europe
+```
+
+The defaults are `content/workspace/usa/levels.json` and
+`content/workspace/europe/levels.json`. Each document records its source
+profile and complete source-ROM SHA-256, so a USA document cannot be applied
+silently to the PAL ROM or vice versa.
+
+Validate a document and build its profile-derived image with:
+
+```console
+make validate-levels PROFILE=usa
+make build-levels PROFILE=usa
+```
+
+Validation performs more than JSON syntax checking. It encodes all fixed and
+variable room families, enforces contiguous room/schedule/set identities,
+checks every packed coordinate and record, rejects stream growth past the
+original PRG budgets, rebuilds an image, decodes that image again, and compares
+the resulting canonical document with the input.
+
+Variable records are packed deterministically and their split low/high pointer
+planes are rebuilt. Unused bytes at the end of a format's fixed budget retain
+their profile's base-ROM values. This keeps a modified build minimally
+different while an untouched import remains exactly identical to all 65,552
+bytes of its private reference.
+
+The current per-profile budgets are:
+
+| Family | Used bytes | Capacity | Pointer behavior |
+| --- | ---: | ---: | --- |
+| Demon Mirror schedules | 128 | 128 | 16 pointers rebuilt |
+| Demon Mirror enemy sets | 42 | 42 | 17 pointers rebuilt |
+| Room enemy streams | 726 | 726 | 53 pointers rebuilt |
+| Room block planes | 2,544 | 2,544 | Fixed 48 bytes per room |
+| Room item streams | 1,342 | 1,342 | 53 pointers rebuilt |
+
+These figures describe both the original USA and Europe images. Editors may
+redistribute bytes within the variable families, but cannot overwrite the next
+owned PRG region. Later expansion support must use a separately declared
+modified-build layout instead of weakening this preservation constraint.
+
+Run the untouched identity proof for both required profiles with:
+
+```console
+make roundtrip-level-profiles
+```
+
+The proof imports every editable field, rebuilds all pointer tables and
+payloads, and compares the entire generated image with its corresponding
+private ROM. It currently passes byte-for-byte for both USA and Europe.
+
+The JSON intentionally omits derived storage fields such as PRG offsets,
+packed coordinates, encoded enemy lifetimes, item-repeat opcodes, and the raw
+key-status/timer byte. Those values are deterministically regenerated from the
+editable representation. This prevents a GUI edit from leaving a stale raw
+field that disagrees with the visible room state.
+
 ## Remaining regional work
 
 The profile inventory is evidence, not completion of the Europe build. The

@@ -214,6 +214,11 @@ make verify-revision-references # verify required Source 2.0 references
 make revision-room-audit # round-trip and fingerprint USA/Europe rooms
 make revision-room-report PROFILE=europe # print regional room fingerprints
 make compare-revision-rooms LEFT_PROFILE=usa RIGHT_PROFILE=europe # semantic diff
+make export-levels PROFILE=usa # create an ignored editable 53-room JSON document
+make validate-levels PROFILE=usa # validate and decode a rebuilt editor image
+make build-levels PROFILE=usa # build a ROM with the workspace's edited levels
+make roundtrip-level-profiles # prove untouched USA and Europe editor identity
+make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs
@@ -315,6 +320,7 @@ scripts/asm_style.py       shared ca65 formatter and style checker
 scripts/verify_rom.py      original/build/asset comparison and ROM reports
 scripts/room_data.py       room-format decoder
 scripts/revision_profiles.py regional verification, split, and room comparison
+scripts/level_editor.py    deterministic level document import/build pipeline
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit

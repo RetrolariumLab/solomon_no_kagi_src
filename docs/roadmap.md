@@ -354,7 +354,10 @@ passes on the reviewed `main` commit.
 - region-specific source builds and identity gates for Europe remain the next
   reconstruction step, without importing assumptions between profiles;
 - the level authoring document and editor described in
-  `docs/revision_profiles.md` are the first content-tooling deliverable;
+  `docs/revision_profiles.md` are the first content-tooling deliverable. The
+  document importer, validator, ROM builder, capacity checks, and byte-exact
+  untouched round trips are complete for USA and Europe; the visual studio is
+  next;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

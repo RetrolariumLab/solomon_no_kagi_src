@@ -7,9 +7,12 @@ VERIFY_ROM := scripts/verify_rom.py
 TOOLCHAIN_MANIFEST := config/toolchain.json
 REVISION_MANIFEST := config/revision_profiles.json
 REVISION_TOOL := scripts/revision_profiles.py
+LEVEL_EDITOR := scripts/level_editor.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
+LEVEL_DOCUMENT ?= content/workspace/$(PROFILE)/levels.json
+LEVEL_ROM ?= build/content/$(PROFILE)/solomons_key_levels.nes
 
 BUILD_DIR := build/native
 GENERATED_ASSET_DIR := assets/generated
@@ -145,7 +148,9 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	title-data-report title-data-audit audio-data-report audio-data-audit clean \
 	list-revisions identify-revision verify-revision-reference \
 	verify-revision-references split-revision-assets split-all \
-	revision-room-report revision-room-audit compare-revision-rooms
+	revision-room-report revision-room-audit compare-revision-rooms \
+	export-levels validate-levels build-levels roundtrip-levels \
+	roundtrip-level-profiles level-summary
 
 all: verify
 
@@ -245,6 +250,30 @@ revision-room-audit:
 compare-revision-rooms:
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" compare-rooms \
 		--left "$(LEFT_PROFILE)" --right "$(RIGHT_PROFILE)"
+
+export-levels:
+	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" export \
+		--profile "$(PROFILE)" --output "$(LEVEL_DOCUMENT)"
+
+validate-levels:
+	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" validate \
+		--input "$(LEVEL_DOCUMENT)"
+
+build-levels:
+	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" build \
+		--input "$(LEVEL_DOCUMENT)" --output "$(LEVEL_ROM)"
+
+roundtrip-levels:
+	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" roundtrip \
+		--profile "$(PROFILE)"
+
+roundtrip-level-profiles:
+	$(MAKE) roundtrip-levels PROFILE=usa
+	$(MAKE) roundtrip-levels PROFILE=europe
+
+level-summary:
+	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
+		--input "$(LEVEL_DOCUMENT)"
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

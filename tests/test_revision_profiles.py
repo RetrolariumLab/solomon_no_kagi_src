@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import project
+import level_editor
 import revision_profiles
 
 
@@ -342,6 +343,261 @@ class RoomEvidenceTests(unittest.TestCase):
         with patch.object(revision_profiles, "room_document", return_value=fake_document):
             with self.assertRaisesRegex(project.ProjectError, "fingerprint mismatch"):
                 revision_profiles.audit_room_fingerprints({}, profile)
+
+
+def empty_level_fixture() -> tuple[dict[str, object], bytes, dict[str, object]]:
+    image = sample_image(0x44)
+    profile = sample_profile("usa", image)
+    document = {
+        "schema_version": level_editor.DOCUMENT_SCHEMA,
+        "game": level_editor.DOCUMENT_GAME,
+        "source_profile": "usa",
+        "source_rom_sha256": profile["rom"]["sha256"],
+        "dimensions": {"width": 16, "height": 12},
+        "tile_patterns": [
+            {
+                "index": index,
+                "palette": 0,
+                "top_left": 0,
+                "top_right": 0,
+                "bottom_left": 0,
+                "bottom_right": 0,
+            }
+            for index in range(58)
+        ],
+        "mirror_schedules": [
+            {"index": index, "initial_phase": [0] * 4, "loop_phase": [0] * 4}
+            for index in range(16)
+        ],
+        "mirror_enemy_sets": [
+            {"index": index, "enemy_types": [], "loop_offset": 0}
+            for index in range(17)
+        ],
+        "rooms": [
+            {
+                "number": index + 1,
+                "blocks": {"brown": [], "white": []},
+                "enemies": {"spawn_lifetime": 0, "placements": []},
+                "items": {
+                    "metadata": {
+                        "mirror_2_schedule": 0,
+                        "mirror_1_schedule": 0,
+                        "mirror_2_enemy_set": 0,
+                        "mirror_1_enemy_set": 0,
+                        "key_status": "normal",
+                        "time_decrease_rate": 0,
+                        "door": {"x": 0, "y": -1},
+                        "key": {"x": 0, "y": -1},
+                        "player_start": {"x": 0, "y": -1},
+                        "mirror_1": {"x": 0, "y": -1},
+                        "mirror_2": {"x": 0, "y": -1},
+                    },
+                    "commands": [{"kind": "end", "opcode": 0}],
+                },
+            }
+            for index in range(53)
+        ],
+    }
+    return document, image, profile
+
+
+class LevelDocumentValueTests(unittest.TestCase):
+    def test_clean_position_discards_encoded_raw_value(self) -> None:
+        self.assertEqual(
+            level_editor.clean_position({"x": 7, "y": 5, "raw": 0x67}),
+            {"x": 7, "y": 5},
+        )
+
+    def test_hidden_position_is_encodable(self) -> None:
+        self.assertEqual(
+            level_editor.clean_position({"x": 0, "y": -1}),
+            {"x": 0, "y": -1},
+        )
+
+    def test_rejects_position_outside_packed_nibbles(self) -> None:
+        for value in ({"x": 16, "y": 0}, {"x": 0, "y": -2}, {"x": 0, "y": 14}):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(level_editor.LevelEditorError, "outside"):
+                    level_editor.clean_position(value)
+
+    def test_spawn_lifetime_conversion_is_bijective(self) -> None:
+        for decoded in range(256):
+            encoded = level_editor.encoded_lifetime(decoded)
+            self.assertEqual(level_editor.decoded_lifetime(encoded), decoded)
+
+    def test_status_rate_encodes_editor_fields(self) -> None:
+        self.assertEqual(
+            level_editor.status_rate_byte(
+                {"key_status": "normal", "time_decrease_rate": 2}
+            ),
+            0x02,
+        )
+        self.assertEqual(
+            level_editor.status_rate_byte(
+                {"key_status": "in_block", "time_decrease_rate": 1}
+            ),
+            0x41,
+        )
+        self.assertEqual(
+            level_editor.status_rate_byte(
+                {"key_status": "hidden", "time_decrease_rate": 2}
+            ),
+            0x82,
+        )
+
+    def test_rejects_unknown_key_status(self) -> None:
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "key status"):
+            level_editor.status_rate_byte(
+                {"key_status": "surprise", "time_decrease_rate": 1}
+            )
+
+    def test_repeat_opcode_is_derived_from_position_count(self) -> None:
+        command = level_editor.encode_item_command(
+            {
+                "kind": "repeat",
+                "type": 0x18,
+                "positions": [{"x": 1, "y": 2}, {"x": 3, "y": 4}],
+            }
+        )
+        self.assertEqual(command["opcode"], 0xC1)
+
+    def test_rejects_empty_repeat(self) -> None:
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "1..32"):
+            level_editor.encode_item_command(
+                {"kind": "repeat", "type": 0x18, "positions": []}
+            )
+
+    def test_exports_only_editable_metadata_fields(self) -> None:
+        metadata = {
+            "mirror_2_schedule": 0,
+            "mirror_1_schedule": 1,
+            "mirror_2_enemy_set": 2,
+            "mirror_1_enemy_set": 3,
+            "key_status": "hidden",
+            "time_decrease_rate": 2,
+            "status_rate_raw": 0x82,
+            **{
+                name: {"x": index, "y": index, "raw": 0x10 + index}
+                for index, name in enumerate(level_editor.POSITION_FIELDS)
+            },
+        }
+        exported = level_editor.export_metadata(metadata)
+        self.assertNotIn("status_rate_raw", exported)
+        self.assertEqual(exported["door"], {"x": 0, "y": 0})
+
+
+class LevelDocumentStructureTests(unittest.TestCase):
+    def test_accepts_document_header(self) -> None:
+        document, _, _ = empty_level_fixture()
+        self.assertIs(level_editor.validate_document_header(document), document)
+
+    def test_rejects_wrong_dimensions(self) -> None:
+        document, _, _ = empty_level_fixture()
+        document["dimensions"] = {"width": 20, "height": 12}
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "dimensions"):
+            level_editor.validate_document_header(document)
+
+    def test_rejects_wrong_game(self) -> None:
+        document, _, _ = empty_level_fixture()
+        document["game"] = "another-game"
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "another game"):
+            level_editor.validate_document_header(document)
+
+    def test_requires_contiguous_room_numbers(self) -> None:
+        document, _, _ = empty_level_fixture()
+        document["rooms"][4]["number"] = 99
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "not contiguous"):
+            level_editor.require_indexed_records(document["rooms"], "rooms", 53)
+
+    def test_requires_exact_record_count(self) -> None:
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "exactly 16"):
+            level_editor.require_indexed_records([], "mirror_schedules", 16)
+
+    def test_save_is_deterministic_and_loads(self) -> None:
+        document, _, _ = empty_level_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "levels.json"
+            self.assertEqual(level_editor.save_document(path, document), "WRITE")
+            first = path.read_bytes()
+            self.assertEqual(level_editor.save_document(path, document), "OK")
+            self.assertEqual(path.read_bytes(), first)
+            self.assertEqual(level_editor.load_document(path), document)
+
+
+class LevelPackingTests(unittest.TestCase):
+    def test_pack_records_updates_split_pointer_planes(self) -> None:
+        prg = bytearray(256)
+        used, capacity = level_editor.pack_records(
+            prg,
+            pointer_table=10,
+            data_start=40,
+            data_end=50,
+            records=(b"abc", b"de"),
+            name="sample",
+        )
+        self.assertEqual((used, capacity), (5, 10))
+        self.assertEqual(prg[40:45], b"abcde")
+        self.assertEqual(prg[10:14], bytes((0x28, 0x2B, 0x80, 0x80)))
+
+    def test_pack_records_rejects_capacity_overflow(self) -> None:
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "budget"):
+            level_editor.pack_records(
+                bytearray(64),
+                pointer_table=0,
+                data_start=10,
+                data_end=12,
+                records=(b"too long",),
+                name="sample",
+            )
+
+    def test_build_and_decode_document(self) -> None:
+        document, image, profile = empty_level_fixture()
+        rebuilt, usage = level_editor.build_level_image(document, image, profile)
+        self.assertEqual(len(rebuilt), len(image))
+        self.assertEqual(usage["room_blocks"], (2544, 2544))
+        level_editor.validate_rebuilt_document(document, rebuilt, profile)
+
+    def test_modified_block_survives_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["rooms"][0]["blocks"]["brown"].append({"x": 4, "y": 5})
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(
+            decoded["rooms"][0]["blocks"]["brown"],
+            [{"x": 4, "y": 5}],
+        )
+
+    def test_modified_enemy_survives_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["rooms"][0]["enemies"] = {
+            "spawn_lifetime": 17,
+            "placements": [{"type": 0x71, "position": {"x": 7, "y": 5}}],
+        }
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(decoded["rooms"][0]["enemies"], document["rooms"][0]["enemies"])
+
+    def test_modified_item_survives_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["rooms"][0]["items"]["commands"] = [
+            {"kind": "item", "type": 0x18, "position": {"x": 3, "y": 4}},
+            {"kind": "end", "opcode": 0},
+        ]
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(
+            decoded["rooms"][0]["items"]["commands"],
+            document["rooms"][0]["items"]["commands"],
+        )
+
+    def test_enemy_budget_overflow_is_rejected(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["rooms"][0]["enemies"]["placements"] = [
+            {"type": 1, "position": {"x": index % 16, "y": index % 12}}
+            for index in range(400)
+        ]
+        with self.assertRaisesRegex(level_editor.LevelEditorError, "budget"):
+            level_editor.build_level_image(document, image, profile)
 
 
 if __name__ == "__main__":
