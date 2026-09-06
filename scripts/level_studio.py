@@ -52,6 +52,7 @@ EDIT_MODES = (
     "select",
     "brown block",
     "white block",
+    "brown + white block",
     "erase cell",
     "player start",
     "key",
@@ -103,6 +104,12 @@ def parse_hex_byte_list(value: str, field: str, count: int | None = None) -> lis
 
 def format_hex_byte_list(values: list[int]) -> str:
     return " ".join(f"{value:02X}" for value in values)
+
+
+def combined_block_positions(blocks: dict[str, Any]) -> set[tuple[int, int]]:
+    brown = {(position["x"], position["y"]) for position in blocks["brown"]}
+    white = {(position["x"], position["y"]) for position in blocks["white"]}
+    return brown & white
 
 
 def level_playtest_environment(
@@ -247,26 +254,31 @@ class StudioDocument:
         return value.get("x") == x and value.get("y") == y
 
     def set_block(self, room_index: int, kind: str, x: int, y: int) -> bool:
-        if kind not in {"brown", "white"}:
+        memberships = {
+            "brown": frozenset(("brown",)),
+            "white": frozenset(("white",)),
+            "brown_white": frozenset(("brown", "white")),
+        }
+        if kind not in memberships:
             raise LevelEditorError(f"unknown block kind: {kind}")
 
         def apply() -> bool:
             blocks = self.room(room_index)["blocks"]
-            target = blocks[kind]
-            other = blocks["white" if kind == "brown" else "brown"]
-            existing = next(
-                (value for value in target if self.same_position(value, x, y)),
-                None,
-            )
             changed = False
-            if existing is None:
-                target.append({"x": x, "y": y})
-                target.sort(key=lambda value: (value["y"], value["x"]))
-                changed = True
-            removed = [value for value in other if self.same_position(value, x, y)]
-            if removed:
-                other[:] = [value for value in other if value not in removed]
-                changed = True
+            for plane in ("brown", "white"):
+                values = blocks[plane]
+                existing = next(
+                    (value for value in values if self.same_position(value, x, y)),
+                    None,
+                )
+                enabled = plane in memberships[kind]
+                if enabled and existing is None:
+                    values.append({"x": x, "y": y})
+                    values.sort(key=lambda value: (value["y"], value["x"]))
+                    changed = True
+                elif not enabled and existing is not None:
+                    values.remove(existing)
+                    changed = True
             return changed
 
         return self.mutate(apply)
@@ -997,7 +1009,7 @@ class LevelStudio(tk.Tk):
             legend,
             justify="left",
             text=(
-                "Brown / white: block planes\n"
+                "Brown / white / B+W: block planes\n"
                 "P player, K key, D door\n"
                 "M1/M2 Demon Mirrors\n"
                 "Red circles: enemies\n"
@@ -1260,6 +1272,10 @@ class LevelStudio(tk.Tk):
                 changed = self.model.set_block(self.room_index.get(), "brown", x, y)
             elif mode == "white block":
                 changed = self.model.set_block(self.room_index.get(), "white", x, y)
+            elif mode == "brown + white block":
+                changed = self.model.set_block(
+                    self.room_index.get(), "brown_white", x, y
+                )
             elif mode == "erase cell":
                 changed = self.model.erase_cell(self.room_index.get(), x, y)
             elif mode in ANCHOR_MODES:
@@ -1339,6 +1355,15 @@ class LevelStudio(tk.Tk):
             )
         for y in range(ROOM_HEIGHT + 1):
             self.canvas.create_line(0, y * CELL, CANVAS_WIDTH, y * CELL, fill="#405060")
+        for x, y in sorted(combined_block_positions(room["blocks"])):
+            self.canvas.create_text(
+                (x + 1) * CELL - 2,
+                y * CELL + 2,
+                text="B+W",
+                fill="#ffcc66",
+                font=("Consolas", 7, "bold"),
+                anchor="ne",
+            )
         metadata = room["items"]["metadata"]
         for field, text, color in (
             ("player_start", "P", "#66ddff"),
@@ -1550,6 +1575,10 @@ def main() -> int:
         )
         if args.check:
             previews = [preview_renderer.render(index) for index in range(ROOM_COUNT)]
+            combined_blocks = sum(
+                len(combined_block_positions(room["blocks"]))
+                for room in document["rooms"]
+            )
             placed_enemies = sum(
                 len(room["enemies"]["placements"])
                 for room in document["rooms"]
@@ -1561,6 +1590,7 @@ def main() -> int:
                 f"[OK] Level Studio {profile['id']}: {ROOM_COUNT} rooms, "
                 f"{sum(used for used, _ in usage.values())} encoded bytes, "
                 f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes, "
+                f"{combined_blocks} combined block cells, "
                 f"{native_enemies}/{placed_enemies} native enemy sprites"
             )
             return 0

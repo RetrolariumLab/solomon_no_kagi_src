@@ -331,11 +331,13 @@ instead of inheriting the USA `$D0E8` address; both values live in the
 validated revision manifest. A type outside the decoded engine range remains
 visible as an explicit editor marker rather than being assigned invented art.
 
-The toolbar can place brown or white blocks, erase a complete cell, move the
-player start, key, door, and either Demon Mirror, and add typed enemies or
-items. Existing direct, repeated, and constellation item records are all
-visible; erasing one repeated placement shrinks the command and removes it
-when its last position disappears.
+The toolbar can place brown, white, or combined brown-and-white blocks, erase a
+complete cell, move the player start, key, door, and either Demon Mirror, and
+add typed enemies or items. The combined mode sets both original bitplanes;
+the preview marks it `B+W` because the native loader's white-second precedence
+otherwise makes it look identical to a white block. Existing direct, repeated,
+and constellation item records are all visible; erasing one repeated placement
+shrinks the command and removes it when its last position disappears.
 
 The Room records table exposes every enemy and item entry, including encoded
 source kind, type, coordinates, command number, and repeat-position number.

@@ -31,6 +31,14 @@ the known headered SHA-1 `18102689fd35c7d531a5e6241b06b748accab2f6`.
 - Shared research spreadsheet: <https://docs.google.com/spreadsheets/d/1EKLm0fHJ-rp5udljMHu-O83MaiY2XTmdcYA7ya-KYNQ/edit?usp=sharing>
 - Cartridge record: <https://nescartdb.com/profile/view/900/solomons-key>
 
+On 2026-09-07 the user supplied a CSV export of the spreadsheet's 53-room
+block table (`Solomon's Key (NES) - levelBlocks.csv`, SHA-256
+`4380f0888fbbf23d65bb45e4de32e4dc9409789845a838d8f40c8489fb69271b`).
+An independent comparison against the USA level document matched all 10,176
+cells. The ten value-3 cells set both brown and white planes, corroborating
+the loader precedence and `skchain`'s `Brown_white` representation. The CSV is
+external research input and is not tracked in this repository.
+
 Local clones used during research live beneath ignored `references/` and are
 not part of the project history.
 

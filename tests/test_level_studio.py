@@ -140,11 +140,23 @@ class BlockEditingTests(unittest.TestCase):
             [{"x": 0, "y": 0}, {"x": 1, "y": 2}, {"x": 15, "y": 11}],
         )
 
-    def test_block_planes_are_mutually_exclusive(self) -> None:
+    def test_single_block_replaces_the_other_plane(self) -> None:
         model = level_studio.StudioDocument(studio_document())
         model.set_block(0, "white", 1, 2)
         self.assertNotIn({"x": 1, "y": 2}, model.room(0)["blocks"]["brown"])
         self.assertIn({"x": 1, "y": 2}, model.room(0)["blocks"]["white"])
+
+    def test_combined_block_sets_both_original_bitplanes(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.set_block(0, "brown_white", 2, 3))
+        position = {"x": 2, "y": 3}
+        self.assertIn(position, model.room(0)["blocks"]["brown"])
+        self.assertIn(position, model.room(0)["blocks"]["white"])
+        self.assertEqual(
+            level_studio.combined_block_positions(model.room(0)["blocks"]),
+            {(2, 3)},
+        )
+        self.assertFalse(model.set_block(0, "brown_white", 2, 3))
 
     def test_rejects_unknown_block_kind(self) -> None:
         model = level_studio.StudioDocument(studio_document())
