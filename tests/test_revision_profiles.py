@@ -48,6 +48,13 @@ def sample_profile(
         "room_layout": "usa",
         "source_status": source_status,
         "assembly_define": None if source_status == "planned" else 0,
+        "playtest": None if source_status == "planned" else {
+            "room_load_address": "0x9000",
+            "gameplay_address": "0xa000",
+            "current_room_address": "0x0428",
+            "start_frame": 300,
+            "ready_frames": 1000,
+        },
         "reference_rom": f"{profile_id}.nes",
         "reference_provenance": "Synthetic unit-test image.",
         "rom": region_descriptor(image),
@@ -195,6 +202,18 @@ class ManifestValidationTests(unittest.TestCase):
         document["profiles"].append(planned)
         errors = revision_profiles.validate_profiles(document)
         self.assertIn("japan planned source has an assembly define", errors)
+
+    def test_rejects_buildable_profile_without_playtest_contract(self) -> None:
+        document, _ = sample_document()
+        del document["profiles"][0]["playtest"]
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn("usa has no playtest contract", errors)
+
+    def test_rejects_invalid_playtest_address(self) -> None:
+        document, _ = sample_document()
+        document["profiles"][0]["playtest"]["room_load_address"] = "0x7000"
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn("usa has invalid playtest room_load_address", errors)
 
     def test_rejects_overlapping_verified_source_ranges(self) -> None:
         document, images = sample_document()

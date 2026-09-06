@@ -442,5 +442,67 @@ class NativePreviewTests(unittest.TestCase):
             level_preview.room_chr_bank(room)
 
 
+class PointPlaytestTests(unittest.TestCase):
+    @staticmethod
+    def profile() -> dict[str, object]:
+        return {
+            "id": "europe",
+            "playtest": {
+                "room_load_address": "0x9030",
+                "gameplay_address": "0xa000",
+                "current_room_address": "0x0428",
+                "start_frame": 300,
+                "ready_frames": 1000,
+            },
+        }
+
+    def test_environment_selects_profile_addresses_and_zero_based_room(self) -> None:
+        environment = level_studio.level_playtest_environment(self.profile(), 29)
+        self.assertEqual(environment["SOLOMON_LEVEL_ROOM"], "29")
+        self.assertEqual(environment["SOLOMON_LEVEL_ROOM_LOAD_ADDRESS"], "36912")
+        self.assertEqual(environment["SOLOMON_LEVEL_GAMEPLAY_ADDRESS"], "40960")
+        self.assertEqual(environment["SOLOMON_LEVEL_CURRENT_ROOM_ADDRESS"], "1064")
+        self.assertEqual(environment["SOLOMON_LEVEL_EXIT"], "0")
+
+    def test_smoke_environment_requests_result_and_exit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            result = Path(directory) / "result.txt"
+            environment = level_studio.level_playtest_environment(
+                self.profile(), 0, result_path=result, exit_after_ready=True
+            )
+        self.assertEqual(environment["SOLOMON_LEVEL_RESULT"], result.resolve().as_posix())
+        self.assertEqual(environment["SOLOMON_LEVEL_EXIT"], "1")
+
+    def test_command_adds_bounded_smoke_options_only_when_requested(self) -> None:
+        interactive = level_studio.level_playtest_command(
+            Path("fceux.exe"), Path("room.nes")
+        )
+        smoke = level_studio.level_playtest_command(
+            Path("fceux.exe"), Path("room.nes"), 1000
+        )
+        self.assertNotIn("-max-frames", interactive)
+        self.assertIn("-max-frames", smoke)
+        self.assertEqual(smoke[-1], str(Path("room.nes").resolve()))
+
+    def test_accepts_ready_result_for_selected_room(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            result = Path(directory) / "result.txt"
+            line = (
+                "status=ready requested_room=1d current_room=1d "
+                "room_loads=1 gameplay_hits=1 frame=610 pc=a000"
+            )
+            result.write_text(line + "\ntrace=\n", encoding="utf-8")
+            self.assertEqual(level_studio.validate_playtest_result(result, 29), line)
+
+    def test_rejects_result_for_another_room(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            result = Path(directory) / "result.txt"
+            result.write_text(
+                "status=ready requested_room=00 current_room=00\n", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(level_studio.LevelEditorError, "failed"):
+                level_studio.validate_playtest_result(result, 29)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -149,6 +149,41 @@ def validate_source_range(
             errors.append(f"{profile_id}/{range_id} has invalid source {hash_name}")
 
 
+def parse_manifest_integer(value: object) -> int | None:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value, 0)
+        except ValueError:
+            return None
+    return None
+
+
+def validate_playtest(profile_id: str, value: object, errors: list[str]) -> None:
+    if not isinstance(value, dict):
+        errors.append(f"{profile_id} has no playtest contract")
+        return
+    for field in ("room_load_address", "gameplay_address"):
+        address = parse_manifest_integer(value.get(field))
+        if address is None or not 0x8000 <= address <= 0xFFFF:
+            errors.append(f"{profile_id} has invalid playtest {field}")
+    current_room = parse_manifest_integer(value.get("current_room_address"))
+    if current_room is None or not 0 <= current_room <= 0x07FF:
+        errors.append(f"{profile_id} has invalid playtest current_room_address")
+    start_frame = value.get("start_frame")
+    ready_frames = value.get("ready_frames")
+    if not isinstance(start_frame, int) or not 1 <= start_frame <= 3600:
+        errors.append(f"{profile_id} has invalid playtest start_frame")
+    if (
+        not isinstance(ready_frames, int)
+        or not isinstance(start_frame, int)
+        or ready_frames <= start_frame + 1
+        or ready_frames > 3600
+    ):
+        errors.append(f"{profile_id} has invalid playtest ready_frames")
+
+
 def validate_profiles(document: object) -> list[str]:
     errors: list[str] = []
     if not isinstance(document, dict) or document.get("schema_version") != 1:
@@ -182,6 +217,8 @@ def validate_profiles(document: object) -> list[str]:
                 errors.append(f"{profile_id} planned source has an assembly define")
         elif not isinstance(assembly_define, int) or assembly_define < 0:
             errors.append(f"{profile_id} has no assembly define")
+        else:
+            validate_playtest(profile_id, profile.get("playtest"), errors)
         reference = profile.get("reference_rom")
         if (
             not isinstance(reference, str)

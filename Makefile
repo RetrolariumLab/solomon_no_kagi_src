@@ -15,6 +15,7 @@ LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
 LEVEL_DOCUMENT ?= content/workspace/$(PROFILE)/levels.json
 LEVEL_ROM ?= build/content/$(PROFILE)/solomons_key_levels.nes
+LEVEL_PLAYTEST_ROOM ?= 1
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
@@ -163,6 +164,7 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	revision-room-report revision-room-audit compare-revision-rooms \
 	export-levels validate-levels build-levels roundtrip-levels \
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
+	smoke-level-playtest smoke-level-playtests \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions
 
@@ -299,6 +301,16 @@ check-level-studio:
 		--profile usa --check
 	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
 		--profile europe --check
+
+smoke-level-playtest:
+	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile "$(PROFILE)" --document "$(LEVEL_DOCUMENT)" \
+		--output "$(LEVEL_ROM)" --fceux "$(FCEUX)" --check-playtest \
+		--playtest-room "$(LEVEL_PLAYTEST_ROOM)"
+
+smoke-level-playtests:
+	$(MAKE) smoke-level-playtest PROFILE=usa LEVEL_PLAYTEST_ROOM=1
+	$(MAKE) smoke-level-playtest PROFILE=europe LEVEL_PLAYTEST_ROOM=30
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \

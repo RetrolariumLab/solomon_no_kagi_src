@@ -11,6 +11,13 @@
       "room_layout": "usa",
       "source_status": "complete",
       "assembly_define": 0,
+      "playtest": {
+        "room_load_address": "0x9021",
+        "gameplay_address": "0xa000",
+        "current_room_address": "0x0428",
+        "start_frame": 300,
+        "ready_frames": 1000
+      },
       "reference_rom": "Solomon's Key (U) [!].nes",
       "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
       "rom": {
@@ -71,6 +78,13 @@
       "room_layout": "europe",
       "source_status": "complete",
       "assembly_define": 1,
+      "playtest": {
+        "room_load_address": "0x9030",
+        "gameplay_address": "0xa000",
+        "current_room_address": "0x0428",
+        "start_frame": 300,
+        "ready_frames": 1000
+      },
       "reference_rom": "Solomon's Key (E) [!].nes",
       "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
       "rom": {

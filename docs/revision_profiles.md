@@ -338,9 +338,28 @@ copying USA timing.
 `Save` encodes and decodes the complete document before replacing its JSON.
 `Build ROM` performs the same validation and writes the ignored profile image
 under `build/content/PROFILE/`. `Play` first builds that exact image and then
-starts the pinned FCEUX executable. A bounded in-memory undo history covers all
-grid and property mutations, and closing a dirty workspace asks before
-discarding changes.
+starts the selected room in the pinned FCEUX executable. The Lua workflow
+presses Start through the ordinary title path, intercepts the profile-specific
+first `RoomLoadThread` entry, selects `CurrentRoomIndex` before the original
+loader reads it, and then hands control to the real `MainGameplayThread`.
+Neither the content ROM nor its code is patched for point playtesting. `Stop`
+closes only the emulator process owned by the current studio. A bounded
+in-memory undo history covers all grid and property mutations, and closing a
+dirty workspace asks before discarding changes.
+
+The USA and Europe hook addresses are part of each validated revision profile;
+the PAL loader is not assumed to share the USA address. Exercise both paths
+without opening the editor with:
+
+```console
+make smoke-level-playtest PROFILE=usa LEVEL_PLAYTEST_ROOM=1
+make smoke-level-playtests
+```
+
+The aggregate smoke enters USA Room 1 and Europe Room 30, requires an observed
+`MainGameplayThread` hit with the requested room still active, writes its
+diagnostic result under ignored `build/content/`, and terminates only the
+bounded smoke process.
 
 The UI delegates every binary operation to `scripts/level_editor.py`; it has no
 private serializer or ROM patch path. `scripts/level_preview.py` is likewise a

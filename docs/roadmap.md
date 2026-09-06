@@ -369,7 +369,9 @@ passes on the reviewed `main` commit.
   edits the complete logical room grid and profile-sensitive properties, draws
   native backgrounds from each room's original CHR bank, palette, RoomMap
   records, and constellation pattern, and keeps save/build/play actions backed
-  by the same validated codec;
+  by the same validated codec. Profile-specific FCEUX hooks now enter the
+  selected USA or PAL room through the original loader, with a two-profile
+  runtime smoke gate;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

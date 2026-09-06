@@ -6,9 +6,11 @@ from __future__ import annotations
 import argparse
 import copy
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 import tkinter as tk
 from tkinter import messagebox, ttk
 from typing import Any, Callable
@@ -43,6 +45,7 @@ PIXEL_SCALE = 2
 CELL = METATILE_SIZE * PIXEL_SCALE
 CANVAS_WIDTH = ROOM_WIDTH * CELL
 CANVAS_HEIGHT = ROOM_HEIGHT * CELL
+LEVEL_PLAYTEST_LUA = ROOT / "scripts" / "level_playtest.lua"
 EDIT_MODES = (
     "select",
     "brown block",
@@ -71,6 +74,117 @@ class ItemPlacement:
     position_index: int | None
     item_type: int
     position: dict[str, int]
+
+
+def profile_integer(value: object, field: str) -> int:
+    try:
+        return int(value, 0) if isinstance(value, str) else int(value)
+    except (TypeError, ValueError) as exc:
+        raise LevelEditorError(f"invalid profile playtest {field}: {value!r}") from exc
+
+
+def level_playtest_environment(
+    profile: dict[str, Any],
+    room_index: int,
+    result_path: Path | None = None,
+    exit_after_ready: bool = False,
+) -> dict[str, str]:
+    if not 0 <= room_index < ROOM_COUNT:
+        raise LevelEditorError(f"playtest room must be 0..{ROOM_COUNT - 1}")
+    contract = profile.get("playtest")
+    if not isinstance(contract, dict):
+        raise LevelEditorError(f"profile {profile.get('id')} has no playtest contract")
+    environment = os.environ.copy()
+    environment.update(
+        SOLOMON_LEVEL_ROOM=str(room_index),
+        SOLOMON_LEVEL_ROOM_LOAD_ADDRESS=str(
+            profile_integer(contract.get("room_load_address"), "room_load_address")
+        ),
+        SOLOMON_LEVEL_GAMEPLAY_ADDRESS=str(
+            profile_integer(contract.get("gameplay_address"), "gameplay_address")
+        ),
+        SOLOMON_LEVEL_CURRENT_ROOM_ADDRESS=str(
+            profile_integer(
+                contract.get("current_room_address"), "current_room_address"
+            )
+        ),
+        SOLOMON_LEVEL_START_FRAME=str(
+            profile_integer(contract.get("start_frame"), "start_frame")
+        ),
+        SOLOMON_LEVEL_READY_FRAMES=str(
+            profile_integer(contract.get("ready_frames"), "ready_frames")
+        ),
+        SOLOMON_LEVEL_EXIT="1" if exit_after_ready else "0",
+    )
+    if result_path is not None:
+        environment["SOLOMON_LEVEL_RESULT"] = result_path.resolve().as_posix()
+    return environment
+
+
+def level_playtest_command(
+    fceux: Path,
+    image: Path,
+    smoke_frames: int | None = None,
+) -> list[str]:
+    command = [str(fceux.resolve()), "-lua", str(LEVEL_PLAYTEST_LUA.resolve())]
+    if smoke_frames is not None:
+        command.extend(
+            ("-max-frames", str(smoke_frames + 2), "-turbo", "1", "-nothrottle", "1")
+        )
+    command.append(str(image.resolve()))
+    return command
+
+
+def validate_playtest_result(path: Path, room_index: int) -> str:
+    try:
+        first_line = path.read_text(encoding="utf-8").splitlines()[0]
+        fields = dict(field.split("=", 1) for field in first_line.split())
+    except (OSError, IndexError, ValueError) as exc:
+        raise LevelEditorError(f"cannot read playtest result {path}: {exc}") from exc
+    expected = f"{room_index:02x}"
+    if fields.get("status") != "ready" or fields.get("current_room") != expected:
+        raise LevelEditorError(f"selected room playtest failed: {first_line}")
+    return first_line
+
+
+def run_playtest_smoke(
+    fceux: Path,
+    image: Path,
+    profile: dict[str, Any],
+    room_index: int,
+    result_path: Path,
+) -> str:
+    contract = profile["playtest"]
+    ready_frames = profile_integer(contract["ready_frames"], "ready_frames")
+    process = subprocess.Popen(
+        level_playtest_command(fceux, image, ready_frames),
+        cwd=image.parent,
+        env=level_playtest_environment(
+            profile,
+            room_index,
+            result_path=result_path,
+            exit_after_ready=True,
+        ),
+    )
+    deadline = time.monotonic() + 120
+    try:
+        while time.monotonic() < deadline:
+            if result_path.is_file():
+                return validate_playtest_result(result_path, room_index)
+            return_code = process.poll()
+            if return_code is not None:
+                raise LevelEditorError(
+                    f"FCEUX playtest exited with code {return_code} before reporting"
+                )
+            time.sleep(0.1)
+        raise LevelEditorError("FCEUX playtest did not report within 120 seconds")
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
 
 
 class StudioDocument:
@@ -328,6 +442,7 @@ class LevelStudio(tk.Tk):
         self.fceux = fceux
         self.preview_renderer = LevelPreviewRenderer(model.document, chr_data)
         self.preview_image: tk.PhotoImage | None = None
+        self.playtest_process: subprocess.Popen[bytes] | None = None
         self.room_index = tk.IntVar(value=0)
         self.room_choice = tk.StringVar(value="Room 01")
         self.mode = tk.StringVar(value="select")
@@ -378,6 +493,7 @@ class LevelStudio(tk.Tk):
             ("Save", self.save),
             ("Build ROM", self.build_rom),
             ("Play", self.play),
+            ("Stop", self.stop_playtest),
         ):
             ttk.Button(toolbar, text=text, command=command).pack(side="left", padx=3)
         ttk.Label(toolbar, textvariable=self.status).pack(side="right")
@@ -662,16 +778,42 @@ class LevelStudio(tk.Tk):
         if not self.fceux.is_file():
             messagebox.showerror("FCEUX not found", str(self.fceux))
             return
+        if not LEVEL_PLAYTEST_LUA.is_file():
+            messagebox.showerror("Level playtest script not found", str(LEVEL_PLAYTEST_LUA))
+            return
         try:
-            subprocess.Popen([str(self.fceux), str(self.output_path)])
-        except OSError as exc:
+            self.stop_playtest(update_status=False)
+            environment = level_playtest_environment(
+                self.profile, self.room_index.get()
+            )
+            self.playtest_process = subprocess.Popen(
+                level_playtest_command(self.fceux, self.output_path),
+                cwd=self.output_path.parent,
+                env=environment,
+            )
+            self.set_status(f"Launching Room {self.room_index.get() + 1:02d}")
+        except (OSError, LevelEditorError) as exc:
             messagebox.showerror("Cannot start FCEUX", str(exc))
+
+    def stop_playtest(self, update_status: bool = True) -> None:
+        if self.playtest_process is not None and self.playtest_process.poll() is None:
+            self.playtest_process.terminate()
+            try:
+                self.playtest_process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self.playtest_process.kill()
+            if update_status:
+                self.set_status("Stopped Level Studio playtest")
+        elif update_status:
+            self.set_status("No Level Studio playtest is running")
+        self.playtest_process = None
 
     def close(self) -> None:
         if self.model.dirty and not messagebox.askyesno(
             "Unsaved edits", "Discard unsaved level edits?"
         ):
             return
+        self.stop_playtest(update_status=False)
         self.destroy()
 
 
@@ -713,6 +855,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="validate the workspace and codec without opening a window",
     )
+    parser.add_argument(
+        "--check-playtest",
+        action="store_true",
+        help="run a bounded FCEUX smoke test for the selected room",
+    )
+    parser.add_argument(
+        "--playtest-room",
+        type=int,
+        default=1,
+        help="one-based room selected by --check-playtest (default: 1)",
+    )
     return parser
 
 
@@ -741,6 +894,22 @@ def main() -> int:
                 f"{sum(used for used, _ in usage.values())} encoded bytes, "
                 f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes"
             )
+            return 0
+        if args.check_playtest:
+            if not args.fceux.is_file() or not LEVEL_PLAYTEST_LUA.is_file():
+                raise LevelEditorError("FCEUX or the level playtest Lua script is missing")
+            room_index = args.playtest_room - 1
+            result_path = output_path.with_suffix(".playtest.txt")
+            result_path.unlink(missing_ok=True)
+            write_if_changed(output_path, rebuilt)
+            result = run_playtest_smoke(
+                args.fceux,
+                output_path,
+                profile,
+                room_index,
+                result_path,
+            )
+            print(f"[OK] Level Studio playtest {profile['id']}: {result}")
             return 0
         studio = LevelStudio(
             model,
