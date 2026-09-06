@@ -78,7 +78,8 @@ def compare_bytes(
         )
     print(
         f"[OK] {region}: {len(actual)} bytes identical "
-        f"(sha1={digest(actual)}, crc32={crc32(actual)})"
+        f"(sha1={digest(actual)}, sha256={digest(actual, 'sha256')}, "
+        f"crc32={crc32(actual)})"
     )
 
 
@@ -128,7 +129,7 @@ def report_image(data: bytes, manifest: dict[str, object] | None = None) -> None
     ):
         print(
             f"{name:7} size={len(payload):5} sha1={digest(payload)} "
-            f"crc32={crc32(payload)}"
+            f"sha256={digest(payload, 'sha256')} crc32={crc32(payload)}"
         )
     if manifest is not None:
         validate_image(data, manifest)

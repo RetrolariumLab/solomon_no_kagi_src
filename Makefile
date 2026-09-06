@@ -122,13 +122,13 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 
 .PHONY: all build split verify verify-reference verify-built verify-header \
 	verify-prg verify-chr verify-payload verify-rom verify-assets check-assets \
-	verify-toolchain verify-build-toolchain verify-runtime-toolchain \
+	verify-toolchain verify-build-toolchain verify-runtime-toolchain verify-host \
 	verify-private-input \
 	rom-info rom-info-reference rom-info-built symbols validate-symbols \
-	trace-runtime validate-runtime \
+	trace trace-runtime validate-runtime \
 	format format-check lint lint-asm \
-	lint-source lint-project test quality-check check release-audit release-check \
-	source-1-audit rooms \
+	lint-source lint-project test quality-check check release-audit pre-tag-audit \
+	release-static-check release-check source-1-audit source-1-post-tag-audit rooms \
 	validate-rooms room-data-audit chr-bank-report chr-bank-audit roundtrip-formats \
 	reconstruction-status reconstruction-audit \
 	prg-layout-report prg-layout-audit format-coverage-audit \
@@ -168,7 +168,11 @@ verify-private-input:
 	$(PYTHON) scripts/project.py toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
 		--scope private --component-path "usa_reference_rom=$(REFERENCE_ROM)"
 
-verify-toolchain: verify-build-toolchain verify-runtime-toolchain verify-private-input
+verify-host:
+	$(PYTHON) scripts/project.py toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
+		--scope host
+
+verify-toolchain: verify-build-toolchain verify-runtime-toolchain verify-private-input verify-host
 
 verify-reference: verify-private-input
 	$(PYTHON) scripts/project.py verify --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
@@ -221,6 +225,8 @@ trace-runtime: verify-runtime-toolchain symbols
 		--output-dir "$(RUNTIME_TRACE_DIR)"
 	$(MAKE) validate-runtime
 
+trace: trace-runtime
+
 validate-runtime:
 	$(PYTHON) scripts/runtime_scenarios.py validate --scenarios "$(RUNTIME_SCENARIOS)" \
 		--trace-dir "$(RUNTIME_TRACE_DIR)"
@@ -270,6 +276,16 @@ reconstruction-audit: $(ROM)
 
 release-audit: $(ROM)
 	$(PYTHON) scripts/reconstruction_status.py release-audit \
+		--map "$(MAP)" --labels "$(LABELS)" \
+		--release config/source_reconstruction_1_0.json
+
+pre-tag-audit: $(ROM)
+	$(PYTHON) scripts/reconstruction_status.py pre-tag-audit \
+		--map "$(MAP)" --labels "$(LABELS)" \
+		--release config/source_reconstruction_1_0.json
+
+source-1-post-tag-audit: $(ROM)
+	$(PYTHON) scripts/reconstruction_status.py post-tag-audit \
 		--map "$(MAP)" --labels "$(LABELS)" \
 		--release config/source_reconstruction_1_0.json
 
@@ -338,14 +354,26 @@ audio-data-audit: $(ROM)
 
 quality-check: lint test
 
-release-check: quality-check verify validate-rooms roundtrip-formats \
+release-static-check: quality-check verify validate-rooms roundtrip-formats \
 	reconstruction-audit prg-layout-audit validate-symbols scheduler-audit \
 	enemy-ai-audit enemy-pointer-audit chr-bank-audit \
 	item-handler-audit release-audit
 
-source-1-audit: release-check trace-runtime
+release-check:
+	$(MAKE) clean
+	$(MAKE) verify-toolchain verify-reference
+	$(MAKE) lint
+	$(MAKE) test roundtrip-formats
+	$(MAKE) verify validate-rooms reconstruction-audit prg-layout-audit \
+		scheduler-audit enemy-ai-audit enemy-pointer-audit chr-bank-audit \
+		item-handler-audit
+	$(MAKE) validate-symbols trace-runtime
+	$(MAKE) release-audit
+	$(MAKE) pre-tag-audit
 
-check: release-check
+source-1-audit: release-check
+
+check: release-static-check
 
 clean:
 	$(PYTHON) scripts/project.py clean --path build

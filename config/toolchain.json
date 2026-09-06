@@ -45,14 +45,15 @@
   "hosts": [
     {
       "id": "windows-x64-powershell",
-      "os": "Microsoft Windows",
-      "architecture": "x86_64",
+      "os": "Windows",
+      "architecture": "AMD64",
       "shell": "Windows PowerShell 5.1",
       "language_versions": {
         "python": "3.14.6",
         "make": "GNU Make 4.4.1"
       },
-      "supported_status": "supported"
+      "supported_status": "supported",
+      "verification_target": "verify-host"
     }
   ],
   "private_inputs": [

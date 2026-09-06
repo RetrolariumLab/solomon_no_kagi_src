@@ -193,7 +193,8 @@ make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs
 make verify-assets # compare extracted CHR directly with the original
-make rom-info    # print sizes, SHA-1, CRC32, mapper, and mirroring
+make verify-toolchain # verify pinned ca65, ld65, FCEUX, and private ROM hashes
+make rom-info    # print sizes, SHA-1, SHA-256, CRC32, mapper, and mirroring
 make format      # normalize ca65 source and run every linter
 make format-check # check ca65 formatting without changing files
 make lint        # validate assembly style, repository, and source contracts
@@ -203,6 +204,7 @@ make quality-check # lint and test without requiring a reference ROM
 make symbols     # export audited FCEUX labels and debugger symbol summary
 make validate-symbols # verify debugger configs against current linker symbols
 make trace-runtime # capture and validate deterministic FCEUX runtime evidence
+make trace       # stable alias for fresh runtime capture
 make validate-runtime # revalidate already captured runtime traces
 make reconstruction-status # report semantic coverage and remaining raw source
 make reconstruction-audit # validate module ranges, provenance, and thresholds
@@ -236,9 +238,10 @@ python scripts/room_data.py --image "Solomon's Key (U) [!].nes" --source-enemies
 python scripts/room_data.py --image "Solomon's Key (U) [!].nes" --source-blocks # regenerate room block ASM
 python scripts/room_data.py --image "Solomon's Key (U) [!].nes" --source-items # regenerate room item ASM
 python scripts/audio_data.py source --image "Solomon's Key (U) [!].nes" # regenerate audio ASM
-make release-check # complete static, test, identity, and room-data gate
-make source-1-audit # release-check plus fresh capture of all runtime scenarios
-make check       # alias for release-check
+make check       # complete static development gate without emulator capture
+make release-check # clean Source 1.0 pre-tag gate, including fresh runtime
+make source-1-audit # compatibility alias for release-check
+make source-1-post-tag-audit # verify local annotated and published tag identity
 make rooms       # decode all 53 rooms as JSON
 make validate-rooms # structurally decode every room without JSON output
 make clean       # remove build artifacts only
@@ -259,6 +262,8 @@ python scripts/room_data.py --image build/native/solomons_key.nes --room 1 --pre
 ```text
 assets/manifest.json       exact reference identity
 bin/                       local ca65/ld65 toolchain and license
+config/toolchain.json      pinned build/runtime/private input identities
+config/source_reconstruction_1_0.json revision-3 release contract
 config/linker/cnrom.cfg    complete iNES/PRG/CHR linker layout
 config/reconstruction.json machine-checked module inventory and progress floors
 config/scheduler_entries.json reviewed scheduler-entry inventory

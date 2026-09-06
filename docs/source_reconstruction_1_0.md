@@ -7,6 +7,12 @@ that present names are the historical names used by Tecmo; it guarantees that
 names and comments are evidence-backed, uncertainty is explicit, and the game
 can be rebuilt, inspected, traced, and changed at source level.
 
+This is the mandatory `preservation` release line under revision 3 of
+`retrolarium.source_reconstruction_release_contract`. Its semantic depth exceeds
+the minimum Preservation Source milestone, but the accepted artifact remains the
+unaltered USA image; modified builds and additional regional profiles are not
+part of 1.0.
+
 ## Identity and scope
 
 | Property | Value |
@@ -57,26 +63,30 @@ unknowns registry together with the source.
 
 ## Release gates
 
-The normal development gate is:
+The normal static development gate is:
 
 ```text
 make check
 ```
 
-It runs formatting/lint policy, unit tests, full image verification, every
+It runs lint policy, unit tests, full image verification, every
 format round trip, the complete PRG classification fingerprint, reconstruction
-and subsystem audits, and debugger-symbol validation.
+and subsystem audits, debugger-symbol validation, and the machine-readable
+release contract. It does not launch the emulator or enforce tag readiness.
 
-The tag gate is:
+The complete pre-tag gate is:
 
 ```text
-make source-1-audit
+make release-check
 ```
 
-It first runs `make release-check`, including the machine-readable contract in
-`config/source_reconstruction_1_0.json`, then freshly captures and validates all
-ten runtime scenarios. A previously generated trace cannot satisfy this gate
-because `trace-runtime` invokes the emulator for each run before validation.
+It deletes the build directory, checks every pinned build/runtime/private input,
+runs lint and all tests, rebuilds and byte-compares the ROM, executes every
+format and subsystem audit, regenerates debugger symbols, freshly captures all
+ten runtime scenarios, validates the revision-3 manifest, checks commit-history
+policy and worktree cleanliness, and proves that the future tag is absent both
+locally and on `origin`. `make source-1-audit` is a compatibility alias for this
+same aggregate gate; `make trace` is the stable runtime-capture entrypoint.
 
 Passing an individual hash, unit-test, or trace layer is insufficient. The
 release manifest cross-checks the immutable ROM identity, exact reconstruction
@@ -85,9 +95,11 @@ targets so those layers cannot silently drift apart.
 
 ## Tag procedure
 
-Merge the reviewed milestone to `main`, run `make source-1-audit` on that exact
-commit, and require a clean worktree. Then create the annotated tag
-`source-reconstruction-1.0` at the audited `main` commit. Do not tag an
+Merge the reviewed milestone to `main` and run `make release-check` on that exact
+release commit. Then create and publish the annotated tag
+`source-reconstruction-1.0`. Run `make source-1-post-tag-audit` from the tagged
+tree to prove that the local annotated tag, its peeled commit, `HEAD`, the
+manifest tag, and the published `origin` tag all agree. Do not tag an
 intermediate reconstruction branch.
 
 Behavior-changing work and regional builds begin only after that tag. The

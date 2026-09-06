@@ -7,8 +7,9 @@ Super Mario Bros. preservation projects.
   linters
 - `make format-check` checks assembly formatting without changing files
 - `make lint-asm` checks the shared assembly style contract
-- `make lint-source` checks the repository structure, manifests, source
-  contract, debugger JSON, and tracked-binary policy
+- `make lint-source` checks the repository structure, every Python and JSON
+  source, local documentation links, source contracts, and tracked
+  private/generated output policy
 - `make lint-project` is a compatibility alias for `make lint-source`
 - `make lint` runs every linter
 - `make test` runs the Python unit-test suite
@@ -21,14 +22,16 @@ Super Mario Bros. preservation projects.
   checks the reviewed code/data/stream/padding/vector fingerprint
 - `make trace-runtime` captures deterministic FCEUX boot and Room 1 traces;
   `make validate-runtime` rechecks their event timing and final RAM state
-- `make release-check` adds byte-identical ROM verification, room-data
-  validation and round trips, semantic reconstruction audit, and scheduler
-  entry/call-site, enemy-AI and item handler-table, enemy-pointer, and static
-  PPU-stream audits; it also cross-checks the Source Reconstruction 1.0
-  manifest
-- `make source-1-audit` adds a fresh emulator capture and validation of all
-  ten committed runtime scenarios to the complete static release gate
-- `make check` is the full release check
+- `make check` adds byte-identical ROM verification, room-data validation and
+  round trips, semantic reconstruction audit, debugger symbols, and every
+  subsystem contract without launching the emulator
+- `make release-check` starts from an empty build directory, verifies the
+  pinned toolchain and private input, runs the static gate, freshly captures all
+  ten runtime scenarios, validates the revision-3 release manifest, then checks
+  commit history, worktree cleanliness, and tag absence
+- `make source-1-audit` is a compatibility alias for `make release-check`
+- `make source-1-post-tag-audit` validates annotated local and published tag
+  integrity after release
 
 The former address-ordered preservation listing has been eliminated. New
 semantic refinements should continue to follow understood subsystem boundaries

@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import platform
 import re
 import shutil
 import subprocess
@@ -299,6 +300,37 @@ def verify_component(path: Path, entry: dict[str, object]) -> None:
             )
 
 
+def verify_host(entry: dict[str, object]) -> None:
+    versions = entry.get("language_versions")
+    if not isinstance(versions, dict):
+        raise ProjectError("supported host has no language_versions object")
+    facts = {
+        "os": platform.system(),
+        "architecture": platform.machine(),
+        "python": platform.python_version(),
+    }
+    try:
+        facts["make"] = subprocess.run(
+            ["make", "--version"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()[0]
+    except (OSError, subprocess.CalledProcessError, IndexError) as exc:
+        raise ProjectError(f"cannot query GNU Make version: {exc}") from exc
+    expected = {
+        "os": entry.get("os"),
+        "architecture": entry.get("architecture"),
+        "python": versions.get("python"),
+        "make": versions.get("make"),
+    }
+    for field, value in facts.items():
+        if value != expected[field]:
+            raise ProjectError(
+                f"host {field} mismatch: got {value!r}, expected {expected[field]!r}"
+            )
+
+
 def command_toolchain(args: argparse.Namespace) -> None:
     manifest = load_toolchain(Path(args.manifest))
     overrides = parse_path_overrides(args.component_path)
@@ -326,6 +358,12 @@ def command_toolchain(args: argparse.Namespace) -> None:
             path = resolve_tool_path(overrides.get(identifier, str(entry.get("path", ""))))
             verify_file_contract(path, entry, f"private input {identifier}")
             verified += 1
+    if args.scope in ("host", "all"):
+        hosts = manifest.get("hosts")
+        if not isinstance(hosts, list) or len(hosts) != 1 or not isinstance(hosts[0], dict):
+            raise ProjectError("toolchain manifest must declare one supported host")
+        verify_host(hosts[0])
+        verified += 1
     if not verified:
         raise ProjectError(f"toolchain scope has no entries: {args.scope}")
     print(f"[OK] verified {verified} pinned {args.scope} toolchain input(s)")
@@ -787,7 +825,7 @@ def build_parser() -> argparse.ArgumentParser:
     toolchain = subparsers.add_parser("toolchain", help="verify pinned toolchain inputs")
     toolchain.add_argument("--manifest", required=True)
     toolchain.add_argument(
-        "--scope", choices=("build", "runtime", "private", "all"), required=True
+        "--scope", choices=("build", "runtime", "private", "host", "all"), required=True
     )
     toolchain.add_argument("--component-path", action="append", default=[])
     toolchain.set_defaults(handler=command_toolchain)

@@ -25,6 +25,7 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `verify-assets` | ignored extracted CHR matches original CHR |
 | `check-assets` | alias for `verify-assets` |
 | `verify` | aggregate of every target above |
+| `verify-toolchain` | verify pinned assembler, linker, FCEUX, and private input hashes |
 | `rom-info` | print and validate identities for original and built images |
 | `room-data-audit` | round-trip rooms, RoomMap tile patterns, and Demon Mirror data |
 | `roundtrip-formats` | aggregate all implemented byte-level format codecs |
@@ -33,6 +34,7 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `prg-layout-audit` | classify all 32 KiB as code, data, stream, padding, or vectors |
 | `format-coverage-audit` | require one codec owner for every stream-classified segment |
 | `trace-runtime` | capture and validate deterministic cold-boot and Room 1 FCEUX traces |
+| `trace` | stable alias for fresh runtime capture |
 | `validate-runtime` | revalidate existing generated runtime traces without launching FCEUX |
 | `scheduler-audit` | check stacks, static/reviewed dynamic entries, and call counts |
 | `enemy-ai-audit` | check all 28 inline enemy-AI handler pointers |
@@ -42,10 +44,12 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `object-motion-audit` | round-trip 524 bytes of pointers, selectors, and vectors |
 | `title-data-audit` | round-trip packed title streams and the adjacent attract-demo tables |
 | `audio-data-audit` | check audio pointers, reachability, hashes, and byte round trips |
-| `release-audit` | cross-check the Source Reconstruction 1.0 identity, metrics, scenarios, documents, and targets |
-| `release-check` | lint, tests, ROM verification, symbols, format round trips, and subsystem audits |
-| `source-1-audit` | run `release-check`, then freshly capture and validate all runtime scenarios |
-| `check` | alias for `release-check` |
+| `release-audit` | cross-check the revision-3 manifest, identity, scope, evidence, toolchain, profiles, and artifacts |
+| `pre-tag-audit` | check clean tree, commit policy, release title, and local/remote tag absence |
+| `release-check` | clean rebuild and complete Source 1.0 pre-tag contract, including fresh runtime capture |
+| `source-1-audit` | compatibility alias for `release-check` |
+| `source-1-post-tag-audit` | verify the local annotated and published tag both peel to `HEAD` |
+| `check` | full static development gate without emulator or tag-state checks |
 
 Focused region targets deliberately compare only their named output region.
 For example, `verify-prg` can prove that a source-only PRG reconstruction is
@@ -81,8 +85,8 @@ side. This makes a failed proof actionable without opening a hex editor first.
 make split
 make verify-prg
 make verify
+make check
 make release-check
-make source-1-audit
 ```
 
 `make clean` removes only `build/`; it preserves the ignored extracted CHR so a

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 from scripts.reconstruction_status import (
@@ -18,54 +19,14 @@ class ReconstructionStatusTests(unittest.TestCase):
     def make_release_fixture(
         self,
     ) -> tuple[Path, dict[str, object], dict[str, object]]:
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        root = Path(temporary.name)
-        (root / "assets").mkdir()
-        (root / "scenarios").mkdir()
-        (root / "docs").mkdir()
-        reference = {
-            "file_sha1": "rom-sha1",
-            "prg_sha1": "prg-sha1",
-            "chr_sha1": "chr-sha1",
-        }
-        (root / "assets" / "manifest.json").write_text(
-            json.dumps({"schema_version": 1, "reference_rom": reference}),
-            encoding="utf-8",
+        root = Path(__file__).resolve().parent.parent
+        release = json.loads(
+            (root / "config" / "source_reconstruction_1_0.json").read_text(
+                encoding="utf-8"
+            )
         )
-        (root / "scenarios" / "runtime.json").write_text(
-            json.dumps(
-                {
-                    "schema_version": 1,
-                    "rom_sha1": "rom-sha1",
-                    "scenarios": [{"id": "boot"}, {"id": "gameplay"}],
-                }
-            ),
-            encoding="utf-8",
-        )
-        (root / "docs" / "release.md").write_text("release\n", encoding="utf-8")
-        (root / "Makefile").write_text(
-            "build:\n\t@echo build\nsource-1-audit: build\n",
-            encoding="utf-8",
-        )
-        metrics: dict[str, object] = {
-            "documented_prg_bytes": 32768,
-            "generated_labels": 0,
-        }
-        release: dict[str, object] = {
-            "schema_version": 1,
-            "status": "tag-ready",
-            "tag": "source-reconstruction-1.0",
-            "asset_manifest": "assets/manifest.json",
-            "runtime_manifest": "scenarios/runtime.json",
-            "reference": reference,
-            "reconstruction_metrics": metrics.copy(),
-            "runtime_scenarios": ["boot", "gameplay"],
-            "required_documents": ["docs/release.md"],
-            "required_make_targets": ["build", "source-1-audit"],
-            "deferred_to_2_0": ["regional builds"],
-        }
-        return root, release, metrics
+        metrics = deepcopy(release["reconstruction_metrics"])
+        return root, deepcopy(release), metrics
 
     def make_fixture(self) -> tuple[Path, dict[str, object], dict[str, object], Path, Path]:
         temporary = tempfile.TemporaryDirectory()
@@ -183,7 +144,9 @@ class ReconstructionStatusTests(unittest.TestCase):
     def test_release_contract_accepts_consistent_manifests(self) -> None:
         root, release, metrics = self.make_release_fixture()
         self.assertEqual(validate_release(root, release, metrics), [])
-        self.assertEqual(parse_make_targets(root / "Makefile"), {"build", "source-1-audit"})
+        targets = parse_make_targets(root / "Makefile")
+        self.assertIn("build", targets)
+        self.assertIn("source-1-audit", targets)
 
     def test_release_contract_detects_metric_and_scenario_drift(self) -> None:
         root, release, metrics = self.make_release_fixture()
@@ -198,7 +161,7 @@ class ReconstructionStatusTests(unittest.TestCase):
         release["required_documents"] = ["docs/missing.md"]
         release["required_make_targets"] = ["missing-target"]
         errors = validate_release(root, release, metrics)
-        self.assertTrue(any("document is missing" in error for error in errors))
+        self.assertTrue(any("release path is missing" in error for error in errors))
         self.assertTrue(any("Make target is missing" in error for error in errors))
 
 
