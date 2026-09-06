@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import math
 from pathlib import Path
 import sys
 import tkinter as tk
@@ -39,6 +40,36 @@ CHANNEL_NAMES = (
     "virtual 6",
     "virtual 7",
 )
+EFFECT_CONTEXTS = (
+    "Room audio A / warning return A",
+    "Room audio B / warning return B",
+    "Room transition reset",
+    "Timer warning",
+    "Post-game result",
+    "Extra life",
+    "Create breakable block",
+    "Remove breakable block",
+    "Enemy drop",
+    "Fireball cast",
+    "Paired-enemy attack",
+    "Pause / PAL resume",
+    "Item pickup / enemy reward",
+    "NTSC resume",
+    "Fairy collected",
+    "Ending input prompt",
+    "Dana head collision",
+    "Remove solid block",
+    "Room-clear countdown / ending phase",
+    "Room entry / ending convergence",
+    "Enter door",
+    "Collect key",
+    "Linked-enemy spawn",
+    "Title / new game / room-clear transition",
+    "Ending object fall",
+    "Ending fade",
+)
+VOICE_NAMES = ("Pulse 1", "Pulse 2", "Triangle", "Noise")
+VOICE_COLORS = ("#56b4e9", "#e69f00", "#009e73", "#cc79a7")
 
 
 def parse_integer(text: str, field: str, maximum: int = 0xFF) -> int:
@@ -247,6 +278,7 @@ class SoundStudio(tk.Tk):
         self.command_kind = tk.StringVar()
         self.command_value = tk.StringVar()
         self.effect_number = tk.IntVar(value=1)
+        self.effect_context = tk.StringVar()
         self.effect_channel = tk.StringVar(value=CHANNEL_NAMES[0])
         self.effect_stream = tk.StringVar(value="stream_000")
         self.preview_seconds = tk.StringVar(value="12")
@@ -371,12 +403,21 @@ class SoundStudio(tk.Tk):
         )
         box.pack(side="left", padx=6)
         box.bind("<<ComboboxSelected>>", lambda _event: self.refresh_effect())
+        ttk.Label(row, textvariable=self.effect_context).pack(side="left", padx=8)
         ttk.Label(row, text="Preview seconds").pack(side="left", padx=(16, 0))
         ttk.Entry(row, width=7, textvariable=self.preview_seconds).pack(
             side="left", padx=6
         )
         ttk.Button(row, text="Preview effect", command=self.preview_effect).pack(
             side="left", padx=4
+        )
+        roll_frame = ttk.LabelFrame(parent, text="APU piano roll (first 10 seconds)")
+        roll_frame.pack(fill="x", pady=(0, 7))
+        self.effect_roll = tk.Canvas(roll_frame, height=210, bg="#111824")
+        self.effect_roll.pack(fill="x", expand=True)
+        self.effect_roll.bind(
+            "<Configure>",
+            lambda _event: self.draw_effect_roll(self.effect_number.get()),
         )
         body = ttk.Panedwindow(parent, orient="horizontal")
         body.pack(fill="both", expand=True)
@@ -545,7 +586,9 @@ class SoundStudio(tk.Tk):
 
     def refresh_effect(self) -> None:
         self.effect_tree.delete(*self.effect_tree.get_children())
-        effect = self.model.document["effects"][self.effect_number.get() - 1]
+        effect_number = self.effect_number.get()
+        self.effect_context.set(EFFECT_CONTEXTS[effect_number - 1])
+        effect = self.model.document["effects"][effect_number - 1]
         for index, channel in enumerate(effect["channels"]):
             virtual = int(channel["selector"]) & 7
             self.effect_tree.insert(
@@ -559,6 +602,51 @@ class SoundStudio(tk.Tk):
                     channel["stream"],
                 ),
             )
+        self.draw_effect_roll(effect_number)
+
+    def draw_effect_roll(self, effect_number: int) -> None:
+        timing = self.model.profile["timing"]
+        frame_limit = round(audio_preview.FRAME_RATES[timing] * 10)
+        trace = audio_preview.trace_effect(
+            self.model.document, effect_number, frame_limit
+        )
+        segments = audio_preview.trace_segments(trace)
+        canvas = self.effect_roll
+        canvas.delete("all")
+        width = max(canvas.winfo_width(), 700)
+        plot_left, plot_right = 75, width - 10
+        for voice, name in enumerate(VOICE_NAMES):
+            top = 8 + voice * 49
+            canvas.create_text(7, top + 20, text=name, fill="#d8e2f0", anchor="w")
+            canvas.create_line(plot_left, top + 42, plot_right, top + 42, fill="#344052")
+        for segment in segments:
+            if segment.frame.volume == 0 or segment.frame.source is None:
+                continue
+            x1 = plot_left + segment.start * (plot_right - plot_left) / len(trace.frames)
+            x2 = plot_left + segment.end * (plot_right - plot_left) / len(trace.frames)
+            top = 8 + segment.voice * 49
+            if segment.voice == 3:
+                pitch = segment.frame.period & 0x0F
+            else:
+                period = max(segment.frame.period, 1)
+                pitch = max(0, min(15, round(15 - math.log2(period) * 1.5 + 8)))
+            y = top + 36 - pitch * 2
+            outline = "#ffffff" if segment.frame.source % 2 == 0 else ""
+            canvas.create_rectangle(
+                x1,
+                y,
+                max(x1 + 1, x2),
+                y + max(2, segment.frame.volume / 3),
+                fill=VOICE_COLORS[segment.voice],
+                outline=outline,
+            )
+        canvas.create_text(
+            plot_right,
+            202,
+            text=f"{len(trace.frames)} frames / {trace.note_events} notes",
+            fill="#9fb0c5",
+            anchor="e",
+        )
 
     def select_effect_channel(self, _event: object = None) -> None:
         index = self.selected_index(self.effect_tree)
@@ -738,6 +826,10 @@ def check_profile(profile: dict[str, Any], reference: Path) -> str:
     ]
     if any(not trace.frames or trace.note_events == 0 for trace in traces):
         raise audio_preview.AudioPreviewError("an effect produced no preview notes")
+    if len(EFFECT_CONTEXTS) != 26 or any(
+        not audio_preview.trace_segments(trace) for trace in traces
+    ):
+        raise audio_preview.AudioPreviewError("incomplete effect catalog projection")
     return f"{audio_editor.document_summary(model.document)}, 26 traced effects"
 
 

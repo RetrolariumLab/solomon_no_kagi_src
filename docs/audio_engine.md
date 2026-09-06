@@ -63,6 +63,47 @@ calls and loops. Note bytes index the twelve-entry period table at `$F368` and
 use their upper nibble as a right-shift count. The high bit in record offset 8
 marks a period awaiting publication.
 
+## Effect call-site catalog
+
+Sound Studio labels an effect by proven request contexts rather than guessing
+a soundtrack title from its notes. These names come from every static
+`AddSoundEffect` caller; a slash means that the same descriptor is deliberately
+reused by more than one flow.
+
+| Request | Call-site context |
+| ---: | --- |
+| 1 | Room audio A / warning return A |
+| 2 | Room audio B / warning return B |
+| 3 | Room transition reset |
+| 4 | Timer warning |
+| 5 | Post-game result |
+| 6 | Extra life |
+| 7 | Create breakable block |
+| 8 | Remove breakable block |
+| 9 | Enemy drop |
+| 10 | Fireball cast |
+| 11 | Paired-enemy attack |
+| 12 | Pause / PAL resume |
+| 13 | Item pickup / enemy reward |
+| 14 | NTSC resume |
+| 15 | Fairy collected |
+| 16 | Ending input prompt |
+| 17 | Dana head collision |
+| 18 | Remove solid block |
+| 19 | Room-clear countdown / ending phase |
+| 20 | Room entry / ending convergence |
+| 21 | Enter door |
+| 22 | Collect key |
+| 23 | Linked-enemy spawn |
+| 24 | Title / new game / room-clear transition |
+| 25 | Ending object fall |
+| 26 | Ending fade |
+
+The regional resume split is source-visible: `ResumeSoundEffect` is 14 for
+NTSC and 12 for PAL. The neutral `Room audio A/B` wording is intentional;
+those descriptors are selected both when a room begins and when timer-warning
+audio is left, which proves their role but not a historical composition name.
+
 ## Audio data
 
 The engine's period, duration, envelope, sound-effect, and music streams are

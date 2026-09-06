@@ -557,10 +557,14 @@ loop, sweep, volume, call, jump, return, and stop records are all editable.
 
 The Effects tab exposes every channel of all 26 descriptors and keeps the
 first-record boundary bit derived rather than asking the author to maintain
-it manually. The Envelopes tab edits each duration/volume pair and plots the
-four-bit volume contour. The Timing tab edits all period words and regional
-duration bytes. All mutations share a bounded undo history; closing a dirty
-workspace asks before discarding it.
+it manually. Its context label comes from static `AddSoundEffect` call sites,
+using deliberately neutral wording where one descriptor serves multiple
+flows. A ten-second piano roll projects the four published APU voices, note
+duration and volume, and outlines even-numbered primary virtual channels over
+their resumable odd-numbered partners. The Envelopes tab edits each
+duration/volume pair and plots the four-bit volume contour. The Timing tab
+edits all period words and regional duration bytes. All mutations share a
+bounded undo history; closing a dirty workspace asks before discarding it.
 
 `Save` first rebuilds and decodes the document before replacing the ignored
 JSON. `Build ROM` writes the same profile-derived content image as

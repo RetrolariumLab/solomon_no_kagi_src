@@ -405,7 +405,9 @@ passes on the reviewed `main` commit.
   undo and headless checks for both profiles. Its command-VM preview traces all
   26 effects and renders NTSC/PAL pulse, triangle, and noise through an
   APU-like nonlinear mixer and console output filters. This executable model
-  also exposed the PAL bank's full 64-byte duration index space;
+  also exposed the PAL bank's full 64-byte duration index space. A four-voice
+  piano roll and a complete call-site-derived effect catalog make routing and
+  primary/secondary channel use visible without inventing soundtrack titles;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

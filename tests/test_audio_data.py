@@ -353,6 +353,31 @@ class AudioPreviewTests(unittest.TestCase):
         self.assertTrue(any(payload))
         self.assertGreater(trace.note_events, 0)
 
+    def test_piano_roll_segments_cover_each_voice_without_gaps(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        trace = audio_preview.trace_effect(document, 1, 180)
+        segments = audio_preview.trace_segments(trace)
+        for voice in range(4):
+            selected = [segment for segment in segments if segment.voice == voice]
+            self.assertEqual(selected[0].start, 0)
+            self.assertEqual(selected[-1].end, len(trace.frames))
+            self.assertTrue(
+                all(
+                    left.end == right.start
+                    for left, right in zip(selected, selected[1:])
+                )
+            )
+
+    def test_effect_catalog_uses_confirmed_call_contexts(self) -> None:
+        self.assertEqual(len(sound_studio.EFFECT_CONTEXTS), 26)
+        self.assertEqual(sound_studio.EFFECT_CONTEXTS[6], "Create breakable block")
+        self.assertEqual(sound_studio.EFFECT_CONTEXTS[20], "Enter door")
+        self.assertEqual(sound_studio.EFFECT_CONTEXTS[21], "Collect key")
+        self.assertIn("PAL resume", sound_studio.EFFECT_CONTEXTS[11])
+
 
 if __name__ == "__main__":
     unittest.main()

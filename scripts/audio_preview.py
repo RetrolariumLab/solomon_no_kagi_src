@@ -75,6 +75,14 @@ class PreviewTrace:
     stopped: bool
 
 
+@dataclass(frozen=True)
+class TraceSegment:
+    voice: int
+    start: int
+    end: int
+    frame: HardwareFrame
+
+
 def entry_indices(document: dict[str, Any]) -> dict[str, int]:
     return {
         command["entry"]: index
@@ -258,6 +266,23 @@ def trace_effect(
         if sequencer.stopped:
             break
     return PreviewTrace(tuple(frames), sequencer.note_events, sequencer.stopped)
+
+
+def trace_segments(trace: PreviewTrace) -> list[TraceSegment]:
+    """Collapse identical per-frame APU states for piano-roll presentation."""
+    if not trace.frames:
+        return []
+    segments: list[TraceSegment] = []
+    for voice in range(4):
+        start = 0
+        current = trace.frames[0][voice]
+        for frame_number in range(1, len(trace.frames)):
+            value = trace.frames[frame_number][voice]
+            if value != current:
+                segments.append(TraceSegment(voice, start, frame_number, current))
+                start, current = frame_number, value
+        segments.append(TraceSegment(voice, start, len(trace.frames), current))
+    return segments
 
 
 class OutputFilter:
