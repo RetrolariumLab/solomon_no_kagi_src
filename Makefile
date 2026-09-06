@@ -8,6 +8,7 @@ TOOLCHAIN_MANIFEST := config/toolchain.json
 REVISION_MANIFEST := config/revision_profiles.json
 REVISION_TOOL := scripts/revision_profiles.py
 LEVEL_EDITOR := scripts/level_editor.py
+LEVEL_STUDIO := scripts/level_studio.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -150,7 +151,7 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	verify-revision-references split-revision-assets split-all \
 	revision-room-report revision-room-audit compare-revision-rooms \
 	export-levels validate-levels build-levels roundtrip-levels \
-	roundtrip-level-profiles level-summary
+	roundtrip-level-profiles level-summary level-studio check-level-studio
 
 all: verify
 
@@ -274,6 +275,17 @@ roundtrip-level-profiles:
 level-summary:
 	$(PYTHON) "$(LEVEL_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
 		--input "$(LEVEL_DOCUMENT)"
+
+level-studio:
+	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile "$(PROFILE)" --document "$(LEVEL_DOCUMENT)" \
+		--output "$(LEVEL_ROM)" --fceux "$(FCEUX)"
+
+check-level-studio:
+	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile usa --check
+	$(PYTHON) "$(LEVEL_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile europe --check
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

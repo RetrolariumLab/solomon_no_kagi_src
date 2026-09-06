@@ -219,6 +219,8 @@ make validate-levels PROFILE=usa # validate and decode a rebuilt editor image
 make build-levels PROFILE=usa # build a ROM with the workspace's edited levels
 make roundtrip-level-profiles # prove untouched USA and Europe editor identity
 make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
+make level-studio PROFILE=usa # open the visual 16x12 room editor
+make check-level-studio # headless GUI-model and codec smoke check for USA/Europe
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs
@@ -321,6 +323,7 @@ scripts/verify_rom.py      original/build/asset comparison and ROM reports
 scripts/room_data.py       room-format decoder
 scripts/revision_profiles.py regional verification, split, and room comparison
 scripts/level_editor.py    deterministic level document import/build pipeline
+scripts/level_studio.py    visual room editor with build and FCEUX play actions
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit

@@ -260,6 +260,44 @@ key-status/timer byte. Those values are deterministically regenerated from the
 editable representation. This prevents a GUI edit from leaving a stale raw
 field that disagrees with the visible room state.
 
+### Visual Level Studio
+
+Open the visual editor for either required profile with:
+
+```console
+make level-studio PROFILE=usa
+make level-studio PROFILE=europe
+```
+
+The studio creates the ignored workspace on first launch, then presents each
+room as its native 16 by 12 logical grid. Its toolbar can place brown or white
+blocks, erase a complete cell, move the player start, key, door, and either
+Demon Mirror, and add typed enemies or items. Existing direct, repeated, and
+constellation item records are all visible; erasing one repeated placement
+shrinks the command and removes it when its last position disappears.
+
+The room-property panel exposes enemy spawn lifetime, key state, timer decrease
+rate, both mirror schedule selectors, and both mirror enemy-set selectors.
+These are the known profile-sensitive level fields: opening a European
+workspace displays PAL values from the European ROM instead of silently
+copying USA timing.
+
+`Save` encodes and decodes the complete document before replacing its JSON.
+`Build ROM` performs the same validation and writes the ignored profile image
+under `build/content/PROFILE/`. `Play` first builds that exact image and then
+starts the pinned FCEUX executable. A bounded in-memory undo history covers all
+grid and property mutations, and closing a dirty workspace asks before
+discarding changes.
+
+The UI delegates every binary operation to `scripts/level_editor.py`; it has no
+private serializer or ROM patch path. This keeps GUI edits subject to the same
+pointer, capacity, coordinate, and decode-after-build checks used by Make and
+the unit suite. Use the headless smoke target when a display is unavailable:
+
+```console
+make check-level-studio
+```
+
 ## Remaining regional work
 
 The profile inventory is evidence, not completion of the Europe build. The
