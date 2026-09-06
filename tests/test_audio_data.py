@@ -4,8 +4,10 @@ import unittest
 
 from scripts.audio_data import (
     AUDIO_STREAM_DATA,
+    EUROPE_LAYOUT,
     AudioCommand,
     AudioStream,
+    collect_report,
     decode_pointer_table,
     decode_stream,
     emit_source,
@@ -49,6 +51,14 @@ class AudioDataTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown audio opcode"):
             decode_stream(bytes(prg), AUDIO_STREAM_DATA)
 
+    def test_decodes_stream_with_europe_layout_bounds(self) -> None:
+        prg = bytearray(32_768)
+        offset = EUROPE_LAYOUT.stream_data - 0x8000
+        prg[offset : offset + 2] = bytes((0x80, 0xF9))
+        stream = decode_stream(bytes(prg), EUROPE_LAYOUT.stream_data, EUROPE_LAYOUT)
+        self.assertEqual(stream.encoded_size, 2)
+        self.assertEqual(stream.commands[-1].opcode, 0xF9)
+
     def test_source_uses_symbolic_audio_pointers(self) -> None:
         # Reuse the reviewed image in the integration-style emitter test; the
         # smaller decoder tests above remain independent synthetic fixtures.
@@ -65,6 +75,24 @@ class AudioDataTests(unittest.TestCase):
         self.assertIn("SoundEffectDescriptor26:", source)
         self.assertIn("AudioJump AudioStream", source)
         self.assertIn("CpuVectors:", source)
+
+    def test_europe_reference_has_complete_reachable_stream_coverage(self) -> None:
+        from pathlib import Path
+
+        from scripts.room_data import extract_prg
+
+        root = Path(__file__).resolve().parent.parent
+        candidates = list(root.glob("Solomon?s Key (E)*.nes"))
+        if not candidates:
+            self.skipTest("European reference ROM is not present")
+        report = collect_report(
+            extract_prg(candidates[0].read_bytes()), EUROPE_LAYOUT
+        )
+        self.assertEqual(report["stream_entry_count"], 114)
+        self.assertEqual(report["stream_command_count"], 2255)
+        self.assertEqual(report["stream_coverage_size"], 2725)
+        self.assertTrue(report["coverage_complete"])
+        self.assertTrue(report["round_trip"])
 
     def test_audit_detects_changed_counts_hash_and_coverage(self) -> None:
         report = {

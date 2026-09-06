@@ -48,6 +48,58 @@ POINTER_COMMANDS = {0xF2, 0xF3}
 
 
 @dataclass(frozen=True)
+class AudioLayout:
+    period_table: int
+    period_count: int
+    duration_table: int
+    duration_count: int
+    envelope_pointer_table: int
+    envelope_count: int
+    envelope_data: int
+    sound_effect_pointer_table: int
+    sound_effect_count: int
+    sound_effect_data: int
+    stream_data: int
+    stream_end: int
+
+
+USA_LAYOUT = AudioLayout(
+    period_table=PERIOD_TABLE,
+    period_count=PERIOD_COUNT,
+    duration_table=DURATION_TABLE,
+    duration_count=DURATION_COUNT,
+    envelope_pointer_table=ENVELOPE_POINTER_TABLE,
+    envelope_count=ENVELOPE_COUNT,
+    envelope_data=ENVELOPE_DATA,
+    sound_effect_pointer_table=SOUND_EFFECT_POINTER_TABLE,
+    sound_effect_count=SOUND_EFFECT_COUNT,
+    sound_effect_data=SOUND_EFFECT_DATA,
+    stream_data=AUDIO_STREAM_DATA,
+    stream_end=AUDIO_STREAM_END,
+)
+
+EUROPE_LAYOUT = AudioLayout(
+    period_table=0xF2E8,
+    period_count=12,
+    duration_table=0xF300,
+    duration_count=26,
+    envelope_pointer_table=0xF342,
+    envelope_count=8,
+    envelope_data=0xF352,
+    sound_effect_pointer_table=0xF424,
+    sound_effect_count=26,
+    sound_effect_data=0xF458,
+    stream_data=0xF53A,
+    stream_end=0xFFDE,
+)
+
+AUDIO_LAYOUTS = {
+    "usa": USA_LAYOUT,
+    "europe": EUROPE_LAYOUT,
+}
+
+
+@dataclass(frozen=True)
 class EnvelopeStep:
     duration: int
     volume: int
@@ -101,24 +153,31 @@ def decode_pointer_table(prg: bytes, address: int, count: int) -> list[int]:
     return pointers
 
 
-def decode_periods(prg: bytes) -> list[int]:
-    return [read_word(prg, PERIOD_TABLE + index * 2) for index in range(PERIOD_COUNT)]
+def decode_periods(prg: bytes, layout: AudioLayout = USA_LAYOUT) -> list[int]:
+    return [
+        read_word(prg, layout.period_table + index * 2)
+        for index in range(layout.period_count)
+    ]
 
 
-def decode_durations(prg: bytes) -> list[int]:
+def decode_durations(prg: bytes, layout: AudioLayout = USA_LAYOUT) -> list[int]:
     return list(
         cpu_slice(
             prg,
-            DURATION_TABLE,
-            DURATION_TABLE + DURATION_COUNT - 1,
+            layout.duration_table,
+            layout.duration_table + layout.duration_count - 1,
             "duration table",
         )
     )
 
 
-def decode_envelopes(prg: bytes) -> tuple[list[int], list[tuple[EnvelopeStep, ...]]]:
-    pointers = decode_pointer_table(prg, ENVELOPE_POINTER_TABLE, ENVELOPE_COUNT)
-    boundaries = pointers[1:] + [SOUND_EFFECT_POINTER_TABLE]
+def decode_envelopes(
+    prg: bytes, layout: AudioLayout = USA_LAYOUT
+) -> tuple[list[int], list[tuple[EnvelopeStep, ...]]]:
+    pointers = decode_pointer_table(
+        prg, layout.envelope_pointer_table, layout.envelope_count
+    )
+    boundaries = pointers[1:] + [layout.sound_effect_pointer_table]
     envelopes: list[tuple[EnvelopeStep, ...]] = []
     for index, (start, end) in enumerate(zip(pointers, boundaries)):
         data = cpu_slice(prg, start, end - 1, f"envelope {index}")
@@ -132,11 +191,12 @@ def decode_envelopes(prg: bytes) -> tuple[list[int], list[tuple[EnvelopeStep, ..
 
 def decode_sound_effects(
     prg: bytes,
+    layout: AudioLayout = USA_LAYOUT,
 ) -> tuple[list[int], list[tuple[AudioChannelStart, ...]]]:
     pointers = decode_pointer_table(
-        prg, SOUND_EFFECT_POINTER_TABLE, SOUND_EFFECT_COUNT
+        prg, layout.sound_effect_pointer_table, layout.sound_effect_count
     )
-    boundaries = pointers[1:] + [AUDIO_STREAM_DATA - 1]
+    boundaries = pointers[1:] + [layout.stream_data - 1]
     effects: list[tuple[AudioChannelStart, ...]] = []
     for index, (start, end) in enumerate(zip(pointers, boundaries)):
         if start >= end or (end - start) % 3:
@@ -150,7 +210,7 @@ def decode_sound_effects(
                     f"early descriptor boundary at ${cursor:04X}"
                 )
             stream_address = read_word(prg, cursor + 1)
-            if not AUDIO_STREAM_DATA <= stream_address <= AUDIO_STREAM_END:
+            if not layout.stream_data <= stream_address <= layout.stream_end:
                 raise RoomDataError(
                     f"sound-effect stream outside data range: ${stream_address:04X}"
                 )
@@ -158,18 +218,20 @@ def decode_sound_effects(
             cursor += 3
         effects.append(tuple(records))
     if cpu_slice(
-        prg, AUDIO_STREAM_DATA - 1, AUDIO_STREAM_DATA - 1, "descriptor terminator"
+        prg, layout.stream_data - 1, layout.stream_data - 1, "descriptor terminator"
     ) != b"\xFF":
         raise RoomDataError("sound-effect descriptors lack final $FF terminator")
     return pointers, effects
 
 
-def decode_stream(prg: bytes, cpu_address: int) -> AudioStream:
-    if not AUDIO_STREAM_DATA <= cpu_address <= AUDIO_STREAM_END:
+def decode_stream(
+    prg: bytes, cpu_address: int, layout: AudioLayout = USA_LAYOUT
+) -> AudioStream:
+    if not layout.stream_data <= cpu_address <= layout.stream_end:
         raise RoomDataError(f"audio stream outside data range: ${cpu_address:04X}")
     cursor = cpu_address
     commands: list[AudioCommand] = []
-    while cursor <= AUDIO_STREAM_END:
+    while cursor <= layout.stream_end:
         opcode = cpu_slice(prg, cursor, cursor, "audio opcode")[0]
         if opcode >= 0xFA:
             raise RoomDataError(f"unknown audio opcode ${opcode:02X} at ${cursor:04X}")
@@ -191,7 +253,9 @@ def encode_stream(stream: AudioStream) -> bytes:
 
 
 def discover_streams(
-    prg: bytes, effects: list[tuple[AudioChannelStart, ...]]
+    prg: bytes,
+    effects: list[tuple[AudioChannelStart, ...]],
+    layout: AudioLayout = USA_LAYOUT,
 ) -> list[AudioStream]:
     pending = {
         record.stream_address for effect in effects for record in effect
@@ -202,12 +266,12 @@ def discover_streams(
         pending.remove(address)
         if address in streams:
             continue
-        stream = decode_stream(prg, address)
+        stream = decode_stream(prg, address, layout)
         streams[address] = stream
         for command in stream.commands:
             if command.opcode in POINTER_COMMANDS:
                 target = command.arguments[0] | (command.arguments[1] << 8)
-                if not AUDIO_STREAM_DATA <= target <= AUDIO_STREAM_END:
+                if not layout.stream_data <= target <= layout.stream_end:
                     raise RoomDataError(
                         f"audio command target outside data range: ${target:04X}"
                     )
@@ -236,13 +300,13 @@ def collect_command_map(streams: list[AudioStream]) -> dict[int, AudioCommand]:
     return commands
 
 
-def emit_source(prg: bytes) -> str:
+def emit_source(prg: bytes, layout: AudioLayout = USA_LAYOUT) -> str:
     """Render all audio tables, descriptors, streams, and vectors as ca65."""
-    periods = decode_periods(prg)
-    durations = decode_durations(prg)
-    envelope_pointers, envelopes = decode_envelopes(prg)
-    effect_pointers, effects = decode_sound_effects(prg)
-    streams = discover_streams(prg, effects)
+    periods = decode_periods(prg, layout)
+    durations = decode_durations(prg, layout)
+    envelope_pointers, envelopes = decode_envelopes(prg, layout)
+    effect_pointers, effects = decode_sound_effects(prg, layout)
+    streams = discover_streams(prg, effects, layout)
     labels = audio_stream_labels(streams)
     commands = collect_command_map(streams)
     lines = [
@@ -274,10 +338,23 @@ def emit_source(prg: bytes) -> str:
     for offset in range(0, len(durations), 13):
         row = durations[offset : offset + 13]
         lines.append("    .byte " + ", ".join(f"${value:02X}" for value in row))
+    timing_tail_start = layout.duration_table + layout.duration_count
+    timing_tail = cpu_slice(
+        prg,
+        timing_tail_start,
+        layout.envelope_pointer_table - 1,
+        "audio timing tail",
+    ) if timing_tail_start < layout.envelope_pointer_table else b""
+    if timing_tail:
+        lines.extend(("", "; Profile-specific timing tail"))
+        for offset in range(0, len(timing_tail), 16):
+            row = timing_tail[offset : offset + 16]
+            lines.append("    .byte " + ", ".join(f"${value:02X}" for value in row))
+    timing_size = layout.envelope_pointer_table - layout.period_table
     lines.extend(
         (
             "",
-            ".assert * - AudioPeriodTable = $0032, error, "
+            f".assert * - AudioPeriodTable = ${timing_size:04X}, error, "
             '"unexpected audio timing table size"',
             "",
             '.segment "PRG_AUDIO_ENVELOPES"',
@@ -292,7 +369,7 @@ def emit_source(prg: bytes) -> str:
     for label, pointer, envelope in zip(
         envelope_labels, envelope_pointers, envelopes
     ):
-        if pointer < ENVELOPE_DATA:
+        if pointer < layout.envelope_data:
             raise RoomDataError(f"invalid envelope pointer: ${pointer:04X}")
         lines.extend(("", f"{label}:"))
         lines.append("; (duration, volume) pairs")
@@ -307,7 +384,8 @@ def emit_source(prg: bytes) -> str:
     lines.extend(
         (
             "",
-            ".assert * - AudioEnvelopePointerTable = $00E2, error, "
+            f".assert * - AudioEnvelopePointerTable = "
+            f"${layout.sound_effect_pointer_table - layout.envelope_pointer_table:04X}, error, "
             '"unexpected audio envelope data size"',
             "",
             '.segment "PRG_SOUND_EFFECT_DATA"',
@@ -322,7 +400,7 @@ def emit_source(prg: bytes) -> str:
         row = effect_labels[offset : offset + 2]
         lines.append("    .word " + ", ".join(row))
     for label, pointer, effect in zip(effect_labels, effect_pointers, effects):
-        if pointer < SOUND_EFFECT_DATA:
+        if pointer < layout.sound_effect_data:
             raise RoomDataError(f"invalid sound-effect pointer: ${pointer:04X}")
         lines.extend(("", f"{label}:"))
         for record in effect:
@@ -338,7 +416,8 @@ def emit_source(prg: bytes) -> str:
         (
             "    .byte $FF",
             "",
-            ".assert * - SoundEffectPointerTable = $0116, error, "
+            f".assert * - SoundEffectPointerTable = "
+            f"${layout.stream_data - layout.sound_effect_pointer_table:04X}, error, "
             '"unexpected sound-effect data size"',
             "",
             '.segment "PRG_AUDIO_STREAMS"',
@@ -346,7 +425,7 @@ def emit_source(prg: bytes) -> str:
         )
     )
     labels_by_address = {address: label for address, label in labels.items()}
-    cursor = AUDIO_STREAM_DATA
+    cursor = layout.stream_data
     raw = bytearray()
 
     def flush_raw() -> None:
@@ -355,7 +434,7 @@ def emit_source(prg: bytes) -> str:
         lines.append("    .byte " + ", ".join(f"${value:02X}" for value in raw))
         raw.clear()
 
-    while cursor <= AUDIO_STREAM_END:
+    while cursor <= layout.stream_end:
         label = labels_by_address.get(cursor)
         if label is not None:
             flush_raw()
@@ -378,10 +457,18 @@ def emit_source(prg: bytes) -> str:
             raw.extend(encoded)
         cursor += len(encoded)
     flush_raw()
+    tail_start = layout.stream_end + 1
+    if tail_start < 0xFFFA:
+        tail = cpu_slice(prg, tail_start, 0xFFF9, "audio bank tail")
+        lines.extend(("", "; Profile-specific tail before CPU vectors"))
+        for offset in range(0, len(tail), 16):
+            row = tail[offset : offset + 16]
+            lines.append("    .byte " + ", ".join(f"${value:02X}" for value in row))
     lines.extend(
         (
             "",
-            ".assert * - AudioStream000 = $0A68, error, "
+            f".assert * - AudioStream000 = "
+            f"${0xFFFA - layout.stream_data:04X}, error, "
             '"unexpected audio stream data size"',
             "",
             '.segment "VECTORS"',
@@ -418,10 +505,12 @@ def sha1_range(prg: bytes, start: int, end: int) -> str:
     return hashlib.sha1(cpu_slice(prg, start, end, "audio data")).hexdigest()
 
 
-def collect_report(prg: bytes) -> dict[str, object]:
-    envelope_pointers, envelopes = decode_envelopes(prg)
-    effect_pointers, effects = decode_sound_effects(prg)
-    streams = discover_streams(prg, effects)
+def collect_report(
+    prg: bytes, layout: AudioLayout = USA_LAYOUT
+) -> dict[str, object]:
+    envelope_pointers, envelopes = decode_envelopes(prg, layout)
+    effect_pointers, effects = decode_sound_effects(prg, layout)
+    streams = discover_streams(prg, effects, layout)
     coverage = {
         command.cpu_address + offset
         for stream in streams
@@ -439,8 +528,8 @@ def collect_report(prg: bytes) -> dict[str, object]:
         for stream in streams
     )
     return {
-        "period_count": len(decode_periods(prg)),
-        "duration_count": len(decode_durations(prg)),
+        "period_count": len(decode_periods(prg, layout)),
+        "duration_count": len(decode_durations(prg, layout)),
         "envelope_count": len(envelopes),
         "envelope_step_count": sum(len(value) for value in envelopes),
         "envelope_pointers": envelope_pointers,
@@ -450,12 +539,15 @@ def collect_report(prg: bytes) -> dict[str, object]:
         "stream_entry_count": len(streams),
         "stream_command_count": sum(len(stream.commands) for stream in streams),
         "stream_addresses": [stream.cpu_address for stream in streams],
-        "stream_data_size": AUDIO_STREAM_END - AUDIO_STREAM_DATA + 1,
+        "stream_data_size": layout.stream_end - layout.stream_data + 1,
         "stream_coverage_size": len(coverage),
-        "coverage_complete": coverage == set(range(AUDIO_STREAM_DATA, AUDIO_STREAM_END + 1)),
+        "coverage_complete": coverage
+        == set(range(layout.stream_data, layout.stream_end + 1)),
         "round_trip": round_trip,
-        "table_sha1": sha1_range(prg, PERIOD_TABLE, SOUND_EFFECT_DATA - 1),
-        "stream_sha1": sha1_range(prg, AUDIO_STREAM_DATA, AUDIO_STREAM_END),
+        "table_sha1": sha1_range(
+            prg, layout.period_table, layout.sound_effect_data - 1
+        ),
+        "stream_sha1": sha1_range(prg, layout.stream_data, layout.stream_end),
     }
 
 
@@ -502,15 +594,20 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit", "source"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--profile", choices=tuple(AUDIO_LAYOUTS), default="usa")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "audio_data.json"
+    default_manifest = (
+        "audio_data.json" if args.profile == "usa" else "audio_data_europe.json"
+    )
+    manifest_path = args.manifest or root / "config" / default_manifest
+    layout = AUDIO_LAYOUTS[args.profile]
     try:
         prg = extract_prg(args.image.read_bytes())
         if args.command == "source":
-            print(emit_source(prg), end="")
+            print(emit_source(prg, layout), end="")
             return 0
-        report = collect_report(prg)
+        report = collect_report(prg, layout)
         if args.command == "report":
             print(json.dumps(report, indent=2, sort_keys=True))
             return 0
@@ -523,7 +620,8 @@ def main() -> int:
             print(f"[ERROR] {error}", file=sys.stderr)
         return 1
     print(
-        f"[OK] Audio data: {report['sound_effect_count']} effects, "
+        f"[OK] Audio data ({args.profile}): "
+        f"{report['sound_effect_count']} effects, "
         f"{report['stream_entry_count']} stream entries, "
         f"{report['stream_data_size']} payload bytes"
     )

@@ -2,6 +2,7 @@ PYTHON ?= python
 CA65 ?= bin/ca65.exe
 LD65 ?= bin/ld65.exe
 REFERENCE_ROM ?= Solomon's Key (U) [!].nes
+EUROPE_REFERENCE_ROM ?= Solomon's Key (E) [!].nes
 MANIFEST := assets/manifest.json
 VERIFY_ROM := scripts/verify_rom.py
 TOOLCHAIN_MANIFEST := config/toolchain.json
@@ -20,6 +21,9 @@ REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
 REVISION_DEFINE_usa = 0
 REVISION_DEFINE_europe = 1
 REVISION_DEFINE = $(REVISION_DEFINE_$(PROFILE))
+AUDIO_REFERENCE_usa = $(REFERENCE_ROM)
+AUDIO_REFERENCE_europe = $(EUROPE_REFERENCE_ROM)
+AUDIO_PROFILE_IMAGE = $(AUDIO_REFERENCE_$(PROFILE))
 
 BUILD_DIR := build/native
 GENERATED_ASSET_DIR := assets/generated
@@ -152,7 +156,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	enemy-pointer-report enemy-pointer-audit ppu-update-report ppu-update-audit \
 	object-animation-report object-animation-audit \
 	object-motion-report object-motion-audit \
-	title-data-report title-data-audit audio-data-report audio-data-audit clean \
+	title-data-report title-data-audit audio-data-report audio-data-audit \
+	audio-profile-audit audio-profile-audits clean \
 	list-revisions identify-revision verify-revision-reference \
 	verify-revision-references split-revision-assets split-all \
 	revision-room-report revision-room-audit compare-revision-rooms \
@@ -460,6 +465,15 @@ audio-data-report: $(ROM)
 
 audio-data-audit: $(ROM)
 	$(PYTHON) scripts/audio_data.py audit --image "$(ROM)"
+
+audio-profile-audit:
+	$(MAKE) verify-revision-reference PROFILE=$(PROFILE)
+	$(PYTHON) scripts/audio_data.py audit --profile "$(PROFILE)" \
+		--image "$(AUDIO_PROFILE_IMAGE)"
+
+audio-profile-audits:
+	$(MAKE) audio-profile-audit PROFILE=usa
+	$(MAKE) audio-profile-audit PROFILE=europe
 
 quality-check: lint test
 

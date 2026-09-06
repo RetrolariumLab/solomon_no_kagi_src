@@ -78,3 +78,12 @@ byte-for-byte.
 
 `python scripts/audio_data.py source --image <rom>` reproduces the reviewed
 ASM representation from a matching image.
+
+Source Reconstruction 2.0 gives the codec explicit USA and Europe layouts.
+The PAL layout starts at `$EF80`, uses its duration table at `$F300`, places
+the envelope pointer table at `$F342`, and covers 2,725 reachable stream bytes
+at `$F53A-$FFDE`. `make audio-profile-audits` verifies both private reference
+identities before decoding 26 effects and 114 reachable stream entries per
+profile. The PAL audit records 2,255 commands and proves that its complete
+stream range round-trips byte-for-byte; this structural evidence is the base
+for the 2.0 music editor and for profile-selected stream source.
