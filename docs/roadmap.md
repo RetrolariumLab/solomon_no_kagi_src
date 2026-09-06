@@ -369,7 +369,9 @@ passes on the reviewed `main` commit.
   edits the complete logical room grid and profile-sensitive properties, draws
   native backgrounds from each room's original CHR bank, palette, RoomMap
   records, and constellation pattern, and keeps save/build/play actions backed
-  by the same validated codec. Profile-specific FCEUX hooks now enter the
+  by the same validated codec. Its record inspector edits or deletes existing
+  enemies, direct items, repeat positions, and constellation commands without
+  flattening their source representation. Profile-specific FCEUX hooks enter the
   selected USA or PAL room through the original loader, with a two-profile
   runtime smoke gate;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;

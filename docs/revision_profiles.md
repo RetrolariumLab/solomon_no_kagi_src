@@ -329,6 +329,18 @@ items. Existing direct, repeated, and constellation item records are all
 visible; erasing one repeated placement shrinks the command and removes it
 when its last position disappears.
 
+The Room records table exposes every enemy and item entry, including encoded
+source kind, type, coordinates, command number, and repeat-position number.
+Select a row or click an occupied map cell to edit its type and position in
+place; repeated clicks cycle overlapping records. Repeat positions retain one
+shared item type, so the inspector labels that relationship and a type edit
+updates the complete repeat command while a coordinate edit moves only the
+selected position. Deleting the final repeat position removes its command.
+Deleting a constellation converts it to the equivalent ordinary terminator,
+preserving the room's selected CHR bank instead of leaving an invalid stream.
+All inspector mutations are covered by the same undo stack as direct grid
+edits.
+
 The room-property panel exposes enemy spawn lifetime, key state, timer decrease
 rate, both mirror schedule selectors, and both mirror enemy-set selectors.
 These are the known profile-sensitive level fields: opening a European

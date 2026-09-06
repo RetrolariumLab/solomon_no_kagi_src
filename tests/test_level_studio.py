@@ -197,6 +197,75 @@ class EntityEditingTests(unittest.TestCase):
         self.assertEqual(placements[2].position_index, 1)
 
 
+class RecordInspectorTests(unittest.TestCase):
+    def test_updates_existing_enemy_type_and_position(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.update_enemy(0, 0, 0x42, 9, 10))
+        self.assertEqual(
+            model.room(0)["enemies"]["placements"][0],
+            {"type": 0x42, "position": {"x": 9, "y": 10}},
+        )
+
+    def test_removes_existing_enemy_as_one_undoable_change(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.remove_enemy(0, 0))
+        self.assertEqual(model.room(0)["enemies"]["placements"], [])
+        self.assertTrue(model.undo())
+        self.assertEqual(len(model.room(0)["enemies"]["placements"]), 1)
+
+    def test_updates_direct_item_without_recreating_command(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.update_item_placement(0, 0, None, 0x19, 7, 8))
+        command = model.room(0)["items"]["commands"][0]
+        self.assertEqual(
+            command,
+            {"kind": "item", "type": 0x19, "position": {"x": 7, "y": 8}},
+        )
+
+    def test_repeat_type_change_is_shared_but_position_change_is_local(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.update_item_placement(0, 1, 1, 0x89, 14, 2))
+        command = model.room(0)["items"]["commands"][1]
+        self.assertEqual(command["type"], 0x89)
+        self.assertEqual(command["positions"][0], {"x": 10, "y": 3})
+        self.assertEqual(command["positions"][1], {"x": 14, "y": 2})
+
+    def test_removes_only_selected_repeat_position(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.remove_item_placement(0, 1, 0))
+        repeat = model.room(0)["items"]["commands"][1]
+        self.assertEqual(repeat["positions"], [{"x": 11, "y": 3}])
+
+    def test_removes_last_repeat_position_and_its_command(self) -> None:
+        document = studio_document()
+        document["rooms"][0]["items"]["commands"][1]["positions"] = [
+            {"x": 10, "y": 3}
+        ]
+        model = level_studio.StudioDocument(document)
+        self.assertTrue(model.remove_item_placement(0, 1, 0))
+        self.assertFalse(
+            any(
+                command["kind"] == "repeat"
+                for command in model.room(0)["items"]["commands"]
+            )
+        )
+
+    def test_removing_constellation_retains_chr_bank_terminator(self) -> None:
+        document = studio_document()
+        document["rooms"][0]["items"]["commands"][-1]["opcode"] = 0xFB
+        model = level_studio.StudioDocument(document)
+        self.assertTrue(model.remove_item_placement(0, 2, None))
+        self.assertEqual(
+            model.room(0)["items"]["commands"][-1],
+            {"kind": "end", "opcode": 0xE8},
+        )
+
+    def test_rejects_direct_item_reserved_opcode(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "item type"):
+            model.update_item_placement(0, 0, None, 0xC0, 7, 8)
+
+
 class EraseTests(unittest.TestCase):
     def test_erases_blocks_enemy_and_direct_item_in_cell(self) -> None:
         document = studio_document()

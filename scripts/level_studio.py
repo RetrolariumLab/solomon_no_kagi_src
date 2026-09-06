@@ -24,6 +24,7 @@ from level_editor import (
     LevelEditorError,
     build_level_image,
     canonical_document,
+    clean_position,
     export_document,
     load_document,
     save_document,
@@ -350,6 +351,124 @@ class StudioDocument:
 
         return self.mutate(apply)
 
+    def update_enemy(
+        self,
+        room_index: int,
+        enemy_index: int,
+        enemy_type: int,
+        x: int,
+        y: int,
+    ) -> bool:
+        if not 1 <= enemy_type <= 0xFF:
+            raise LevelEditorError("enemy type must be $01..$FF")
+        position = clean_position({"x": x, "y": y})
+        placements = self.room(room_index)["enemies"]["placements"]
+        if not 0 <= enemy_index < len(placements):
+            raise LevelEditorError("selected enemy no longer exists")
+
+        def apply() -> bool:
+            replacement = {"type": enemy_type, "position": position}
+            if placements[enemy_index] == replacement:
+                return False
+            placements[enemy_index] = replacement
+            return True
+
+        return self.mutate(apply)
+
+    def remove_enemy(self, room_index: int, enemy_index: int) -> bool:
+        placements = self.room(room_index)["enemies"]["placements"]
+        if not 0 <= enemy_index < len(placements):
+            raise LevelEditorError("selected enemy no longer exists")
+
+        def apply() -> bool:
+            del placements[enemy_index]
+            return True
+
+        return self.mutate(apply)
+
+    def update_item_placement(
+        self,
+        room_index: int,
+        command_index: int,
+        position_index: int | None,
+        item_type: int,
+        x: int,
+        y: int,
+    ) -> bool:
+        position = clean_position({"x": x, "y": y})
+        commands = self.room(room_index)["items"]["commands"]
+        if not 0 <= command_index < len(commands):
+            raise LevelEditorError("selected item command no longer exists")
+        command = commands[command_index]
+        kind = command["kind"]
+        if kind == "item":
+            if position_index is not None:
+                raise LevelEditorError("direct item has no repeated position index")
+            if not (1 <= item_type < 0xC0 or 0xFC <= item_type <= 0xFF):
+                raise LevelEditorError("item type must be $01..$BF or $FC..$FF")
+        elif kind == "repeat":
+            positions = command["positions"]
+            if position_index is None or not 0 <= position_index < len(positions):
+                raise LevelEditorError("selected repeated item no longer exists")
+            if not 0 <= item_type <= 0xFF:
+                raise LevelEditorError("repeated item type must be $00..$FF")
+        elif kind == "constellation":
+            if position_index is not None:
+                raise LevelEditorError("constellation has no repeated position index")
+            if not 0xF0 <= item_type <= 0xFB:
+                raise LevelEditorError("constellation opcode must be $F0..$FB")
+        else:
+            raise LevelEditorError(f"cannot edit item command {kind!r}")
+
+        def apply() -> bool:
+            if kind == "repeat":
+                old_position = command["positions"][position_index]
+                if command["type"] == item_type and old_position == position:
+                    return False
+                command["type"] = item_type
+                command["positions"][position_index] = position
+            else:
+                type_field = "opcode" if kind == "constellation" else "type"
+                if command[type_field] == item_type and command["position"] == position:
+                    return False
+                command[type_field] = item_type
+                command["position"] = position
+            return True
+
+        return self.mutate(apply)
+
+    def remove_item_placement(
+        self,
+        room_index: int,
+        command_index: int,
+        position_index: int | None,
+    ) -> bool:
+        commands = self.room(room_index)["items"]["commands"]
+        if not 0 <= command_index < len(commands):
+            raise LevelEditorError("selected item command no longer exists")
+        command = commands[command_index]
+        kind = command["kind"]
+        if kind == "repeat":
+            positions = command["positions"]
+            if position_index is None or not 0 <= position_index < len(positions):
+                raise LevelEditorError("selected repeated item no longer exists")
+        elif kind not in {"item", "constellation"} or position_index is not None:
+            raise LevelEditorError(f"cannot remove item command {kind!r}")
+
+        def apply() -> bool:
+            if kind == "repeat" and len(command["positions"]) > 1:
+                del command["positions"][position_index]
+            elif kind == "constellation":
+                commands[command_index] = {
+                    "kind": "end",
+                    "opcode": 0xE0 | (command["opcode"] & 0x0C),
+                }
+            else:
+                del commands[command_index]
+            return True
+
+        return self.mutate(apply)
+
     def item_placements(self, room_index: int) -> list[ItemPlacement]:
         result: list[ItemPlacement] = []
         commands = self.room(room_index)["items"]["commands"]
@@ -443,12 +562,18 @@ class LevelStudio(tk.Tk):
         self.preview_renderer = LevelPreviewRenderer(model.document, chr_data)
         self.preview_image: tk.PhotoImage | None = None
         self.playtest_process: subprocess.Popen[bytes] | None = None
+        self.selection: tuple[str, int, int | None] | None = None
+        self.record_refs: dict[str, tuple[str, int, int | None]] = {}
         self.room_index = tk.IntVar(value=0)
         self.room_choice = tk.StringVar(value="Room 01")
         self.mode = tk.StringVar(value="select")
         self.enemy_type = tk.StringVar(value="71")
         self.item_type = tk.StringVar(value="18")
         self.status = tk.StringVar()
+        self.selected_record = tk.StringVar(value="No record selected")
+        self.selected_type = tk.StringVar(value="")
+        self.selected_x = tk.IntVar(value=0)
+        self.selected_y = tk.IntVar(value=0)
         self.property_vars = {
             "spawn_lifetime": tk.IntVar(),
             "time_decrease_rate": tk.IntVar(),
@@ -459,8 +584,8 @@ class LevelStudio(tk.Tk):
             "mirror_2_enemy_set": tk.IntVar(),
         }
         self.title(f"Solomon's Key Level Studio [{profile['id']}]")
-        self.geometry("1120x690")
-        self.minsize(920, 620)
+        self.geometry("1260x760")
+        self.minsize(1050, 680)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.build_ui()
         self.load_properties()
@@ -553,6 +678,52 @@ class LevelStudio(tk.Tk):
             command=self.apply_properties,
         ).grid(row=len(rows) + 1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
 
+        records = ttk.LabelFrame(side, text="Room records", padding=7)
+        records.pack(fill="both", expand=True, pady=(8, 0))
+        self.record_tree = ttk.Treeview(
+            records,
+            columns=("kind", "type", "x", "y", "source"),
+            show="headings",
+            height=8,
+            selectmode="browse",
+        )
+        for name, label, width in (
+            ("kind", "Kind", 80),
+            ("type", "Type", 48),
+            ("x", "X", 28),
+            ("y", "Y", 28),
+            ("source", "Source", 92),
+        ):
+            self.record_tree.heading(name, text=label)
+            self.record_tree.column(
+                name, width=width, stretch=name in {"kind", "source"}
+            )
+        self.record_tree.pack(fill="both", expand=True)
+        self.record_tree.bind("<<TreeviewSelect>>", self.select_record_row)
+
+        inspector = ttk.Frame(records, padding=(0, 7, 0, 0))
+        inspector.pack(fill="x")
+        ttk.Label(inspector, textvariable=self.selected_record).grid(
+            row=0, column=0, columnspan=6, sticky="w"
+        )
+        for column, (label, variable, width) in enumerate(
+            (
+                ("Type", self.selected_type, 7),
+                ("X", self.selected_x, 4),
+                ("Y", self.selected_y, 4),
+            )
+        ):
+            ttk.Label(inspector, text=label).grid(row=1, column=column * 2, sticky="e")
+            ttk.Entry(inspector, textvariable=variable, width=width).grid(
+                row=1, column=column * 2 + 1, padx=(3, 7)
+            )
+        ttk.Button(inspector, text="Apply", command=self.apply_selected_record).grid(
+            row=2, column=0, columnspan=3, sticky="ew", pady=(6, 0), padx=(0, 3)
+        )
+        ttk.Button(inspector, text="Delete", command=self.delete_selected_record).grid(
+            row=2, column=3, columnspan=3, sticky="ew", pady=(6, 0), padx=(3, 0)
+        )
+
         legend = ttk.LabelFrame(side, text="Legend", padding=7)
         legend.pack(fill="x", pady=(8, 0))
         ttk.Label(
@@ -574,6 +745,7 @@ class LevelStudio(tk.Tk):
 
     def select_room(self, _event: object = None) -> None:
         self.room_index.set(int(self.room_choice.get().split()[-1]) - 1)
+        self.selection = None
         self.load_properties()
         self.redraw()
 
@@ -618,6 +790,198 @@ class LevelStudio(tk.Tk):
         y = min(max(int(self.canvas.canvasy(event.y)) // CELL, 0), ROOM_HEIGHT - 1)
         return x, y
 
+    @staticmethod
+    def record_iid(reference: tuple[str, int, int | None]) -> str:
+        kind, record_index, position_index = reference
+        suffix = "direct" if position_index is None else str(position_index)
+        return f"{kind}:{record_index}:{suffix}"
+
+    def refresh_record_table(self) -> None:
+        selected = self.selection
+        self.record_tree.delete(*self.record_tree.get_children())
+        self.record_refs.clear()
+        room = self.current_room()
+        for index, enemy in enumerate(room["enemies"]["placements"]):
+            reference = ("enemy", index, None)
+            iid = self.record_iid(reference)
+            position = enemy["position"]
+            self.record_refs[iid] = reference
+            self.record_tree.insert(
+                "",
+                "end",
+                iid=iid,
+                values=(
+                    "enemy",
+                    f"${enemy['type']:02X}",
+                    position["x"],
+                    position["y"],
+                    f"placement {index + 1}",
+                ),
+            )
+        for placement in self.model.item_placements(self.room_index.get()):
+            reference = (
+                "item",
+                placement.command_index,
+                placement.position_index,
+            )
+            iid = self.record_iid(reference)
+            command = room["items"]["commands"][placement.command_index]
+            source = f"command {placement.command_index + 1}"
+            if placement.position_index is not None:
+                source += f" / {placement.position_index + 1}"
+            self.record_refs[iid] = reference
+            self.record_tree.insert(
+                "",
+                "end",
+                iid=iid,
+                values=(
+                    command["kind"],
+                    f"${placement.item_type:02X}",
+                    placement.position["x"],
+                    placement.position["y"],
+                    source,
+                ),
+            )
+        if selected is not None:
+            iid = self.record_iid(selected)
+            if iid in self.record_refs:
+                self.record_tree.selection_set(iid)
+                self.record_tree.focus(iid)
+                self.record_tree.see(iid)
+                self.load_selected_record()
+                return
+        self.selection = None
+        self.selected_record.set("No record selected")
+        self.selected_type.set("")
+
+    def select_record_row(self, _event: object = None) -> None:
+        rows = self.record_tree.selection()
+        if not rows:
+            return
+        self.selection = self.record_refs.get(rows[0])
+        self.load_selected_record()
+
+    def selected_item(self) -> tuple[dict[str, Any], dict[str, int], str]:
+        if self.selection is None or self.selection[0] != "item":
+            raise LevelEditorError("no item record is selected")
+        _, command_index, position_index = self.selection
+        commands = self.current_room()["items"]["commands"]
+        if not 0 <= command_index < len(commands):
+            raise LevelEditorError("selected item command no longer exists")
+        command = commands[command_index]
+        kind = command["kind"]
+        if kind == "repeat":
+            positions = command["positions"]
+            if position_index is None or not 0 <= position_index < len(positions):
+                raise LevelEditorError("selected repeated item no longer exists")
+            return command, positions[position_index], kind
+        if kind not in {"item", "constellation"} or position_index is not None:
+            raise LevelEditorError("selected item record no longer exists")
+        return command, command["position"], kind
+
+    def load_selected_record(self) -> None:
+        if self.selection is None:
+            return
+        kind, record_index, position_index = self.selection
+        if kind == "enemy":
+            placements = self.current_room()["enemies"]["placements"]
+            if not 0 <= record_index < len(placements):
+                self.selection = None
+                return
+            record = placements[record_index]
+            item_type = record["type"]
+            position = record["position"]
+            description = f"Enemy placement {record_index + 1}"
+        else:
+            command, position, command_kind = self.selected_item()
+            item_type = (
+                command["opcode"]
+                if command_kind == "constellation"
+                else command["type"]
+            )
+            description = f"{command_kind.title()} command {record_index + 1}"
+            if position_index is not None:
+                description += (
+                    f", position {position_index + 1}/{len(command['positions'])}"
+                )
+                description += " (type is shared)"
+        self.selected_record.set(description)
+        self.selected_type.set(f"{item_type:02X}")
+        self.selected_x.set(position["x"])
+        self.selected_y.set(position["y"])
+
+    def select_canvas_record(self, x: int, y: int) -> bool:
+        matches: list[tuple[str, int, int | None]] = []
+        for index, enemy in enumerate(self.current_room()["enemies"]["placements"]):
+            if self.model.same_position(enemy["position"], x, y):
+                matches.append(("enemy", index, None))
+        for placement in self.model.item_placements(self.room_index.get()):
+            if self.model.same_position(placement.position, x, y):
+                matches.append(
+                    ("item", placement.command_index, placement.position_index)
+                )
+        if not matches:
+            self.record_tree.selection_remove(*self.record_tree.selection())
+            self.selection = None
+            self.selected_record.set("No record selected")
+            self.selected_type.set("")
+            return False
+        selection_index = 0
+        if self.selection in matches:
+            selection_index = (matches.index(self.selection) + 1) % len(matches)
+        self.selection = matches[selection_index]
+        iid = self.record_iid(self.selection)
+        self.record_tree.selection_set(iid)
+        self.record_tree.focus(iid)
+        self.record_tree.see(iid)
+        self.load_selected_record()
+        return True
+
+    def apply_selected_record(self) -> None:
+        if self.selection is None:
+            self.set_status("Select an enemy or item first")
+            return
+        try:
+            kind, record_index, position_index = self.selection
+            item_type = self.parse_hex(self.selected_type.get(), f"{kind} type")
+            x = self.selected_x.get()
+            y = self.selected_y.get()
+            if kind == "enemy":
+                changed = self.model.update_enemy(
+                    self.room_index.get(), record_index, item_type, x, y
+                )
+            else:
+                changed = self.model.update_item_placement(
+                    self.room_index.get(),
+                    record_index,
+                    position_index,
+                    item_type,
+                    x,
+                    y,
+                )
+            self.redraw()
+            self.set_status("Record updated" if changed else "No change")
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid record", str(exc))
+
+    def delete_selected_record(self) -> None:
+        if self.selection is None:
+            self.set_status("Select an enemy or item first")
+            return
+        try:
+            kind, record_index, position_index = self.selection
+            if kind == "enemy":
+                self.model.remove_enemy(self.room_index.get(), record_index)
+            else:
+                self.model.remove_item_placement(
+                    self.room_index.get(), record_index, position_index
+                )
+            self.selection = None
+            self.redraw()
+            self.set_status("Record deleted")
+        except LevelEditorError as exc:
+            messagebox.showerror("Cannot delete record", str(exc))
+
     def canvas_click(self, event: tk.Event) -> None:
         x, y = self.canvas_cell(event)
         mode = self.mode.get()
@@ -647,8 +1011,14 @@ class LevelStudio(tk.Tk):
                     y,
                 )
             else:
-                self.set_status(f"Cell ({x}, {y})")
+                found = self.select_canvas_record(x, y)
+                self.set_status(
+                    f"Selected record at ({x}, {y})"
+                    if found
+                    else f"Cell ({x}, {y}) has no enemy or item"
+                )
                 return
+            self.selection = None
             self.set_status(f"Updated ({x}, {y})" if changed else "No change")
             self.redraw()
         except LevelEditorError as exc:
@@ -657,6 +1027,7 @@ class LevelStudio(tk.Tk):
     def erase_click(self, event: tk.Event) -> None:
         x, y = self.canvas_cell(event)
         if self.model.erase_cell(self.room_index.get(), x, y):
+            self.selection = None
             self.set_status(f"Erased ({x}, {y})")
             self.redraw()
 
@@ -736,6 +1107,7 @@ class LevelStudio(tk.Tk):
                 outline="#fff099",
             )
             self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
+        self.refresh_record_table()
         self.set_status(
             f"Room {self.room_index.get() + 1:02d}: "
             f"CHR {preview.chr_bank}, "
