@@ -1,17 +1,18 @@
 ; NMI-driven virtual-channel sequencer and APU register publisher
 
-AudioChannelState = $0456
+AudioRegionalRamOffset = SolomonRevision = SolomonRevisionEurope
+AudioChannelState = $0456 + AudioRegionalRamOffset
 AudioChannelStateStride = $10
 AudioVirtualChannelCount = 8
 AudioHardwareChannelLastIndex = 3
 AudioInitialChannelPairMask = $03
 AudioPrimaryVirtualChannelBits = $55
 AudioEnabledHardwareChannelMask = $0F
-AudioDurationCounter = $04D6
-AudioDurationReload = $04D7
-AudioEnvelopeCounter = $04D8
-AudioEnvelopeVolume = $04D9
-AudioActiveChannelMask = $04F6
+AudioDurationCounter = $04D6 + AudioRegionalRamOffset
+AudioDurationReload = $04D7 + AudioRegionalRamOffset
+AudioEnvelopeCounter = $04D8 + AudioRegionalRamOffset
+AudioEnvelopeVolume = $04D9 + AudioRegionalRamOffset
+AudioActiveChannelMask = $04F6 + AudioRegionalRamOffset
 AudioChannelPointer = TempPointer08
 AudioHardwareChannelIndex = TempPointer0A
 AudioChannelMask = TempPointer0A + 1

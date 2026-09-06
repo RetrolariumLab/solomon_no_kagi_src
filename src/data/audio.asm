@@ -22,10 +22,21 @@ AudioPeriodTable:
     .word $04B9, $0475, $0435, $03F8, $03BF, $0389
 
 AudioDurationTable:
+.if SolomonRevision = SolomonRevisionEurope
+    .byte $01, $02, $04, $05, $07, $0A, $0E, $14, $1C, $28, $38, $50, $70
+    .byte $C0, $04, $08, $0C, $10, $14, $18, $20, $28, $30, $38, $40, $06
+
+; The PAL image retains this timing tail before its envelopes
+    .byte $07, $0D, $0E, $FF, $FF, $FF
     .byte $01, $02, $04, $06, $08, $0C, $10, $18, $20, $30, $40, $60, $80
     .byte $C0, $05, $0A, $0F, $14, $19, $1E, $28, $32, $3C, $46, $50, $50
+    .res 8, $FF
+.else
+    .byte $01, $02, $04, $06, $08, $0C, $10, $18, $20, $30, $40, $60, $80
+    .byte $C0, $05, $0A, $0F, $14, $19, $1E, $28, $32, $3C, $46, $50, $50
+.endif
 
-.assert * - AudioPeriodTable = $0032, error, "unexpected audio timing table size"
+.assert * - AudioPeriodTable = $0032 + (SolomonRevision = SolomonRevisionEurope) * $28, error, "unexpected audio timing table size"
 
 .segment "PRG_AUDIO_ENVELOPES"
 
@@ -714,10 +725,8 @@ AudioStream113:
 .assert * - AudioStream000 = $0A68, error, "unexpected audio stream data size"
 
 .if SolomonRevision = SolomonRevisionEurope
-; Temporary layout compensation while PAL audio data is reconstructed
-; The European room/audio region begins $80 bytes earlier, while vectors keep
-; their fixed CPU addresses at $FFFA-$FFFF
-    .res $80, $FF
+; Temporary tail compensation until the longer PAL streams are reconstructed
+    .res $58, $FF
 .endif
 
 .segment "VECTORS"

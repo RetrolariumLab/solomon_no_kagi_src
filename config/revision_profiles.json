@@ -109,6 +109,14 @@
           "size": 8192,
           "sha1": "c13355ec5eaad20e01c3b17a4fa4d40f3c886b17",
           "sha256": "41d573ae0ce6b06f731393c519a496e115a9c1b40de2785f782cace2d1217a9d"
+        },
+        {
+          "id": "audio_engine_timing_envelopes",
+          "region": "prg",
+          "offset": 28544,
+          "size": 1188,
+          "sha1": "e4ddba26fc529653105550674d9861cc6e105ba8",
+          "sha256": "6f817bc8841868696fe2a4e44a22604346a8ca4b469730fa2e5d37f3ba867452"
         }
       ],
       "extracted_assets": [
