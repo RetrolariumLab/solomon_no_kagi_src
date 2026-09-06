@@ -372,13 +372,16 @@ passes on the reviewed `main` commit.
   keeps save/build/play actions backed
   by the same validated codec. Its record inspector edits or deletes existing
   enemies, direct items, repeat positions, and constellation commands without
-  flattening their source representation. Its shared-data dialog edits all 16
-  Demon Mirror schedules and all 17 cyclic enemy sets with room-reference,
-  loop-boundary, enemy-type, and original allocation checks. Complete semantic
-  enemy and item catalogs expose the raw byte together with family, direction,
-  speed, visibility, and block-state meaning. The room-terminator editor also
-  exposes all four CHR banks and safe conversion between normal and positioned
-  zodiac endings without pretending their shared opcode fields are independent.
+  flattening their source representation. Direct item records can be promoted
+  to the compact repeated-item stream form and extended visually from the room
+  canvas, with shared-type, 32-position, undo, and round-trip guarantees. Its
+  shared-data dialog edits all 16 Demon Mirror schedules and all 17 cyclic
+  enemy sets with room-reference, loop-boundary, enemy-type, and original
+  allocation checks. Complete semantic enemy and item catalogs expose the raw
+  byte together with family, direction, speed, visibility, and block-state
+  meaning. The room-terminator editor also exposes all four CHR banks and safe
+  conversion between normal and positioned zodiac endings without pretending
+  their shared opcode fields are independent.
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;

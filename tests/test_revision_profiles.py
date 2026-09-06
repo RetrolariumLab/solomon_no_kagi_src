@@ -745,6 +745,27 @@ class LevelPackingTests(unittest.TestCase):
             document["rooms"][0]["items"]["commands"],
         )
 
+    def test_repeated_item_group_survives_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["rooms"][0]["items"]["commands"] = [
+            {
+                "kind": "repeat",
+                "type": 0x98,
+                "positions": [
+                    {"x": 3, "y": 4},
+                    {"x": 7, "y": 8},
+                    {"x": 12, "y": 2},
+                ],
+            },
+            {"kind": "end", "opcode": 0},
+        ]
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(
+            decoded["rooms"][0]["items"]["commands"],
+            document["rooms"][0]["items"]["commands"],
+        )
+
     def test_constellation_terminator_survives_build_and_decode(self) -> None:
         document, image, profile = empty_level_fixture()
         document["rooms"][0]["items"]["commands"][-1] = {

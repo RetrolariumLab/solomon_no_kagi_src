@@ -339,6 +339,14 @@ otherwise makes it look identical to a white block. Existing direct, repeated,
 and constellation item records are all visible; erasing one repeated placement
 shrinks the command and removes it when its last position disappears.
 
+`repeat item position` authors the stream's compact repeated-item form without
+exposing its raw opcode. Select an existing direct or repeated item record and
+click additional cells on the room canvas. The first click after selecting a
+direct item converts it to a repeat while preserving the original position and
+shared type; later clicks append positions to that same command. Each change is
+undoable, the new position remains selected, and the original format's maximum
+of 32 positions is enforced before the document reaches the ROM builder.
+
 Enemy and item controls pair every stored byte with a readable name while
 keeping the hexadecimal prefix editable. The enemy catalog covers the complete
 `$18-$83` configuration-table range and decodes family, direction, speed,

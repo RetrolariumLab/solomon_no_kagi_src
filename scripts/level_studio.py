@@ -61,6 +61,7 @@ EDIT_MODES = (
     "mirror 2",
     "enemy",
     "item",
+    "repeat item position",
 )
 ANCHOR_MODES = {
     "player start": "player_start",
@@ -697,6 +698,40 @@ class StudioDocument:
             return True
 
         return self.mutate(apply)
+
+    def append_item_repeat_position(
+        self,
+        room_index: int,
+        command_index: int,
+        x: int,
+        y: int,
+    ) -> int:
+        position = clean_position({"x": x, "y": y})
+        commands = self.room(room_index)["items"]["commands"]
+        if not 0 <= command_index < len(commands):
+            raise LevelEditorError("selected item command no longer exists")
+        command = commands[command_index]
+        kind = command.get("kind")
+        if kind == "repeat" and len(command["positions"]) >= 32:
+            raise LevelEditorError("repeated item already contains 32 positions")
+        if kind not in {"item", "repeat"}:
+            raise LevelEditorError("select a direct or repeated item first")
+
+        new_position_index = 1 if kind == "item" else len(command["positions"])
+
+        def apply() -> bool:
+            if kind == "item":
+                commands[command_index] = {
+                    "kind": "repeat",
+                    "type": command["type"],
+                    "positions": [command["position"], position],
+                }
+            else:
+                command["positions"].append(position)
+            return True
+
+        self.mutate(apply)
+        return new_position_index
 
     def update_enemy(
         self,
@@ -1420,6 +1455,7 @@ class LevelStudio(tk.Tk):
                 "Red circles: enemies\n"
                 "Gold diamonds: items\n\n"
                 "Left click applies selected tool.\n"
+                "Repeat tool appends to selected item.\n"
                 "Right click erases the cell."
             ),
         ).pack(anchor="w")
@@ -1719,6 +1755,17 @@ class LevelStudio(tk.Tk):
                     x,
                     y,
                 )
+            elif mode == "repeat item position":
+                if self.selection is None or self.selection[0] != "item":
+                    raise LevelEditorError("select a direct or repeated item first")
+                _, command_index, _ = self.selection
+                position_index = self.model.append_item_repeat_position(
+                    self.room_index.get(), command_index, x, y
+                )
+                self.selection = ("item", command_index, position_index)
+                self.set_status(f"Appended repeat position at ({x}, {y})")
+                self.redraw()
+                return
             else:
                 found = self.select_canvas_record(x, y)
                 self.set_status(

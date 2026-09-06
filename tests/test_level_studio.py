@@ -276,6 +276,42 @@ class EntityEditingTests(unittest.TestCase):
         self.assertEqual(placements[2].position_index, 1)
 
 
+class RepeatAuthoringTests(unittest.TestCase):
+    def test_direct_item_becomes_repeat_when_a_position_is_appended(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertEqual(model.append_item_repeat_position(0, 0, 4, 6), 1)
+        self.assertEqual(
+            model.room(0)["items"]["commands"][0],
+            {
+                "kind": "repeat",
+                "type": 0x18,
+                "positions": [{"x": 8, "y": 9}, {"x": 4, "y": 6}],
+            },
+        )
+        self.assertTrue(model.undo())
+        self.assertEqual(model.room(0)["items"]["commands"][0]["kind"], "item")
+
+    def test_existing_repeat_appends_position_and_retains_shared_type(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertEqual(model.append_item_repeat_position(0, 1, 12, 3), 2)
+        repeat = model.room(0)["items"]["commands"][1]
+        self.assertEqual(repeat["type"], 0x88)
+        self.assertEqual(repeat["positions"][-1], {"x": 12, "y": 3})
+
+    def test_repeat_append_requires_supported_command_and_capacity(self) -> None:
+        document = studio_document()
+        document["rooms"][0]["items"]["commands"][1]["positions"] = [
+            {"x": index % 16, "y": index % 12} for index in range(32)
+        ]
+        model = level_studio.StudioDocument(document)
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "32 positions"):
+            model.append_item_repeat_position(0, 1, 1, 1)
+        with self.assertRaisesRegex(
+            level_studio.LevelEditorError, "direct or repeated"
+        ):
+            model.append_item_repeat_position(0, 2, 1, 1)
+
+
 class RecordInspectorTests(unittest.TestCase):
     def test_updates_existing_enemy_type_and_position(self) -> None:
         model = level_studio.StudioDocument(studio_document())
