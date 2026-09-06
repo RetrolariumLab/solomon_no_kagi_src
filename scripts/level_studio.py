@@ -39,13 +39,14 @@ from revision_profiles import (
     resolve_reference,
     verify_reference,
 )
-from room_data import RoomDataError
+from room_data import ENEMY_TYPE_MAXIMUM, ENEMY_TYPE_MINIMUM, RoomDataError
 
 
 PIXEL_SCALE = 2
 CELL = METATILE_SIZE * PIXEL_SCALE
 CANVAS_WIDTH = ROOM_WIDTH * CELL
 CANVAS_HEIGHT = ROOM_HEIGHT * CELL
+MIRROR_ENEMY_SET_BUDGET = 42
 LEVEL_PLAYTEST_LUA = ROOT / "scripts" / "level_playtest.lua"
 EDIT_MODES = (
     "select",
@@ -82,6 +83,26 @@ def profile_integer(value: object, field: str) -> int:
         return int(value, 0) if isinstance(value, str) else int(value)
     except (TypeError, ValueError) as exc:
         raise LevelEditorError(f"invalid profile playtest {field}: {value!r}") from exc
+
+
+def parse_hex_byte_list(value: str, field: str, count: int | None = None) -> list[int]:
+    tokens = value.replace(",", " ").split()
+    try:
+        result = [
+            int(token.removeprefix("$").removeprefix("0x"), 16)
+            for token in tokens
+        ]
+    except ValueError as exc:
+        raise LevelEditorError(f"invalid {field} byte list: {value!r}") from exc
+    if count is not None and len(result) != count:
+        raise LevelEditorError(f"{field} must contain exactly {count} bytes")
+    if any(not 0 <= item <= 0xFF for item in result):
+        raise LevelEditorError(f"{field} contains a value outside $00..$FF")
+    return result
+
+
+def format_hex_byte_list(values: list[int]) -> str:
+    return " ".join(f"{value:02X}" for value in values)
 
 
 def level_playtest_environment(
@@ -310,6 +331,76 @@ class StudioDocument:
 
         return self.mutate(apply)
 
+    def set_mirror_schedule(
+        self,
+        schedule_index: int,
+        initial_phase: list[int],
+        loop_phase: list[int],
+    ) -> bool:
+        schedules = self.document["mirror_schedules"]
+        if not 0 <= schedule_index < len(schedules):
+            raise LevelEditorError("Demon Mirror schedule index is outside 0..15")
+        if len(initial_phase) != 4 or len(loop_phase) != 4:
+            raise LevelEditorError("Demon Mirror schedule phases need four bytes each")
+        if any(not 0 <= value <= 0xFF for value in initial_phase + loop_phase):
+            raise LevelEditorError("Demon Mirror schedule byte is outside $00..$FF")
+
+        def apply() -> bool:
+            schedule = schedules[schedule_index]
+            replacement = {
+                "index": schedule_index,
+                "initial_phase": list(initial_phase),
+                "loop_phase": list(loop_phase),
+            }
+            if schedule == replacement:
+                return False
+            schedules[schedule_index] = replacement
+            return True
+
+        return self.mutate(apply)
+
+    def set_mirror_enemy_set(
+        self,
+        enemy_set_index: int,
+        enemy_types: list[int],
+        loop_offset: int,
+    ) -> bool:
+        enemy_sets = self.document["mirror_enemy_sets"]
+        if not 0 <= enemy_set_index < len(enemy_sets):
+            raise LevelEditorError("Demon Mirror enemy-set index is outside 0..16")
+        if not enemy_types:
+            raise LevelEditorError("Demon Mirror enemy set cannot be empty")
+        if any(
+            not ENEMY_TYPE_MINIMUM <= value <= ENEMY_TYPE_MAXIMUM
+            for value in enemy_types
+        ):
+            raise LevelEditorError("Demon Mirror enemy type must be $18..$83")
+        if not 0 <= loop_offset < len(enemy_types):
+            raise LevelEditorError(
+                "Demon Mirror loop offset must select an enemy in this set"
+            )
+        used = sum(len(record["enemy_types"]) + 1 for record in enemy_sets)
+        replacement_size = len(enemy_types) + 1
+        current_size = len(enemy_sets[enemy_set_index]["enemy_types"]) + 1
+        if used - current_size + replacement_size > MIRROR_ENEMY_SET_BUDGET:
+            raise LevelEditorError(
+                "Demon Mirror enemy sets exceed their shared 42-byte budget"
+            )
+
+        def apply() -> bool:
+            enemy_set = enemy_sets[enemy_set_index]
+            replacement = {
+                "index": enemy_set_index,
+                "enemy_types": list(enemy_types),
+                "loop_offset": loop_offset,
+            }
+            if enemy_set == replacement:
+                return False
+            enemy_sets[enemy_set_index] = replacement
+            return True
+
+        return self.mutate(apply)
+
     def add_enemy(
         self,
         room_index: int,
@@ -317,8 +408,8 @@ class StudioDocument:
         x: int,
         y: int,
     ) -> bool:
-        if not 1 <= enemy_type <= 0xFF:
-            raise LevelEditorError("enemy type must be $01..$FF")
+        if not ENEMY_TYPE_MINIMUM <= enemy_type <= ENEMY_TYPE_MAXIMUM:
+            raise LevelEditorError("enemy type must be $18..$83")
 
         def apply() -> bool:
             self.room(room_index)["enemies"]["placements"].append(
@@ -359,8 +450,8 @@ class StudioDocument:
         x: int,
         y: int,
     ) -> bool:
-        if not 1 <= enemy_type <= 0xFF:
-            raise LevelEditorError("enemy type must be $01..$FF")
+        if not ENEMY_TYPE_MINIMUM <= enemy_type <= ENEMY_TYPE_MAXIMUM:
+            raise LevelEditorError("enemy type must be $18..$83")
         position = clean_position({"x": x, "y": y})
         placements = self.room(room_index)["enemies"]["placements"]
         if not 0 <= enemy_index < len(placements):
@@ -541,6 +632,175 @@ class StudioDocument:
         return self.mutate(apply)
 
 
+class MirrorDataDialog(tk.Toplevel):
+    """Edit the shared schedule and cyclic enemy-set tables used by rooms."""
+
+    def __init__(self, studio: "LevelStudio") -> None:
+        super().__init__(studio)
+        self.studio = studio
+        self.schedule_index = tk.IntVar(value=0)
+        self.schedule_initial = tk.StringVar()
+        self.schedule_loop = tk.StringVar()
+        self.schedule_references = tk.StringVar()
+        self.enemy_set_index = tk.IntVar(value=0)
+        self.enemy_types = tk.StringVar()
+        self.enemy_loop_offset = tk.IntVar(value=0)
+        self.enemy_set_references = tk.StringVar()
+        self.enemy_set_usage = tk.StringVar()
+        self.title(f"Demon Mirror data [{studio.profile['id']}]")
+        self.resizable(False, False)
+        self.transient(studio)
+        self.build_ui()
+        self.load_schedule()
+        self.load_enemy_set()
+
+    def build_ui(self) -> None:
+        body = ttk.Frame(self, padding=10)
+        body.pack(fill="both", expand=True)
+
+        schedules = ttk.LabelFrame(body, text="Spawn schedule", padding=8)
+        schedules.pack(fill="x")
+        ttk.Label(schedules, text="Index").grid(row=0, column=0, sticky="w")
+        schedule_box = ttk.Combobox(
+            schedules,
+            textvariable=self.schedule_index,
+            values=tuple(range(16)),
+            state="readonly",
+            width=5,
+        )
+        schedule_box.grid(row=0, column=1, sticky="w", padx=(7, 0))
+        schedule_box.bind("<<ComboboxSelected>>", self.load_schedule)
+        ttk.Label(schedules, text="Initial four bytes").grid(
+            row=1, column=0, sticky="w", pady=(7, 0)
+        )
+        ttk.Entry(schedules, textvariable=self.schedule_initial, width=28).grid(
+            row=1, column=1, padx=(7, 0), pady=(7, 0)
+        )
+        ttk.Label(schedules, text="Loop four bytes").grid(
+            row=2, column=0, sticky="w", pady=(5, 0)
+        )
+        ttk.Entry(schedules, textvariable=self.schedule_loop, width=28).grid(
+            row=2, column=1, padx=(7, 0), pady=(5, 0)
+        )
+        ttk.Label(
+            schedules,
+            textvariable=self.schedule_references,
+            wraplength=390,
+            justify="left",
+        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(7, 0))
+        ttk.Button(
+            schedules,
+            text="Apply schedule",
+            command=self.apply_schedule,
+        ).grid(row=4, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+
+        enemy_sets = ttk.LabelFrame(body, text="Cyclic enemy set", padding=8)
+        enemy_sets.pack(fill="x", pady=(10, 0))
+        ttk.Label(enemy_sets, text="Index").grid(row=0, column=0, sticky="w")
+        enemy_set_box = ttk.Combobox(
+            enemy_sets,
+            textvariable=self.enemy_set_index,
+            values=tuple(range(17)),
+            state="readonly",
+            width=5,
+        )
+        enemy_set_box.grid(row=0, column=1, sticky="w", padx=(7, 0))
+        enemy_set_box.bind("<<ComboboxSelected>>", self.load_enemy_set)
+        ttk.Label(enemy_sets, text="Enemy type bytes").grid(
+            row=1, column=0, sticky="w", pady=(7, 0)
+        )
+        ttk.Entry(enemy_sets, textvariable=self.enemy_types, width=28).grid(
+            row=1, column=1, padx=(7, 0), pady=(7, 0)
+        )
+        ttk.Label(enemy_sets, text="Loop offset").grid(
+            row=2, column=0, sticky="w", pady=(5, 0)
+        )
+        ttk.Spinbox(
+            enemy_sets,
+            from_=0,
+            to=0x6F,
+            textvariable=self.enemy_loop_offset,
+            width=7,
+        ).grid(row=2, column=1, sticky="w", padx=(7, 0), pady=(5, 0))
+        ttk.Label(
+            enemy_sets,
+            textvariable=self.enemy_set_references,
+            wraplength=390,
+            justify="left",
+        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(7, 0))
+        ttk.Label(enemy_sets, textvariable=self.enemy_set_usage).grid(
+            row=4, column=0, columnspan=2, sticky="w", pady=(3, 0)
+        )
+        ttk.Button(
+            enemy_sets,
+            text="Apply enemy set",
+            command=self.apply_enemy_set,
+        ).grid(row=5, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+
+    def referenced_rooms(self, fields: tuple[str, str], index: int) -> str:
+        rooms = []
+        for room_index, room in enumerate(self.studio.model.document["rooms"]):
+            metadata = room["items"]["metadata"]
+            if any(metadata[field] == index for field in fields):
+                rooms.append(room_index + 1)
+        return "Rooms using this record: " + (
+            ", ".join(f"{room:02d}" for room in rooms) if rooms else "none"
+        )
+
+    def load_schedule(self, _event: object = None) -> None:
+        index = self.schedule_index.get()
+        schedule = self.studio.model.document["mirror_schedules"][index]
+        self.schedule_initial.set(format_hex_byte_list(schedule["initial_phase"]))
+        self.schedule_loop.set(format_hex_byte_list(schedule["loop_phase"]))
+        self.schedule_references.set(
+            self.referenced_rooms(("mirror_1_schedule", "mirror_2_schedule"), index)
+        )
+
+    def load_enemy_set(self, _event: object = None) -> None:
+        index = self.enemy_set_index.get()
+        enemy_set = self.studio.model.document["mirror_enemy_sets"][index]
+        self.enemy_types.set(format_hex_byte_list(enemy_set["enemy_types"]))
+        self.enemy_loop_offset.set(enemy_set["loop_offset"])
+        self.enemy_set_references.set(
+            self.referenced_rooms(("mirror_1_enemy_set", "mirror_2_enemy_set"), index)
+        )
+        used = sum(
+            len(record["enemy_types"]) + 1
+            for record in self.studio.model.document["mirror_enemy_sets"]
+        )
+        self.enemy_set_usage.set(
+            f"Shared encoded budget: {used}/{MIRROR_ENEMY_SET_BUDGET} bytes"
+        )
+
+    def apply_schedule(self) -> None:
+        try:
+            changed = self.studio.model.set_mirror_schedule(
+                self.schedule_index.get(),
+                parse_hex_byte_list(
+                    self.schedule_initial.get(), "initial schedule phase", 4
+                ),
+                parse_hex_byte_list(
+                    self.schedule_loop.get(), "loop schedule phase", 4
+                ),
+            )
+            self.load_schedule()
+            self.studio.set_status("Mirror schedule updated" if changed else "No change")
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid Demon Mirror schedule", str(exc), parent=self)
+
+    def apply_enemy_set(self) -> None:
+        try:
+            changed = self.studio.model.set_mirror_enemy_set(
+                self.enemy_set_index.get(),
+                parse_hex_byte_list(self.enemy_types.get(), "enemy-set type"),
+                self.enemy_loop_offset.get(),
+            )
+            self.load_enemy_set()
+            self.studio.set_status("Mirror enemy set updated" if changed else "No change")
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid Demon Mirror enemy set", str(exc), parent=self)
+
+
 class LevelStudio(tk.Tk):
     def __init__(
         self,
@@ -623,6 +883,7 @@ class LevelStudio(tk.Tk):
             ("Undo", self.undo),
             ("Save", self.save),
             ("Build ROM", self.build_rom),
+            ("Mirror data", self.open_mirror_data),
             ("Play", self.play),
             ("Stop", self.stop_playtest),
         ):
@@ -745,6 +1006,9 @@ class LevelStudio(tk.Tk):
                 "Right click erases the cell."
             ),
         ).pack(anchor="w")
+
+    def open_mirror_data(self) -> None:
+        MirrorDataDialog(self)
 
     def current_room(self) -> dict[str, Any]:
         return self.model.room(self.room_index.get())

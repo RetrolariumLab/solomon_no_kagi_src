@@ -82,6 +82,23 @@ def studio_document() -> dict[str, object]:
     }
 
 
+def mirror_document() -> dict[str, object]:
+    document = studio_document()
+    document["mirror_schedules"] = [
+        {
+            "index": index,
+            "initial_phase": [0, 0, 0, 0],
+            "loop_phase": [0, 0, 0, 0],
+        }
+        for index in range(16)
+    ]
+    document["mirror_enemy_sets"] = [
+        {"index": index, "enemy_types": [0x50], "loop_offset": 0}
+        for index in range(17)
+    ]
+    return document
+
+
 class DirtyStateTests(unittest.TestCase):
     def test_new_model_is_clean(self) -> None:
         model = level_studio.StudioDocument(studio_document())
@@ -340,6 +357,53 @@ class PropertyEditingTests(unittest.TestCase):
         with self.assertRaisesRegex(level_studio.LevelEditorError, "enemy-set"):
             model.set_room_properties(0, 16, "normal", 1, (0, 0), (17, 0))
 
+
+class MirrorDataEditingTests(unittest.TestCase):
+    def test_hex_byte_lists_accept_editor_notation(self) -> None:
+        self.assertEqual(
+            level_studio.parse_hex_byte_list("$00, 11 0x22 FF", "phase", 4),
+            [0x00, 0x11, 0x22, 0xFF],
+        )
+        self.assertEqual(
+            level_studio.format_hex_byte_list([0x00, 0x11, 0xFF]),
+            "00 11 FF",
+        )
+
+    def test_hex_byte_list_rejects_wrong_schedule_size(self) -> None:
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "exactly 4"):
+            level_studio.parse_hex_byte_list("00 11", "phase", 4)
+
+    def test_updates_fixed_eight_byte_schedule(self) -> None:
+        model = level_studio.StudioDocument(mirror_document())
+        self.assertTrue(
+            model.set_mirror_schedule(
+                3,
+                [0x11, 0x22, 0x33, 0x44],
+                [0x55, 0x66, 0x77, 0x88],
+            )
+        )
+        self.assertEqual(
+            model.document["mirror_schedules"][3]["loop_phase"],
+            [0x55, 0x66, 0x77, 0x88],
+        )
+
+    def test_updates_variable_enemy_set_and_loop_offset(self) -> None:
+        model = level_studio.StudioDocument(mirror_document())
+        self.assertTrue(model.set_mirror_enemy_set(2, [0x50, 0x51, 0x5C], 1))
+        self.assertEqual(
+            model.document["mirror_enemy_sets"][2],
+            {"index": 2, "enemy_types": [0x50, 0x51, 0x5C], "loop_offset": 1},
+        )
+
+    def test_enemy_set_loop_must_reference_its_own_payload(self) -> None:
+        model = level_studio.StudioDocument(mirror_document())
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "loop offset"):
+            model.set_mirror_enemy_set(2, [0x50, 0x51], 2)
+
+    def test_enemy_sets_enforce_shared_encoded_budget(self) -> None:
+        model = level_studio.StudioDocument(mirror_document())
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "42-byte budget"):
+            model.set_mirror_enemy_set(0, [0x50] * 10, 0)
 
 class StudioLoadingTests(unittest.TestCase):
     def test_loads_existing_matching_workspace(self) -> None:

@@ -219,7 +219,7 @@ make validate-levels PROFILE=usa # validate and decode a rebuilt editor image
 make build-levels PROFILE=usa # build a ROM with the workspace's edited levels
 make roundtrip-level-profiles # prove untouched USA and Europe editor identity
 make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
-make level-studio PROFILE=usa # edit the visual grid, properties, and room records
+make level-studio PROFILE=usa # edit rooms, records, and shared Demon Mirror data
 make check-level-studio # render all native room previews and check both codecs
 make smoke-level-playtests # enter selected USA/PAL rooms through real FCEUX hooks
 make audio-profile-audits # decode and byte-round-trip USA and PAL audio data

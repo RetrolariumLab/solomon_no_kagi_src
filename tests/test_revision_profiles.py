@@ -520,7 +520,7 @@ def empty_level_fixture() -> tuple[dict[str, object], bytes, dict[str, object]]:
             for index in range(16)
         ],
         "mirror_enemy_sets": [
-            {"index": index, "enemy_types": [], "loop_offset": 0}
+            {"index": index, "enemy_types": [0x50], "loop_offset": 0}
             for index in range(17)
         ],
         "rooms": [
@@ -743,7 +743,7 @@ class LevelPackingTests(unittest.TestCase):
     def test_enemy_budget_overflow_is_rejected(self) -> None:
         document, image, profile = empty_level_fixture()
         document["rooms"][0]["enemies"]["placements"] = [
-            {"type": 1, "position": {"x": index % 16, "y": index % 12}}
+            {"type": 0x18, "position": {"x": index % 16, "y": index % 12}}
             for index in range(400)
         ]
         with self.assertRaisesRegex(level_editor.LevelEditorError, "budget"):

@@ -100,6 +100,8 @@ MIRROR_SCHEDULE_COUNT = 16
 MIRROR_SCHEDULE_SIZE = 8
 MIRROR_ENEMY_SET_COUNT = 17
 MIRROR_ENEMY_SET_LOOP_BASE = 0x90
+ENEMY_TYPE_MINIMUM = 0x18
+ENEMY_TYPE_MAXIMUM = 0x83
 ENEMY_POINTER_TABLE = USA_ROOM_DATA_LAYOUT.enemy_pointer_table
 BLOCK_DATA = USA_ROOM_DATA_LAYOUT.block_data
 ITEM_POINTER_TABLE = USA_ROOM_DATA_LAYOUT.item_pointer_table
@@ -332,12 +334,16 @@ def decode_mirror_enemy_sets(
 def encode_mirror_enemy_set(enemy_set: dict[str, object]) -> bytes:
     enemy_types = enemy_set.get("enemy_types")
     loop_offset = enemy_set.get("loop_offset")
-    if not isinstance(enemy_types, list) or any(
-        not isinstance(value, int) or not 0 <= value < MIRROR_ENEMY_SET_LOOP_BASE
+    if not isinstance(enemy_types, list) or not enemy_types or any(
+        not isinstance(value, int)
+        or not ENEMY_TYPE_MINIMUM <= value <= ENEMY_TYPE_MAXIMUM
         for value in enemy_types
     ):
         raise RoomDataError(f"invalid Demon Mirror enemy types: {enemy_types!r}")
-    if not isinstance(loop_offset, int) or not 0 <= loop_offset <= 0x6F:
+    if (
+        not isinstance(loop_offset, int)
+        or not 0 <= loop_offset < len(enemy_types)
+    ):
         raise RoomDataError(f"invalid Demon Mirror loop offset: {loop_offset!r}")
     return bytes(enemy_types + [MIRROR_ENEMY_SET_LOOP_BASE + loop_offset])
 
@@ -379,7 +385,7 @@ def encode_enemies(stream: dict[str, object]) -> bytes:
         if not isinstance(enemy, dict) or not isinstance(enemy.get("type"), int):
             raise RoomDataError(f"invalid enemy record: {enemy!r}")
         enemy_type = enemy["type"]
-        if not 1 <= enemy_type <= 0xFF:
+        if not ENEMY_TYPE_MINIMUM <= enemy_type <= ENEMY_TYPE_MAXIMUM:
             raise RoomDataError(f"invalid enemy type: {enemy_type!r}")
         enemy_position = enemy.get("position")
         if not isinstance(enemy_position, dict):

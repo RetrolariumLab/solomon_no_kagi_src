@@ -117,7 +117,7 @@ class RoomDataTests(unittest.TestCase):
         cpu_address = offset + 0x8000
         prg[room_data.ENEMY_POINTER_TABLE] = cpu_address & 0xFF
         prg[room_data.ENEMY_POINTER_TABLE + room_data.ROOM_COUNT] = cpu_address >> 8
-        encoded = bytes((0x20, 0x04, 0xB5, 0x07, 0x31, 0x00))
+        encoded = bytes((0x20, 0x1C, 0xB5, 0x27, 0x31, 0x00))
         prg[offset : offset + len(encoded)] = encoded
         decoded = room_data.decode_enemies(bytes(prg), 0)
         self.assertEqual(room_data.encode_enemies(decoded), encoded)
@@ -129,8 +129,24 @@ class RoomDataTests(unittest.TestCase):
         prg[table + room_data.ROOM_COUNT : table + room_data.ROOM_COUNT * 2] = high
         source = room_data.emit_enemy_source(bytes(prg))
         self.assertIn("RoomEnemyStream01:", source)
-        self.assertIn("RoomEnemyRecord $04, $B5", source)
+        self.assertIn("RoomEnemyRecord $1C, $B5", source)
         self.assertIn("RoomEnemyStream53:", source)
+
+    def test_rejects_enemy_outside_configuration_table(self) -> None:
+        for enemy_type in (0x17, 0x84):
+            with self.subTest(enemy_type=enemy_type):
+                with self.assertRaisesRegex(room_data.RoomDataError, "enemy type"):
+                    room_data.encode_enemies(
+                        {
+                            "spawn_lifetime_encoded": 0,
+                            "enemies": [
+                                {
+                                    "type": enemy_type,
+                                    "position": {"x": 0, "y": 0},
+                                }
+                            ],
+                        }
+                    )
 
     def test_item_stream_round_trip_preserves_rle_commands(self) -> None:
         prg = bytearray(32_768)
@@ -194,6 +210,20 @@ class RoomDataTests(unittest.TestCase):
         self.assertEqual(enemy_set["enemy_types"], [0x50, 0x51, 0x5C])
         self.assertEqual(enemy_set["loop_offset"], 0)
         self.assertEqual(room_data.encode_mirror_enemy_set(enemy_set), encoded)
+
+    def test_rejects_empty_or_out_of_range_mirror_enemy_set(self) -> None:
+        for enemy_types in ([], [0x17], [0x84]):
+            with self.subTest(enemy_types=enemy_types):
+                with self.assertRaisesRegex(room_data.RoomDataError, "enemy types"):
+                    room_data.encode_mirror_enemy_set(
+                        {"enemy_types": enemy_types, "loop_offset": 0}
+                    )
+
+    def test_rejects_mirror_loop_outside_its_payload(self) -> None:
+        with self.assertRaisesRegex(room_data.RoomDataError, "loop offset"):
+            room_data.encode_mirror_enemy_set(
+                {"enemy_types": [0x50, 0x51], "loop_offset": 2}
+            )
 
     def test_extracts_prg_from_ines(self) -> None:
         header = b"NES\x1a" + bytes((2, 4, 0x30, 0)) + bytes(8)

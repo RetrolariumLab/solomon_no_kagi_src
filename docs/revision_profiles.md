@@ -355,6 +355,15 @@ These are the known profile-sensitive level fields: opening a European
 workspace displays PAL values from the European ROM instead of silently
 copying USA timing.
 
+`Mirror data` edits the shared records selected by those four room properties.
+All 16 schedules expose their four-byte initial and four-byte looping phases;
+all 17 enemy sets expose their ordered enemy types and an explicit loop offset.
+The dialog lists every room that references the selected record, keeps the
+complete table within its original 42-byte encoded allocation, and rejects a
+loop target outside its own set. Enemy types are limited to `$18-$83`, the
+range addressable by the engine's 27-entry four-type configuration table, in
+both ordinary room streams and Demon Mirror sets.
+
 `Save` encodes and decodes the complete document before replacing its JSON.
 `Build ROM` performs the same validation and writes the ignored profile image
 under `build/content/PROFILE/`. `Play` first builds that exact image and then
