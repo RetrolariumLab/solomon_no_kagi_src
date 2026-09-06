@@ -745,6 +745,20 @@ class LevelPackingTests(unittest.TestCase):
             document["rooms"][0]["items"]["commands"],
         )
 
+    def test_constellation_terminator_survives_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        document["rooms"][0]["items"]["commands"][-1] = {
+            "kind": "constellation",
+            "opcode": 0xF7,
+            "position": {"x": 4, "y": 5},
+        }
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(
+            decoded["rooms"][0]["items"]["commands"][-1],
+            document["rooms"][0]["items"]["commands"][-1],
+        )
+
     def test_enemy_budget_overflow_is_rejected(self) -> None:
         document, image, profile = empty_level_fixture()
         document["rooms"][0]["enemies"]["placements"] = [

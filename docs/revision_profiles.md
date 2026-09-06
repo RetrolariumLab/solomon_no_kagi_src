@@ -349,6 +349,14 @@ when the same byte appears as the payload of a repeat command. Names are
 cross-checked against `skchain`, while gameplay-effect wording follows this
 reconstruction's handler analysis in `docs/room_map_tiles.md`.
 
+`Tileset` edits the terminating item-stream command. Ordinary rooms can select
+any of the four CHR banks while preserving the terminator's otherwise unused
+low bits. A room may also be converted to or from a positioned zodiac command;
+for that form the named `$F0-$FB` constellation opcode determines both the
+zodiac and CHR bank exactly as the original loader does. The dialog states the
+stored opcode and implied bank, and every conversion remains an ordinary
+undoable document mutation subject to the item-stream allocation check.
+
 The Room records table exposes every enemy and item entry, including encoded
 source kind, type, coordinates, command number, and repeat-position number.
 Select a row or click an occupied map cell to edit its type and position in

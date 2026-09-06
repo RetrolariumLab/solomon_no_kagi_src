@@ -420,6 +420,57 @@ class PropertyEditingTests(unittest.TestCase):
             model.set_room_properties(0, 16, "normal", 1, (0, 0), (17, 0))
 
 
+class RoomTerminatorEditingTests(unittest.TestCase):
+    def test_changes_normal_room_chr_bank_without_losing_low_bits(self) -> None:
+        document = studio_document()
+        document["rooms"][0]["items"]["commands"][-1] = {
+            "kind": "end",
+            "opcode": 0xE5,
+        }
+        model = level_studio.StudioDocument(document)
+        self.assertTrue(model.set_room_terminator(0, "end", 2, 0, 0, 0))
+        terminal = model.room(0)["items"]["commands"][-1]
+        self.assertEqual(terminal, {"kind": "end", "opcode": 0xE9})
+        self.assertEqual(level_studio.terminal_chr_bank(terminal), 2)
+
+    def test_selects_constellation_opcode_position_and_implied_bank(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.set_room_terminator(0, "constellation", 2, 9, 6, 8))
+        terminal = model.room(0)["items"]["commands"][-1]
+        self.assertEqual(
+            terminal,
+            {
+                "kind": "constellation",
+                "opcode": 0xF9,
+                "position": {"x": 6, "y": 8},
+            },
+        )
+        self.assertEqual(level_studio.terminal_chr_bank(terminal), 2)
+
+    def test_converts_between_normal_and_constellation_endings(self) -> None:
+        document = studio_document()
+        document["rooms"][0]["items"]["commands"][-1] = {
+            "kind": "end",
+            "opcode": 0xE4,
+        }
+        model = level_studio.StudioDocument(document)
+        model.set_room_terminator(0, "constellation", 1, 5, 2, 3)
+        self.assertEqual(
+            model.room(0)["items"]["commands"][-1]["kind"],
+            "constellation",
+        )
+        model.set_room_terminator(0, "end", 3, 0, 0, 0)
+        self.assertEqual(
+            model.room(0)["items"]["commands"][-1],
+            {"kind": "end", "opcode": 0xEC},
+        )
+
+    def test_rejects_constellation_bank_disagreement(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "disagree"):
+            model.set_room_terminator(0, "constellation", 2, 0, 1, 1)
+
+
 class MirrorDataEditingTests(unittest.TestCase):
     def test_hex_byte_lists_accept_editor_notation(self) -> None:
         self.assertEqual(

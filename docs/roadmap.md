@@ -376,9 +376,11 @@ passes on the reviewed `main` commit.
   Demon Mirror schedules and all 17 cyclic enemy sets with room-reference,
   loop-boundary, enemy-type, and original allocation checks. Complete semantic
   enemy and item catalogs expose the raw byte together with family, direction,
-  speed, visibility, and block-state meaning. Profile-specific FCEUX hooks
-  enter the selected USA or PAL room through the original loader, with a
-  two-profile runtime smoke gate;
+  speed, visibility, and block-state meaning. The room-terminator editor also
+  exposes all four CHR banks and safe conversion between normal and positioned
+  zodiac endings without pretending their shared opcode fields are independent.
+  Profile-specific FCEUX hooks enter the selected USA or PAL room through the
+  original loader, with a two-profile runtime smoke gate;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

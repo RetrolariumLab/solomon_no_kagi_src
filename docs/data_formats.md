@@ -122,6 +122,11 @@ Normal items are `(type, position)` pairs. `$C0-$DF` encode one repeated type:
 `count = code - $C0 + 1`, followed by the type and `count` position bytes.
 `$00` and `$E0-$EF` terminate the stream and encode the CHR bank. `$F0-$FB`
 encode a constellation plus one position and also terminate the stream.
+Terminator bits 2-3 select one of four 8 KiB CHR banks. For an ordinary
+`$E0-$EF` terminator the low two bits survive the lossless codec but are not
+consumed by the loader. For `$F0-$FB`, the complete low nibble selects one of
+twelve constellation modifiers, so the zodiac and its CHR bank are coupled by
+the original byte rather than stored as independent properties.
 
 The runtime decoder is reconstructed at `$97C8-$9952`. Its supporting tables
 at `$9953-$99F1` include four 24-byte constellation patterns, twelve low-bit

@@ -301,6 +301,14 @@ def combined_block_positions(blocks: dict[str, Any]) -> set[tuple[int, int]]:
     return brown & white
 
 
+def terminal_chr_bank(command: dict[str, Any]) -> int:
+    kind = command.get("kind")
+    opcode = command.get("opcode")
+    if kind not in {"end", "constellation"} or not isinstance(opcode, int):
+        raise LevelEditorError("room item stream has no valid terminating command")
+    return opcode >> 2 & 3
+
+
 def level_playtest_environment(
     profile: dict[str, Any],
     room_index: int,
@@ -602,6 +610,53 @@ class StudioDocument:
 
         return self.mutate(apply)
 
+    def set_room_terminator(
+        self,
+        room_index: int,
+        kind: str,
+        chr_bank: int,
+        constellation_index: int,
+        x: int,
+        y: int,
+    ) -> bool:
+        if kind not in {"end", "constellation"}:
+            raise LevelEditorError(f"unknown room terminator kind: {kind!r}")
+        if not 0 <= chr_bank <= 3:
+            raise LevelEditorError("room CHR bank must be 0..3")
+        if not 0 <= constellation_index < len(CONSTELLATION_NAMES):
+            raise LevelEditorError("constellation index must be 0..11")
+        if kind == "constellation" and chr_bank != constellation_index >> 2:
+            raise LevelEditorError("constellation opcode and CHR bank disagree")
+        commands = self.room(room_index)["items"]["commands"]
+        if not commands or commands[-1].get("kind") not in {"end", "constellation"}:
+            raise LevelEditorError("room item stream has no terminating command")
+        current = commands[-1]
+        if kind == "constellation":
+            replacement = {
+                "kind": kind,
+                "opcode": 0xF0 + constellation_index,
+                "position": clean_position({"x": x, "y": y}),
+            }
+        else:
+            current_opcode = current.get("opcode")
+            low_bits = (
+                current_opcode & 3
+                if current.get("kind") == "end" and isinstance(current_opcode, int)
+                else 0
+            )
+            opcode = 0xE0 | chr_bank << 2 | low_bits
+            if current_opcode == 0 and chr_bank == 0:
+                opcode = 0
+            replacement = {"kind": kind, "opcode": opcode}
+
+        def apply() -> bool:
+            if current == replacement:
+                return False
+            commands[-1] = replacement
+            return True
+
+        return self.mutate(apply)
+
     def add_enemy(
         self,
         room_index: int,
@@ -831,6 +886,133 @@ class StudioDocument:
             return changed
 
         return self.mutate(apply)
+
+
+class RoomTerminatorDialog(tk.Toplevel):
+    """Edit the item-stream terminator which owns tileset and constellation."""
+
+    def __init__(self, studio: "LevelStudio") -> None:
+        super().__init__(studio)
+        self.studio = studio
+        self.room_index = studio.room_index.get()
+        self.kind = tk.StringVar(value="end")
+        self.chr_bank = tk.IntVar(value=0)
+        self.constellation = tk.StringVar(value=CONSTELLATION_TYPE_CHOICES[0])
+        self.x = tk.IntVar(value=0)
+        self.y = tk.IntVar(value=0)
+        self.summary = tk.StringVar()
+        self.title(
+            f"Room {self.room_index + 1:02d} tileset / constellation "
+            f"[{studio.profile['id']}]"
+        )
+        self.resizable(False, False)
+        self.transient(studio)
+        self.build_ui()
+        self.load()
+
+    def build_ui(self) -> None:
+        body = ttk.Frame(self, padding=10)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text="Ending kind").grid(row=0, column=0, sticky="w")
+        ttk.Combobox(
+            body,
+            textvariable=self.kind,
+            values=("end", "constellation"),
+            state="readonly",
+            width=18,
+        ).grid(row=0, column=1, sticky="w", padx=(8, 0))
+        ttk.Label(body, text="CHR bank / tileset").grid(
+            row=1, column=0, sticky="w", pady=(7, 0)
+        )
+        ttk.Spinbox(
+            body,
+            from_=0,
+            to=3,
+            textvariable=self.chr_bank,
+            width=6,
+        ).grid(row=1, column=1, sticky="w", padx=(8, 0), pady=(7, 0))
+        ttk.Label(body, text="Constellation").grid(
+            row=2, column=0, sticky="w", pady=(7, 0)
+        )
+        constellation_box = ttk.Combobox(
+            body,
+            textvariable=self.constellation,
+            values=CONSTELLATION_TYPE_CHOICES,
+            state="readonly",
+            width=34,
+        )
+        constellation_box.grid(row=2, column=1, padx=(8, 0), pady=(7, 0))
+        constellation_box.bind("<<ComboboxSelected>>", self.select_constellation)
+        ttk.Label(body, text="Position X / Y").grid(
+            row=3, column=0, sticky="w", pady=(7, 0)
+        )
+        position = ttk.Frame(body)
+        position.grid(row=3, column=1, sticky="w", padx=(8, 0), pady=(7, 0))
+        ttk.Spinbox(position, from_=0, to=15, textvariable=self.x, width=5).pack(
+            side="left"
+        )
+        ttk.Spinbox(position, from_=-1, to=13, textvariable=self.y, width=5).pack(
+            side="left", padx=(6, 0)
+        )
+        ttk.Label(
+            body,
+            textvariable=self.summary,
+            wraplength=430,
+            justify="left",
+        ).grid(row=4, column=0, columnspan=2, sticky="w", pady=(9, 0))
+        ttk.Button(body, text="Apply", command=self.apply).grid(
+            row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0)
+        )
+
+    def terminal(self) -> dict[str, Any]:
+        return self.studio.model.room(self.room_index)["items"]["commands"][-1]
+
+    def load(self) -> None:
+        terminal = self.terminal()
+        kind = terminal["kind"]
+        bank = terminal_chr_bank(terminal)
+        self.kind.set(kind)
+        self.chr_bank.set(bank)
+        if kind == "constellation":
+            index = terminal["opcode"] - 0xF0
+            self.constellation.set(CONSTELLATION_TYPE_CHOICES[index])
+            self.x.set(terminal["position"]["x"])
+            self.y.set(terminal["position"]["y"])
+            detail = CONSTELLATION_NAMES[index]
+        else:
+            detail = "no constellation"
+        self.summary.set(
+            f"Stored opcode ${terminal['opcode']:02X}: CHR bank {bank}, {detail}. "
+            "For a constellation, its zodiac opcode determines the CHR bank."
+        )
+
+    def select_constellation(self, _event: object = None) -> None:
+        opcode = parse_type_choice(self.constellation.get(), "constellation")
+        self.chr_bank.set((opcode >> 2) & 3)
+
+    def apply(self) -> None:
+        try:
+            constellation_index = (
+                parse_type_choice(self.constellation.get(), "constellation") - 0xF0
+            )
+            if self.kind.get() == "constellation":
+                self.chr_bank.set(constellation_index >> 2)
+            changed = self.studio.model.set_room_terminator(
+                self.room_index,
+                self.kind.get(),
+                self.chr_bank.get(),
+                constellation_index,
+                self.x.get(),
+                self.y.get(),
+            )
+            self.load()
+            if self.studio.room_index.get() == self.room_index:
+                self.studio.redraw()
+            self.studio.set_status(
+                "Room tileset/constellation updated" if changed else "No change"
+            )
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid room ending", str(exc), parent=self)
 
 
 class MirrorDataDialog(tk.Toplevel):
@@ -1096,6 +1278,7 @@ class LevelStudio(tk.Tk):
             ("Undo", self.undo),
             ("Save", self.save),
             ("Build ROM", self.build_rom),
+            ("Tileset", self.open_room_terminator),
             ("Mirror data", self.open_mirror_data),
             ("Play", self.play),
             ("Stop", self.stop_playtest),
@@ -1243,6 +1426,9 @@ class LevelStudio(tk.Tk):
 
     def open_mirror_data(self) -> None:
         MirrorDataDialog(self)
+
+    def open_room_terminator(self) -> None:
+        RoomTerminatorDialog(self)
 
     def current_room(self) -> dict[str, Any]:
         return self.model.room(self.room_index.get())
