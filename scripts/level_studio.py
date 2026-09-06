@@ -70,6 +70,87 @@ ANCHOR_MODES = {
     "mirror 2": "mirror_2",
 }
 
+ITEM_IDENTITY_NAMES = {
+    0x00: "Brown block (glitch)",
+    0x01: "Broken block (glitch)",
+    0x02: "Door (glitch)",
+    0x03: "White block (glitch)",
+    0x04: "Bat symbol",
+    0x05: "Demon Mirror",
+    0x06: "Key (glitch)",
+    0x07: "Open door (glitch)",
+    0x08: "Blue diamond",
+    0x09: "Blue fire jar",
+    0x0A: "Gold double coin",
+    0x0B: "Orange jewels / red Tzo",
+    0x0C: "Orange diamond",
+    0x0D: "Orange fire jar",
+    0x0E: "Scroll",
+    0x0F: "Bell",
+    0x10: "Nothing",
+    0x11: "Half time bottle",
+    0x12: "Full time bottle",
+    0x13: "Blue hourglass",
+    0x14: "Orange hourglass",
+    0x15: "Blue fire jar",
+    0x16: "Orange fire jar",
+    0x17: "Scroll",
+    0x18: "Bell",
+    0x19: "Explosion jar",
+    0x1A: "Blue key",
+    0x1B: "Blue jewels / blue Tzo",
+    0x1C: "Shrine 1",
+    0x1D: "Shrine 2",
+    0x1E: "Shrine 3",
+    0x1F: "Shrine 4",
+    0x20: "Solomon's Seal",
+    0x21: "Solomon page / Egyptian head",
+    0x22: "Golden Wings / warp item",
+    0x23: "Open door (out-of-table glitch 1)",
+    0x24: "Open door (out-of-table glitch 2)",
+    0x25: "Silver coin",
+    0x26: "Silver double coin",
+    0x27: "Blue opal",
+    0x28: "Gold coin",
+    0x29: "Gold double coin",
+    0x2A: "Orange opal",
+    0x2B: "Star coin",
+    0x2C: "Double star coin",
+    0x2D: "Dark orange opal",
+    0x2E: "Origami swan",
+    0x2F: "Demonhead coin",
+    0x30: "Sphinx",
+    0x31: "Egyptian head",
+    0x32: "Magic lamp / Tecmo Bunny reward",
+    0x33: "E-bottle",
+    0x34: "Extra life (glitch 1)",
+    0x35: "Extra life (glitch 2)",
+    0x36: "Extra life (glitch 3)",
+    0x37: "Mini-Dana",
+    0x38: "White Tecmo Bunny",
+    0x39: "Orange Tecmo Bunny",
+    0x3A: "Unclassified graphics 1",
+    0x3B: "Unclassified graphics 2",
+    0x3C: "Unclassified graphics 3",
+    0x3D: "Unclassified graphics 4",
+    0x3E: "Unclassified graphics 5",
+    0x3F: "Unclassified graphics 6",
+}
+CONSTELLATION_NAMES = (
+    "Aries",
+    "Gemini",
+    "Virgo",
+    "Aquarius",
+    "Cancer",
+    "Scorpio",
+    "Capricorn",
+    "Pisces",
+    "Taurus",
+    "Leo",
+    "Libra",
+    "Sagittarius",
+)
+
 
 @dataclass(frozen=True)
 class ItemPlacement:
@@ -104,6 +185,114 @@ def parse_hex_byte_list(value: str, field: str, count: int | None = None) -> lis
 
 def format_hex_byte_list(values: list[int]) -> str:
     return " ".join(f"{value:02X}" for value in values)
+
+
+def enemy_type_name(value: int) -> str:
+    if not ENEMY_TYPE_MINIMUM <= value <= ENEMY_TYPE_MAXIMUM:
+        return "Outside enemy configuration table"
+    if value < 0x1C:
+        variant = value - 0x18
+        return "Mighty Bomb Jack" + (f" variant {variant + 1}" if variant else "")
+    if value < 0x20:
+        return (
+            "Fairy",
+            "Fairy Princess",
+            "Erratic Fairy (glitch)",
+            "Erratic Fairy Princess (glitch)",
+        )[value - 0x1C]
+    if value < 0x24:
+        return f"Bullet ({('right', 'left', 'up', 'down')[value - 0x20]})"
+    if value < 0x28:
+        return f"Panel Monster ({('right', 'left', 'up', 'down')[value - 0x24]})"
+    if value < 0x30:
+        offset = value - 0x28
+        direction = (
+            "right, counterclockwise",
+            "left, clockwise",
+            "up, clockwise",
+            "down, counterclockwise",
+        )[offset & 3]
+        return f"Fireball ({direction}, speed {offset // 4 + 1})"
+    if value < 0x50:
+        offset = value - 0x30
+        group = offset // 4
+        variant = offset & 3
+        family = "Neul" if group % 2 == 0 else "Ghost"
+        speed = group // 2 % 2 + 1
+        no_slow = ", no-slow flag" if group >= 4 else ""
+        if family == "Neul":
+            direction = "up" if variant < 2 else "down"
+        else:
+            direction = "right" if variant < 2 else "left"
+        duplicate = " variant 2" if variant & 1 else ""
+        return f"{family} ({direction}, speed {speed}{no_slow}){duplicate}"
+    if value < 0x68:
+        family = "Demonhead" if value < 0x5C else "Saramandor"
+        offset = value - (0x50 if family == "Demonhead" else 0x5C)
+        variant = offset & 3
+        direction = "right" if variant in (0, 2) else "left"
+        duplicate = " variant 2" if variant >= 2 else ""
+        return f"{family} ({direction}, speed {offset // 4 + 1}){duplicate}"
+    if value < 0x80:
+        family_base = ((0x68, "Dragon"), (0x70, "Golem"), (0x78, "Gargoyle"))
+        base, family = next(
+            (base, name) for base, name in reversed(family_base) if value >= base
+        )
+        offset = value - base
+        variant = offset & 3
+        direction = "right" if variant in (0, 2) else "left"
+        duplicate = " variant 2" if variant >= 2 else ""
+        return f"{family} ({direction}, speed {offset // 4 + 1}){duplicate}"
+    return (
+        "Red flame",
+        "White flame",
+        "Red flame variant 2",
+        "White flame variant 2",
+    )[value - 0x80]
+
+
+def item_type_name(value: int, constellation: bool = False) -> str:
+    if constellation and 0xF0 <= value <= 0xFB:
+        return f"Constellation: {CONSTELLATION_NAMES[value - 0xF0]}"
+    name = ITEM_IDENTITY_NAMES.get(value & 0x3F, "Unclassified item")
+    flags = []
+    if value & 0x40:
+        flags.append("hidden")
+    if value & 0x80:
+        flags.append("embedded in brown block")
+    return name + (f" [{', '.join(flags)}]" if flags else "")
+
+
+def type_choice(value: int, description: str) -> str:
+    return f"${value:02X} - {description}"
+
+
+def parse_type_choice(value: str, description: str) -> int:
+    tokens = value.strip().split(maxsplit=1)
+    if not tokens:
+        raise LevelEditorError(f"invalid {description}: {value!r}")
+    token = tokens[0]
+    try:
+        return int(token.removeprefix("$").removeprefix("0x"), 16)
+    except ValueError as exc:
+        raise LevelEditorError(f"invalid {description}: {value!r}") from exc
+
+
+ENEMY_TYPE_CHOICES = tuple(
+    type_choice(value, enemy_type_name(value))
+    for value in range(ENEMY_TYPE_MINIMUM, ENEMY_TYPE_MAXIMUM + 1)
+)
+DIRECT_ITEM_TYPE_CHOICES = tuple(
+    type_choice(value, item_type_name(value))
+    for value in (*range(1, 0xC0), *range(0xFC, 0x100))
+)
+REPEATED_ITEM_TYPE_CHOICES = tuple(
+    type_choice(value, item_type_name(value)) for value in range(0x100)
+)
+CONSTELLATION_TYPE_CHOICES = tuple(
+    type_choice(value, item_type_name(value, constellation=True))
+    for value in range(0xF0, 0xFC)
+)
 
 
 def combined_block_positions(blocks: dict[str, Any]) -> set[tuple[int, int]]:
@@ -740,7 +929,12 @@ class MirrorDataDialog(tk.Toplevel):
             wraplength=390,
             justify="left",
         ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(7, 0))
-        ttk.Label(enemy_sets, textvariable=self.enemy_set_usage).grid(
+        ttk.Label(
+            enemy_sets,
+            textvariable=self.enemy_set_usage,
+            wraplength=390,
+            justify="left",
+        ).grid(
             row=4, column=0, columnspan=2, sticky="w", pady=(3, 0)
         )
         ttk.Button(
@@ -781,7 +975,12 @@ class MirrorDataDialog(tk.Toplevel):
             for record in self.studio.model.document["mirror_enemy_sets"]
         )
         self.enemy_set_usage.set(
-            f"Shared encoded budget: {used}/{MIRROR_ENEMY_SET_BUDGET} bytes"
+            f"Shared encoded budget: {used}/{MIRROR_ENEMY_SET_BUDGET} bytes\n"
+            "Sequence: "
+            + ", ".join(
+                type_choice(value, enemy_type_name(value))
+                for value in enemy_set["enemy_types"]
+            )
         )
 
     def apply_schedule(self) -> None:
@@ -845,8 +1044,10 @@ class LevelStudio(tk.Tk):
         self.room_index = tk.IntVar(value=0)
         self.room_choice = tk.StringVar(value="Room 01")
         self.mode = tk.StringVar(value="select")
-        self.enemy_type = tk.StringVar(value="71")
-        self.item_type = tk.StringVar(value="18")
+        self.enemy_type = tk.StringVar(value=ENEMY_TYPE_CHOICES[0x71 - 0x18])
+        self.item_type = tk.StringVar(
+            value=type_choice(0x18, item_type_name(0x18))
+        )
         self.status = tk.StringVar()
         self.selected_record = tk.StringVar(value="No record selected")
         self.selected_type = tk.StringVar(value="")
@@ -919,10 +1120,20 @@ class LevelStudio(tk.Tk):
         side.pack(side="right", fill="y")
         type_box = ttk.LabelFrame(side, text="Placed object", padding=7)
         type_box.pack(fill="x", pady=(0, 8))
-        ttk.Label(type_box, text="Enemy type (hex)").grid(row=0, column=0, sticky="w")
-        ttk.Entry(type_box, textvariable=self.enemy_type, width=8).grid(row=0, column=1)
-        ttk.Label(type_box, text="Item type (hex)").grid(row=1, column=0, sticky="w")
-        ttk.Entry(type_box, textvariable=self.item_type, width=8).grid(row=1, column=1)
+        ttk.Label(type_box, text="Enemy type").grid(row=0, column=0, sticky="w")
+        ttk.Combobox(
+            type_box,
+            textvariable=self.enemy_type,
+            values=ENEMY_TYPE_CHOICES,
+            width=39,
+        ).grid(row=0, column=1)
+        ttk.Label(type_box, text="Item type").grid(row=1, column=0, sticky="w")
+        ttk.Combobox(
+            type_box,
+            textvariable=self.item_type,
+            values=DIRECT_ITEM_TYPE_CHOICES,
+            width=39,
+        ).grid(row=1, column=1)
 
         properties = ttk.LabelFrame(side, text="Room properties", padding=7)
         properties.pack(fill="x")
@@ -968,7 +1179,7 @@ class LevelStudio(tk.Tk):
         )
         for name, label, width in (
             ("kind", "Kind", 80),
-            ("type", "Type", 48),
+            ("type", "Type", 190),
             ("x", "X", 28),
             ("y", "Y", 28),
             ("source", "Source", 92),
@@ -993,9 +1204,20 @@ class LevelStudio(tk.Tk):
             )
         ):
             ttk.Label(inspector, text=label).grid(row=1, column=column * 2, sticky="e")
-            ttk.Entry(inspector, textvariable=variable, width=width).grid(
-                row=1, column=column * 2 + 1, padx=(3, 7)
-            )
+            if label == "Type":
+                self.selected_type_box = ttk.Combobox(
+                    inspector,
+                    textvariable=variable,
+                    values=REPEATED_ITEM_TYPE_CHOICES,
+                    width=32,
+                )
+                self.selected_type_box.grid(
+                    row=1, column=column * 2 + 1, padx=(3, 7)
+                )
+            else:
+                ttk.Entry(inspector, textvariable=variable, width=width).grid(
+                    row=1, column=column * 2 + 1, padx=(3, 7)
+                )
         ttk.Button(inspector, text="Apply", command=self.apply_selected_record).grid(
             row=2, column=0, columnspan=3, sticky="ew", pady=(6, 0), padx=(0, 3)
         )
@@ -1062,10 +1284,7 @@ class LevelStudio(tk.Tk):
 
     @staticmethod
     def parse_hex(value: str, description: str) -> int:
-        try:
-            return int(value.removeprefix("$").removeprefix("0x"), 16)
-        except ValueError as exc:
-            raise LevelEditorError(f"invalid {description}: {value!r}") from exc
+        return parse_type_choice(value, description)
 
     def canvas_cell(self, event: tk.Event) -> tuple[int, int]:
         x = min(max(int(self.canvas.canvasx(event.x)) // CELL, 0), ROOM_WIDTH - 1)
@@ -1094,7 +1313,7 @@ class LevelStudio(tk.Tk):
                 iid=iid,
                 values=(
                     "enemy",
-                    f"${enemy['type']:02X}",
+                    type_choice(enemy["type"], enemy_type_name(enemy["type"])),
                     position["x"],
                     position["y"],
                     f"placement {index + 1}",
@@ -1118,7 +1337,13 @@ class LevelStudio(tk.Tk):
                 iid=iid,
                 values=(
                     command["kind"],
-                    f"${placement.item_type:02X}",
+                    type_choice(
+                        placement.item_type,
+                        item_type_name(
+                            placement.item_type,
+                            constellation=command["kind"] == "constellation",
+                        ),
+                    ),
                     placement.position["x"],
                     placement.position["y"],
                     source,
@@ -1174,6 +1399,8 @@ class LevelStudio(tk.Tk):
             item_type = record["type"]
             position = record["position"]
             description = f"Enemy placement {record_index + 1}"
+            type_values = ENEMY_TYPE_CHOICES
+            type_description = enemy_type_name(item_type)
         else:
             command, position, command_kind = self.selected_item()
             item_type = (
@@ -1182,13 +1409,23 @@ class LevelStudio(tk.Tk):
                 else command["type"]
             )
             description = f"{command_kind.title()} command {record_index + 1}"
+            type_values = {
+                "item": DIRECT_ITEM_TYPE_CHOICES,
+                "repeat": REPEATED_ITEM_TYPE_CHOICES,
+                "constellation": CONSTELLATION_TYPE_CHOICES,
+            }[command_kind]
+            type_description = item_type_name(
+                item_type,
+                constellation=command_kind == "constellation",
+            )
             if position_index is not None:
                 description += (
                     f", position {position_index + 1}/{len(command['positions'])}"
                 )
                 description += " (type is shared)"
         self.selected_record.set(description)
-        self.selected_type.set(f"{item_type:02X}")
+        self.selected_type_box.configure(values=type_values)
+        self.selected_type.set(type_choice(item_type, type_description))
         self.selected_x.set(position["x"])
         self.selected_y.set(position["y"])
 

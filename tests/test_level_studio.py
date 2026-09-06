@@ -99,6 +99,56 @@ def mirror_document() -> dict[str, object]:
     return document
 
 
+class TypeCatalogTests(unittest.TestCase):
+    def test_enemy_catalog_covers_the_complete_configuration_range(self) -> None:
+        self.assertEqual(len(level_studio.ENEMY_TYPE_CHOICES), 0x83 - 0x18 + 1)
+        self.assertEqual(level_studio.enemy_type_name(0x18), "Mighty Bomb Jack")
+        self.assertEqual(
+            level_studio.enemy_type_name(0x2D),
+            "Fireball (left, clockwise, speed 2)",
+        )
+        self.assertEqual(
+            level_studio.enemy_type_name(0x42),
+            "Neul (down, speed 1, no-slow flag)",
+        )
+        self.assertEqual(
+            level_studio.enemy_type_name(0x7D),
+            "Gargoyle (left, speed 2)",
+        )
+        self.assertEqual(
+            level_studio.enemy_type_name(0x83),
+            "White flame variant 2",
+        )
+
+    def test_item_catalog_decodes_visibility_and_block_flags(self) -> None:
+        self.assertEqual(level_studio.item_type_name(0x18), "Bell")
+        self.assertEqual(level_studio.item_type_name(0x58), "Bell [hidden]")
+        self.assertEqual(
+            level_studio.item_type_name(0x98),
+            "Bell [embedded in brown block]",
+        )
+        self.assertEqual(
+            level_studio.item_type_name(0xD8),
+            "Bell [hidden, embedded in brown block]",
+        )
+        self.assertEqual(
+            level_studio.item_type_name(0xF0, constellation=True),
+            "Constellation: Aries",
+        )
+        self.assertNotIn("Constellation", level_studio.item_type_name(0xF0))
+
+    def test_catalog_choice_retains_an_editable_hex_prefix(self) -> None:
+        choice = level_studio.type_choice(0x71, level_studio.enemy_type_name(0x71))
+        self.assertEqual(level_studio.parse_type_choice(choice, "enemy type"), 0x71)
+        self.assertEqual(level_studio.parse_type_choice("0x2a", "item type"), 0x2A)
+        for invalid in ("", "orange opal"):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(
+                    level_studio.LevelEditorError, "invalid item type"
+                ):
+                    level_studio.parse_type_choice(invalid, "item type")
+
+
 class DirtyStateTests(unittest.TestCase):
     def test_new_model_is_clean(self) -> None:
         model = level_studio.StudioDocument(studio_document())

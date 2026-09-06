@@ -339,6 +339,16 @@ otherwise makes it look identical to a white block. Existing direct, repeated,
 and constellation item records are all visible; erasing one repeated placement
 shrinks the command and removes it when its last position disappears.
 
+Enemy and item controls pair every stored byte with a readable name while
+keeping the hexadecimal prefix editable. The enemy catalog covers the complete
+`$18-$83` configuration-table range and decodes family, direction, speed,
+variant, and the catalog's no-slow flag. Item labels separate the low-six-bit
+visual identity from the hidden and embedded-in-block flags; constellation
+opcodes are named only when they occupy the terminating command position, not
+when the same byte appears as the payload of a repeat command. Names are
+cross-checked against `skchain`, while gameplay-effect wording follows this
+reconstruction's handler analysis in `docs/room_map_tiles.md`.
+
 The Room records table exposes every enemy and item entry, including encoded
 source kind, type, coordinates, command number, and repeat-position number.
 Select a row or click an occupied map cell to edit its type and position in

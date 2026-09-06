@@ -23,7 +23,8 @@ the known headered SHA-1 `18102689fd35c7d531a5e6241b06b748accab2f6`.
 - Repository: <https://github.com/kaimitai/skchain>
 - ROM map: `docs/solomon's_key_rom_map.md` in that repository
 - Role here: room pointers, block planes, enemy/item streams, metadata, and
-  multi-region offsets
+  multi-region offsets; its element catalog supplies visual vocabulary which
+  this reconstruction cross-checks against its own consumers and handler data
 
 ## Additional upstream links
 
