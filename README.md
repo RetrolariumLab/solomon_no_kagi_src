@@ -185,10 +185,35 @@ This validates the complete image plus its header, PRG, and CHR identities,
 then writes only the ignored `assets/generated/chr/solomons_key.chr`. Builds
 fail with a focused instruction if this private asset is absent.
 
+Source Reconstruction 2.0 adds independently hashed revision profiles without
+changing the tagged USA 1.0 build. The locally verified USA and European ROMs
+share byte-identical CHR but have distinct PRGs; the Japanese image has its own
+PRG and CHR. Profile-aware commands identify inputs by hash, keep extracted
+assets ignored, and compare decoded room formats across regional layouts:
+
+```bash
+make list-revisions
+make verify-revision-references
+make split-revision-assets PROFILE=europe
+make revision-room-audit
+make compare-revision-rooms LEFT_PROFILE=usa RIGHT_PROFILE=europe
+```
+
+Europe is currently a verified reference and room-data profile, not yet a
+source-complete build. See `docs/revision_profiles.md` for identities, exact
+room-family differences, the binary/source boundary, and the remaining work.
+
 ## Useful targets
 
 ```bash
 make build       # assemble and link the complete iNES image
+make split-all   # extract assets for required USA and Europe profiles
+make list-revisions # list known regional ROM identities and source status
+make verify-revision-reference PROFILE=europe # verify one regional ROM
+make verify-revision-references # verify required Source 2.0 references
+make revision-room-audit # round-trip and fingerprint USA/Europe rooms
+make revision-room-report PROFILE=europe # print regional room fingerprints
+make compare-revision-rooms LEFT_PROFILE=usa RIGHT_PROFILE=europe # semantic diff
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs
@@ -261,6 +286,7 @@ python scripts/room_data.py --image build/native/solomons_key.nes --room 1 --pre
 
 ```text
 assets/manifest.json       exact reference identity
+config/revision_profiles.json regional ROM, asset, and room-data identities
 bin/                       local ca65/ld65 toolchain and license
 config/toolchain.json      pinned build/runtime/private input identities
 config/source_reconstruction_1_0.json revision-3 release contract
@@ -288,6 +314,7 @@ scripts/project.py         split, verify, lint, and safe build helpers
 scripts/asm_style.py       shared ca65 formatter and style checker
 scripts/verify_rom.py      original/build/asset comparison and ROM reports
 scripts/room_data.py       room-format decoder
+scripts/revision_profiles.py regional verification, split, and room comparison
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit

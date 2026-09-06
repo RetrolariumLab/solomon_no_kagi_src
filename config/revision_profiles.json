@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "default_profile": "usa",
+  "source_2_required_profiles": ["usa", "europe"],
+  "profiles": [
+    {
+      "id": "usa",
+      "name": "Solomon's Key (USA)",
+      "region": "USA",
+      "timing": "ntsc",
+      "room_layout": "usa",
+      "source_status": "complete",
+      "reference_rom": "Solomon's Key (U) [!].nes",
+      "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
+      "rom": {
+        "size": 65552,
+        "sha1": "18102689fd35c7d531a5e6241b06b748accab2f6",
+        "sha256": "3d9f3bee199a3fbc04bab38e1d9d5cdeae1c6691dcca463a13c25e42f77bb03d"
+      },
+      "header": {
+        "size": 16,
+        "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690",
+        "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"
+      },
+      "prg": {
+        "size": 32768,
+        "sha1": "4e8c6c33897e6c0dc6297f67e8f5699b1b5ca4e6",
+        "sha256": "d86d94cd13a7199b9a58cfa0e372ea05ffeabee8ce301639e5d9f52ca860d6b7"
+      },
+      "chr": {
+        "size": 32768,
+        "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
+        "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+      },
+      "room_fingerprints": {
+        "tile_patterns": "f62822c6e209a54b21a14c1bbb78e4e0094e8156114aebf9ba90ba659741057e",
+        "mirror_schedules": "2724348f9f759017ae023c5ff098a154230b263b19cb449560950a21267789cd",
+        "mirror_enemy_sets": "3650e4a7b4cd7d202e4215dc091ecc69543e9796ae83d231038371e70771d38a",
+        "room_blocks": "28a2cb6a8c706e936a2f9b9aaf14f5dc9a98f19397efc99861333d344ebfc10e",
+        "room_enemies": "7ad1675ca580c15f970d89dbc0fa999ac1e1c555f8944a9d8bd753ac50c90602",
+        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
+      },
+      "extracted_assets": [
+        {
+          "id": "shared_usa_europe_chr",
+          "path": "chr/solomons_key.chr",
+          "region": "chr",
+          "offset": 0,
+          "size": 32768,
+          "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
+          "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+        }
+      ]
+    },
+    {
+      "id": "europe",
+      "name": "Solomon's Key (Europe)",
+      "region": "Europe",
+      "timing": "pal",
+      "room_layout": "europe",
+      "source_status": "in-progress",
+      "reference_rom": "Solomon's Key (E) [!].nes",
+      "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
+      "rom": {
+        "size": 65552,
+        "sha1": "89ab8f53154c9dcddafe46c16b31df7e00fe2538",
+        "sha256": "e8dc7ad587133869eaf6101018be676e9c14c3b97b988d2e96f7e398b5c33acb"
+      },
+      "header": {
+        "size": 16,
+        "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690",
+        "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"
+      },
+      "prg": {
+        "size": 32768,
+        "sha1": "80b6514e06f480bfc8ba18a70645516a96aed5c1",
+        "sha256": "3652cf993e369165774e2329062a90ee0167372d77c4dd3d81dc2bc874b5a051"
+      },
+      "chr": {
+        "size": 32768,
+        "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
+        "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+      },
+      "room_fingerprints": {
+        "tile_patterns": "f62822c6e209a54b21a14c1bbb78e4e0094e8156114aebf9ba90ba659741057e",
+        "mirror_schedules": "50826e39de50e6ceee1a93a30e91d8d43b7239e7de31181b1a6c8bb11ce6abe0",
+        "mirror_enemy_sets": "3650e4a7b4cd7d202e4215dc091ecc69543e9796ae83d231038371e70771d38a",
+        "room_blocks": "28a2cb6a8c706e936a2f9b9aaf14f5dc9a98f19397efc99861333d344ebfc10e",
+        "room_enemies": "94febd22d889658f8c50fc723f3b0d363ee7b22883ae64c8af603d7f070ad35f",
+        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
+      },
+      "extracted_assets": [
+        {
+          "id": "shared_usa_europe_chr",
+          "path": "chr/solomons_key.chr",
+          "region": "chr",
+          "offset": 0,
+          "size": 32768,
+          "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
+          "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+        }
+      ]
+    },
+    {
+      "id": "japan",
+      "name": "Solomon no Kagi (Japan)",
+      "region": "Japan",
+      "timing": "ntsc",
+      "room_layout": "japan",
+      "source_status": "planned",
+      "reference_rom": "Solomon no Kagi (J).nes",
+      "reference_provenance": "User-supplied private image; filename is descriptive and hashes are authoritative.",
+      "rom": {
+        "size": 65552,
+        "sha1": "71d073d0e9e9be84a02db3f78d962c9d94ceea05",
+        "sha256": "b90bb344eff516863bc5278d9efba7ffd2a83a1e6cf27a6b2a9ab57ec094ae83"
+      },
+      "header": {
+        "size": 16,
+        "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690",
+        "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"
+      },
+      "prg": {
+        "size": 32768,
+        "sha1": "93f3edaafd3c1259f481a65db6297480f1da2e44",
+        "sha256": "876d40256ba20bc0aa49cee99a91b4636d4fe2ca2d6b4152381bdb0367a3ba55"
+      },
+      "chr": {
+        "size": 32768,
+        "sha1": "4ce7eb793aebea0c2b78a9f14180affd647181e5",
+        "sha256": "a0091b86d7c33a06dd79e65216af1245d692cc45dfc9b72cf099a16c5f89c5d5"
+      },
+      "room_fingerprints": {
+        "tile_patterns": "f62822c6e209a54b21a14c1bbb78e4e0094e8156114aebf9ba90ba659741057e",
+        "mirror_schedules": "2724348f9f759017ae023c5ff098a154230b263b19cb449560950a21267789cd",
+        "mirror_enemy_sets": "3650e4a7b4cd7d202e4215dc091ecc69543e9796ae83d231038371e70771d38a",
+        "room_blocks": "28a2cb6a8c706e936a2f9b9aaf14f5dc9a98f19397efc99861333d344ebfc10e",
+        "room_enemies": "7ad1675ca580c15f970d89dbc0fa999ac1e1c555f8944a9d8bd753ac50c90602",
+        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
+      },
+      "extracted_assets": [
+        {
+          "id": "japan_chr",
+          "path": "revisions/japan/chr/solomon_no_kagi.chr",
+          "region": "chr",
+          "offset": 0,
+          "size": 32768,
+          "sha1": "4ce7eb793aebea0c2b78a9f14180affd647181e5",
+          "sha256": "a0091b86d7c33a06dd79e65216af1245d692cc45dfc9b72cf099a16c5f89c5d5"
+        }
+      ]
+    }
+  ]
+}

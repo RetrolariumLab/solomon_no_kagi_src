@@ -5,6 +5,11 @@ REFERENCE_ROM ?= Solomon's Key (U) [!].nes
 MANIFEST := assets/manifest.json
 VERIFY_ROM := scripts/verify_rom.py
 TOOLCHAIN_MANIFEST := config/toolchain.json
+REVISION_MANIFEST := config/revision_profiles.json
+REVISION_TOOL := scripts/revision_profiles.py
+PROFILE ?= usa
+LEFT_PROFILE ?= usa
+RIGHT_PROFILE ?= europe
 
 BUILD_DIR := build/native
 GENERATED_ASSET_DIR := assets/generated
@@ -137,7 +142,10 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	enemy-pointer-report enemy-pointer-audit ppu-update-report ppu-update-audit \
 	object-animation-report object-animation-audit \
 	object-motion-report object-motion-audit \
-	title-data-report title-data-audit audio-data-report audio-data-audit clean
+	title-data-report title-data-audit audio-data-report audio-data-audit clean \
+	list-revisions identify-revision verify-revision-reference \
+	verify-revision-references split-revision-assets split-all \
+	revision-room-report revision-room-audit compare-revision-rooms
 
 all: verify
 
@@ -204,6 +212,39 @@ verify: verify-reference verify-built verify-header verify-prg verify-chr verify
 
 split: verify-private-input
 	$(PYTHON) scripts/project.py split --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --output-dir "$(GENERATED_ASSET_DIR)"
+
+list-revisions:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" list
+
+identify-revision:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" identify \
+		--image "$(REVISION_ROM)"
+
+verify-revision-reference:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" verify \
+		--profile "$(PROFILE)"
+
+verify-revision-references:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" verify
+
+split-revision-assets:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" split \
+		--profile "$(PROFILE)" --output-dir "$(GENERATED_ASSET_DIR)"
+
+split-all:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" split \
+		--output-dir "$(GENERATED_ASSET_DIR)"
+
+revision-room-report:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" room-report \
+		--profile "$(PROFILE)"
+
+revision-room-audit:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" audit-rooms
+
+compare-revision-rooms:
+	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" compare-rooms \
+		--left "$(LEFT_PROFILE)" --right "$(RIGHT_PROFILE)"
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

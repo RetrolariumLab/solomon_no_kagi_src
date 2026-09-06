@@ -345,8 +345,16 @@ passes on the reviewed `main` commit.
 
 ## Semantic reconstruction 2.0
 
-- region-specific source builds and identity gates for the Japanese and
-  European releases, without importing assumptions between profiles;
+- `config/revision_profiles.json` now records independently verified USA,
+  Europe, and Japan identities; `make verify-revision-references` covers the
+  required USA/Europe scope and profile-aware split output remains private;
+- all six decoded room families round-trip in both required profiles. Shared
+  geometry, items, tile patterns, and mirror enemy sets are fingerprinted;
+  European mirror schedules and enemy spawn lifetimes are explicitly distinct;
+- region-specific source builds and identity gates for Europe remain the next
+  reconstruction step, without importing assumptions between profiles;
+- the level authoring document and editor described in
+  `docs/revision_profiles.md` are the first content-tooling deliverable;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
 - expand the existing deterministic movement, casting, room-completion,
   scheduler-sensitive timing, and audio scenarios to rarer mechanics;

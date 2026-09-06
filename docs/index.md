@@ -9,6 +9,9 @@ ASM module.
 
 - [Source Reconstruction 1.0](source_reconstruction_1_0.md) defines the fixed
   USA scope and tag gate.
+- [Revision profiles](revision_profiles.md) define the active 2.0 USA, Europe,
+  and Japan identities, private-asset boundary, room comparisons, and planned
+  regional build structure.
 - [Verification](verification.md), [code quality](code_quality.md), and the
   [toolchain contract](toolchain.md) describe commands, pinned binaries, and
   release evidence. The [roadmap](roadmap.md) records milestone boundaries.
