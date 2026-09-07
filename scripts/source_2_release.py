@@ -120,6 +120,18 @@ def run_git(project_root: Path, *arguments: str) -> subprocess.CompletedProcess[
     )
 
 
+def make_recipe(makefile: Path, target: str) -> list[str]:
+    commands: list[str] = []
+    collecting = False
+    for line in makefile.read_text(encoding="utf-8").splitlines():
+        if not line.startswith((" ", "\t")):
+            collecting = line.startswith(f"{target}:")
+            continue
+        if collecting and line.startswith("\t"):
+            commands.append(line.strip())
+    return commands
+
+
 def validate_contract_header(release: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if release.get("schema_version") != 1:
@@ -300,6 +312,11 @@ def validate_runtime(project_root: Path, release: dict[str, Any]) -> tuple[set[s
     )
     if set(coverage) != SUPPORTED_PROFILES:
         errors.append("runtime_coverage must contain direct USA and Europe records")
+    artifact_by_profile = {
+        str(entry.get("profile")): entry
+        for entry in release.get("artifacts", [])
+        if isinstance(entry, dict) and entry.get("profile")
+    }
     for profile_id in sorted(SUPPORTED_PROFILES):
         entry = coverage.get(profile_id)
         if entry is None:
@@ -312,6 +329,9 @@ def validate_runtime(project_root: Path, release: dict[str, Any]) -> tuple[set[s
             errors.append(f"runtime profile {profile_id} has unsupported schema")
         if runtime.get("profile", "usa") != profile_id:
             errors.append(f"runtime manifest profile differs for {profile_id}")
+        artifact = artifact_by_profile.get(profile_id, {})
+        if runtime.get("rom_sha1") != artifact.get("sha1"):
+            errors.append(f"runtime ROM SHA-1 differs for {profile_id}")
         actual = [
             scenario.get("id")
             for scenario in runtime.get("scenarios", [])
@@ -370,13 +390,18 @@ def validate_authoring(project_root: Path, release: dict[str, Any]) -> list[str]
                 errors.append(
                     f"authoring {identifier} {role} names missing target: {target}"
                 )
-        workspace = entry.get("workspace")
-        if not isinstance(workspace, str):
-            errors.append(f"authoring {identifier} has no workspace path")
-        else:
-            ignored = run_git(project_root, "check-ignore", "-q", workspace)
-            if ignored.returncode:
-                errors.append(f"authoring {identifier} workspace is not ignored: {workspace}")
+        for field in ("workspace_pattern", "output_pattern"):
+            pattern = entry.get(field)
+            if not isinstance(pattern, str) or "{profile}" not in pattern:
+                errors.append(f"authoring {identifier} has no profile-aware {field}")
+                continue
+            for profile_id in SUPPORTED_PROFILES:
+                path = pattern.format(profile=profile_id)
+                ignored = run_git(project_root, "check-ignore", "-q", path)
+                if ignored.returncode:
+                    errors.append(
+                        f"authoring {identifier} {field} is not ignored: {path}"
+                    )
     return errors
 
 
@@ -517,6 +542,16 @@ def validate_paths_and_gates(project_root: Path, release: dict[str, Any]) -> lis
         "post_tag": ["make source-2-post-tag-audit"],
     }:
         errors.append("aggregate_gates differ from the Source 2.0 interface")
+    makefile = project_root / "Makefile"
+    source_1_recipe = make_recipe(makefile, "release-check")
+    if not source_1_recipe or "source-1-regression-check" not in source_1_recipe[0]:
+        errors.append("release-check no longer begins with the reusable Source 1.0 gate")
+    regression_recipe = make_recipe(makefile, "source-2-regression-check")
+    if not regression_recipe or "source-1-regression-check" not in regression_recipe[0]:
+        errors.append("Source 2.0 regression gate does not begin with Source 1.0")
+    release_recipe = make_recipe(makefile, "source-2-check")
+    if not release_recipe or "source-2-regression-check" not in release_recipe[0]:
+        errors.append("Source 2.0 release gate does not begin with its regression gate")
     return errors
 
 
@@ -551,6 +586,19 @@ def validate_policy(release: dict[str, Any]) -> list[str]:
             )
         ):
             errors.append("licensing entry lacks origin, status, or redistribution notes")
+    history = as_object(release.get("history"), "history", errors)
+    for field in ("base_commit", "release_subject", "expected_author", "codex_trailer"):
+        if not history.get(field):
+            errors.append(f"history contract lacks {field}")
+    deviations = as_object_list(
+        release.get("layout_deviations"), "layout_deviations", errors
+    )
+    for entry in deviations:
+        if not all(
+            entry.get(field)
+            for field in ("rule_id", "actual_path", "reason", "equivalent_control")
+        ):
+            errors.append("layout deviation lacks rule, path, reason, or control")
     return errors
 
 

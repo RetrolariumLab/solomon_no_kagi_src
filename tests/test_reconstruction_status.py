@@ -14,7 +14,7 @@ from scripts.reconstruction_status import (
     validate,
     validate_release,
 )
-from scripts.source_2_release import validate_source_2_release
+from scripts.source_2_release import make_recipe, validate_source_2_release
 
 
 class ReconstructionStatusTests(unittest.TestCase):
@@ -220,6 +220,17 @@ class ReconstructionStatusTests(unittest.TestCase):
         errors = validate_source_2_release(root, release)
         self.assertIn("runtime scenario order differs for europe", errors)
 
+    def test_source_2_contract_binds_runtime_to_profile_image(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        usa = next(
+            artifact
+            for artifact in release["artifacts"]
+            if artifact["id"] == "usa_nes_rom"
+        )
+        usa["sha1"] = "0" * 40
+        errors = validate_source_2_release(root, release)
+        self.assertIn("runtime ROM SHA-1 differs for usa", errors)
+
     def test_source_2_contract_requires_complete_authoring_roles(self) -> None:
         root, release = self.make_source_2_release_fixture()
         levels = next(
@@ -249,6 +260,17 @@ class ReconstructionStatusTests(unittest.TestCase):
         self.assertIn(
             "aggregate_gates differ from the Source 2.0 interface",
             errors,
+        )
+
+    def test_source_2_gate_recipes_preserve_predecessor_order(self) -> None:
+        root, _release = self.make_source_2_release_fixture()
+        self.assertIn(
+            "source-1-regression-check",
+            make_recipe(root / "Makefile", "source-2-regression-check")[0],
+        )
+        self.assertIn(
+            "source-2-regression-check",
+            make_recipe(root / "Makefile", "source-2-check")[0],
         )
 
 
