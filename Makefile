@@ -16,6 +16,7 @@ AUDIO_EDITOR := scripts/audio_editor.py
 SOUND_STUDIO := scripts/sound_studio.py
 AUDIO_PREVIEW_TOOL := scripts/audio_preview.py
 GRAPHICS_EDITOR := scripts/graphics_editor.py
+GRAPHICS_STUDIO := scripts/graphics_studio.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -202,7 +203,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	roundtrip-audio-profiles audio-summary preview-audio sound-studio \
 	check-sound-studio \
 	export-graphics validate-graphics build-graphics roundtrip-graphics \
-	roundtrip-graphics-profiles graphics-summary \
+	roundtrip-graphics-profiles graphics-summary graphics-studio \
+	check-graphics-studio \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions revision-symbols validate-revision-symbols \
 	validate-revision-symbol-profiles trace-revision-runtime \
@@ -421,6 +423,17 @@ roundtrip-graphics-profiles:
 graphics-summary:
 	$(PYTHON) "$(GRAPHICS_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
 		--input "$(GRAPHICS_DOCUMENT)"
+
+graphics-studio:
+	$(PYTHON) "$(GRAPHICS_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile "$(PROFILE)" --document "$(GRAPHICS_DOCUMENT)" \
+		--output "$(GRAPHICS_ROM)"
+
+check-graphics-studio:
+	$(PYTHON) "$(GRAPHICS_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile usa --check
+	$(PYTHON) "$(GRAPHICS_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
+		--profile europe --check
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \

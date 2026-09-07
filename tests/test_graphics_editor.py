@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import graphics_editor
+import graphics_studio
 from project import digest, parse_ines
 from revision_profiles import get_profile, load_profiles
 
@@ -152,6 +153,66 @@ class RegionalGraphicsTests(unittest.TestCase):
             usa_document["source_chr_sha256"],
             europe_document["source_chr_sha256"],
         )
+
+
+class GraphicsStudioTests(unittest.TestCase):
+    def model(self) -> graphics_studio.GraphicsStudioDocument:
+        image, profile = synthetic_image()
+        document = graphics_editor.export_document(
+            bytes(parse_ines(image)["chr"]), profile
+        )
+        return graphics_studio.GraphicsStudioDocument(
+            document,
+            profile,
+            image,
+            ROOT / "content/workspace/test/graphics.json",
+            ROOT / "build/content/test/graphics.nes",
+        )
+
+    def test_atlas_projection_places_all_tiles_in_row_major_order(self) -> None:
+        model = self.model()
+        model.edit_pixel(0, 17, 2, 3, 3)
+        projection = graphics_studio.atlas_pixels(model.document, 0)
+        self.assertEqual(len(projection), 256)
+        self.assertTrue(all(len(row) == 128 for row in projection))
+        self.assertEqual(projection[8 + 3][8 + 2], "3")
+        self.assertEqual(graphics_studio.tile_position(17), (1, 1))
+        self.assertEqual(graphics_studio.tile_index(1, 1), 17)
+
+    def test_pixel_edit_is_validated_dirty_and_undoable(self) -> None:
+        model = self.model()
+        self.assertTrue(model.edit_pixel(2, 7, 4, 5, 3))
+        self.assertTrue(model.dirty)
+        self.assertNotEqual(model.rebuilt_image(), model.base_image)
+        self.assertEqual(model.undo(), (2, 7))
+        self.assertFalse(model.dirty)
+        self.assertEqual(model.rebuilt_image(), model.base_image)
+
+    def test_transformations_share_one_bounded_undo_history(self) -> None:
+        model = self.model()
+        model.edit_pixel(1, 3, 0, 0, 1)
+        model.transform(1, 3, "flip_horizontal")
+        self.assertEqual(model.rows(1, 3)[0], "00000001")
+        model.transform(1, 3, "flip_vertical")
+        self.assertEqual(model.rows(1, 3)[7], "00000001")
+        model.transform(1, 3, "rotate_clockwise")
+        self.assertEqual(model.rows(1, 3)[7], "10000000")
+        self.assertEqual(len(model.undo_stack), 4)
+
+    def test_fill_and_cross_tile_paste_preserve_fixed_layout(self) -> None:
+        model = self.model()
+        model.transform(0, 0, "fill", 2)
+        copied = model.rows(0, 0)
+        self.assertTrue(model.replace_rows(3, 511, copied))
+        self.assertEqual(model.rows(3, 511), ["22222222"] * 8)
+        graphics_editor.encode_document(model.document, model.profile)
+
+    def test_rejects_invalid_atlas_and_pixel_coordinates(self) -> None:
+        model = self.model()
+        with self.assertRaisesRegex(graphics_editor.GraphicsEditorError, "0..511"):
+            graphics_studio.tile_position(512)
+        with self.assertRaisesRegex(graphics_editor.GraphicsEditorError, "outside"):
+            model.edit_pixel(0, 0, 8, 0, 1)
 
 
 if __name__ == "__main__":
