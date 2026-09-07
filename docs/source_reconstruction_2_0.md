@@ -4,7 +4,7 @@ Source Reconstruction 2.0 is the additive, profile-aware authoring baseline for
 this repository. It inherits the published USA preservation contract without
 changing its entrypoint, hashes, or release manifest, and adds a complete
 European source build, regional runtime evidence, and verified level, audio,
-and CHR graphics authoring models.
+CHR graphics, and title/demo presentation authoring models.
 
 The machine-readable contract is
 `config/source_reconstruction_2_0.json`. Its current status is `development`:
@@ -206,6 +206,32 @@ USA and Europe currently share their CHR bytes, but documents remain bound to
 the complete selected ROM identity as well as the CHR hash. This prevents a
 workspace exported from one regional base from being silently applied to the
 other while preserving the verified fact that the graphics payload is shared.
+
+## Presentation authoring contract
+
+The presentation workspace combines the two packed title layers and all 34
+attract-demo controller records. Cursor commands remain typed, literal title
+runs retain their fixed byte counts, and input masks are expressed as named
+NES buttons with explicit duration bytes. USA and Europe share the decoded
+content while their documents retain the native `$70` relocation and complete
+source-image identity.
+
+```console
+make export-presentation PROFILE=usa
+make validate-presentation PROFILE=usa
+make build-presentation PROFILE=usa
+make roundtrip-presentation-profiles
+make check-presentation-studio
+```
+
+Presentation Studio renders both streams at their physical 32x30 nametable
+destinations using CNROM bank 3 and the background pattern table selected by
+the reconstructed title path. Its attract view edits named buttons and timing
+on a proportional timeline. Title and demo mutations share one bounded undo
+history and pass through the same fixed-capacity codec used by command-line
+builds. The headless gate accounts for all 377 literal placements, 256 title
+glyphs, 34 demo steps, and 1,502 effective frames for both supported profiles;
+unchanged documents must reproduce both complete ROM images byte for byte.
 
 ## Runtime and debugger evidence
 

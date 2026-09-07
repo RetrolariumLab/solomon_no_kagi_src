@@ -809,8 +809,10 @@ source-1-audit: release-check
 source-2-static-check:
 	$(MAKE) verify-revision-references verify-revision-sources verify-revisions
 	$(MAKE) source-2-profile-audits roundtrip-level-profiles \
-		roundtrip-audio-profiles roundtrip-graphics-profiles
+		roundtrip-audio-profiles roundtrip-graphics-profiles \
+		roundtrip-presentation-profiles
 	$(MAKE) check-level-studio check-sound-studio check-graphics-studio \
+		check-presentation-studio \
 		validate-revision-symbol-profiles
 	$(MAKE) source-2-release-audit
 

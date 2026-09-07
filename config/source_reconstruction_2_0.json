@@ -33,7 +33,8 @@
     "regional_structured_data_contracts",
     "level_authoring",
     "audio_authoring",
-    "graphics_authoring"
+    "graphics_authoring",
+    "presentation_authoring"
   ],
   "excluded_scope": [
     {
@@ -57,7 +58,7 @@
     {
       "id": "additional_content_studios",
       "status": "planned",
-      "reason": "Level, audio, and CHR graphics studios are accepted; the remaining regional structured-data families have codecs and audits but no dedicated visual authoring interface.",
+      "reason": "Level, audio, CHR graphics, and title/demo presentation studios are accepted; the remaining regional structured-data families have codecs and audits but no dedicated visual authoring interface.",
       "evidence": ["docs/data_formats.md", "docs/source_reconstruction_2_0.md"]
     },
     {
@@ -105,6 +106,12 @@
       "evidence": ["scripts/graphics_editor.py", "scripts/graphics_studio.py", "roundtrip-graphics-profiles", "check-graphics-studio"]
     },
     {
+      "id": "presentation_authoring",
+      "kind": "tooling",
+      "summary": "Provide profile-bound headless and visual editing for both packed title layers and the complete attract-demo controller timeline.",
+      "evidence": ["scripts/presentation_editor.py", "scripts/presentation_studio.py", "roundtrip-presentation-profiles", "check-presentation-studio"]
+    },
+    {
       "id": "source_2_release_contract",
       "kind": "release",
       "summary": "Define an additive Source 2.0 audit that preserves the published Source 1.0 baseline and checks every newly accepted profile and authoring capability.",
@@ -143,6 +150,10 @@
     "graphics_authoring": {
       "status": "satisfied",
       "evidence": {"targets": ["roundtrip-graphics-profiles", "check-graphics-studio"], "files": ["scripts/graphics_editor.py", "scripts/graphics_studio.py"], "scenarios": [], "artifacts": ["usa_nes_rom", "europe_nes_rom"]}
+    },
+    "presentation_authoring": {
+      "status": "satisfied",
+      "evidence": {"targets": ["roundtrip-presentation-profiles", "check-presentation-studio"], "files": ["scripts/presentation_editor.py", "scripts/presentation_studio.py"], "scenarios": ["usa:attract-demo-scheduler"], "artifacts": ["usa_nes_rom", "europe_nes_rom"]}
     },
     "structured_data_contracts": {
       "status": "satisfied",
@@ -304,6 +315,18 @@
       "capabilities": ["four_cnrom_banks", "complete_8x8_tile_atlases", "two_bit_pixel_editing", "tile_transformations", "room_and_sprite_subpalettes", "room_group_color_selectors", "ending_fade_colors", "profile_bound_chr_identity"],
       "capacity_contract": {"owner": "profile", "evidence": ["scripts/graphics_editor.py", "config/revision_profiles.json", "docs/chr_bank_policy.md"]},
       "targets": {"export": "export-graphics", "validate": "validate-graphics", "build": "build-graphics", "roundtrip": "roundtrip-graphics-profiles", "headless_check": "check-graphics-studio"}
+    },
+    {
+      "id": "presentation",
+      "schema_version": 1,
+      "codec": "scripts/presentation_editor.py",
+      "model": "scripts/presentation_studio.py",
+      "profiles": ["usa", "europe"],
+      "workspace_pattern": "content/workspace/{profile}/presentation.json",
+      "output_pattern": "build/content/{profile}/solomons_key_presentation.nes",
+      "capabilities": ["packed_title_cursor_commands", "fixed_title_literal_runs", "physical_nametable_preview", "native_title_chr_projection", "named_demo_controller_steps", "effective_demo_timeline", "shared_undo_history"],
+      "capacity_contract": {"owner": "profile", "evidence": ["scripts/presentation_editor.py", "config/title_data.json", "config/title_data_europe.json"]},
+      "targets": {"export": "export-presentation", "validate": "validate-presentation", "build": "build-presentation", "roundtrip": "roundtrip-presentation-profiles", "headless_check": "check-presentation-studio"}
     }
   ],
   "structured_data_contracts": [
@@ -380,6 +403,8 @@
     "scripts/sound_studio.py",
     "scripts/graphics_editor.py",
     "scripts/graphics_studio.py",
+    "scripts/presentation_editor.py",
+    "scripts/presentation_studio.py",
     "src/main.asm",
     "bin/cc65-LICENSE.txt"
   ],
@@ -396,6 +421,8 @@
     "check-sound-studio",
     "roundtrip-graphics-profiles",
     "check-graphics-studio",
+    "roundtrip-presentation-profiles",
+    "check-presentation-studio",
     "validate-revision-symbol-profiles",
     "trace-revision-runtimes",
     "source-2-profile-audits",

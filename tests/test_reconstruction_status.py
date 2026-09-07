@@ -260,7 +260,18 @@ class ReconstructionStatusTests(unittest.TestCase):
         ]
         errors = validate_source_2_release(root, release)
         self.assertIn(
-            "authoring must declare exactly the accepted level, audio, and graphics tools",
+            "authoring must declare exactly the accepted level, audio, graphics, and presentation tools",
+            errors,
+        )
+
+    def test_source_2_contract_requires_the_presentation_authoring_model(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        release["authoring"] = [
+            entry for entry in release["authoring"] if entry["id"] != "presentation"
+        ]
+        errors = validate_source_2_release(root, release)
+        self.assertIn(
+            "authoring must declare exactly the accepted level, audio, graphics, and presentation tools",
             errors,
         )
 
