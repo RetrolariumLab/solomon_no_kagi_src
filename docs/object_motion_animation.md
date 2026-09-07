@@ -55,9 +55,10 @@ type-group symbols as the selector payload.
 
 ## Animation selection
 
-`ObjectAnimationDescriptorPointers` at `$D0E8-$D129` is a source-owned,
-parallel 33-pointer table. Its first target at `$D12A` also proves the table's
-end boundary independently of its consumer's 33-type indexing contract.
+`ObjectAnimationDescriptorPointers` at USA `$D0E8-$D129` / Europe
+`$D068-$D0A9` is a source-owned, parallel 33-pointer table. Its first target at
+USA `$D12A` / Europe `$D0AA` also proves the table's end boundary independently
+of its consumer's 33-type indexing contract.
 Each action selects a four-byte descriptor:
 
 ```text
@@ -90,3 +91,11 @@ The corresponding JSON report is available through
 `make object-animation-report`. The manifest lives at
 `config/object_animations.json`; it records structural facts, not speculative
 enemy names.
+
+Source Reconstruction 2.0 gives the relocated PAL layout its own reviewed
+`config/object_animations_europe.json` contract. The entire descriptor and
+frame region moves `$80` bytes earlier. Relocated type, descriptor, variant,
+and frame pointers therefore give the pointer and definition regions distinct
+hashes, while the 825 raw frame bytes remain identical. Run
+`make object-animation-profile-audits` to decode and reconstruct all 2,283
+bytes independently from both source-built ROMs.

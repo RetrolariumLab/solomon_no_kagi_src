@@ -19,6 +19,11 @@ except ImportError:
 
 PRG_BASE = 0x8000
 
+OBJECT_ANIMATION_MANIFESTS = {
+    "usa": "object_animations.json",
+    "europe": "object_animations_europe.json",
+}
+
 
 @dataclass(frozen=True)
 class AnimationDescriptor:
@@ -146,6 +151,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
     if not isinstance(pointers, list) or not pointers:
         raise RoomDataError("object animation manifest needs object_type_pointers")
     return value
+
+
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"object animation profile mismatch: expected={profile}, manifest={actual}"
+        )
 
 
 def sha1_range(prg: bytes, start: int, end: int, label: str) -> str:
@@ -461,11 +474,17 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit", "source"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(OBJECT_ANIMATION_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "object_animations.json"
+    manifest_path = args.manifest or (
+        root / "config" / OBJECT_ANIMATION_MANIFESTS[args.profile]
+    )
     try:
         manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
         prg = extract_prg(args.image.read_bytes())
         if args.command == "source":
             print(emit_source(prg, manifest), end="")

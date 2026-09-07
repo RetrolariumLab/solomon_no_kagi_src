@@ -197,6 +197,14 @@ identical, but relocated pointer values and all 35 PAL Y/X vector records have
 separate reviewed hashes. `make object-motion-profile-audits` proves exact
 524-byte coverage and decode/encode identity for each source-built image.
 
+Object-animation data is likewise bound to each physical layout rather than
+being inferred from the USA manifest. USA uses `$D0E8-$D9D2`; Europe uses
+`$D068-$D952`. Both profiles decode to 33 type pointers, 340 descriptors, 126
+sequences, and 275 frame records. Their relocated pointer-bearing regions have
+independent hashes, while their raw frame records have a deliberately shared
+hash. `make object-animation-profile-audits` proves exact 2,283-byte
+decode/encode identity for both source-built images.
+
 Run the combined source ownership gate with:
 
 ```console
@@ -657,7 +665,8 @@ milestone: semantic symbols align the profiles, every PRG difference is
 classified and source-owned, and both images reproduce without post-link
 patching. The remaining release work is now evidence and authoring depth:
 
-1. make the remaining structured-data audits profile-aware where PAL differs;
+1. make the remaining structured-data audits profile-aware where PAL differs
+   (object motion and object animation are complete);
 2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
 3. expand the focused PAL baseline and existing USA matrix when a remaining

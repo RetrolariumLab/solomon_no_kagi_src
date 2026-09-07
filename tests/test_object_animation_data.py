@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
 import unittest
 
 from scripts.object_animation_data import (
@@ -11,11 +12,27 @@ from scripts.object_animation_data import (
     encode_descriptors,
     encode_frame_records,
     encode_words,
+    load_manifest,
+    validate_manifest_profile,
     validate_report,
 )
 
 
 class ObjectAnimationDataTests(unittest.TestCase):
+    def test_committed_profiles_record_relocated_definitions_and_shared_frames(
+        self,
+    ) -> None:
+        root = Path(__file__).resolve().parent.parent
+        usa = load_manifest(root / "config" / "object_animations.json")
+        europe = load_manifest(root / "config" / "object_animations_europe.json")
+        validate_manifest_profile(usa, "usa")
+        validate_manifest_profile(europe, "europe")
+        self.assertNotEqual(usa["pointer_sha1"], europe["pointer_sha1"])
+        self.assertNotEqual(usa["definition_sha1"], europe["definition_sha1"])
+        self.assertEqual(usa["frame_sha1"], europe["frame_sha1"])
+        self.assertEqual(usa["descriptor_count"], europe["descriptor_count"])
+        self.assertEqual(usa["frame_record_count"], europe["frame_record_count"])
+
     def test_decodes_little_endian_words(self) -> None:
         prg = bytearray(32_768)
         prg[0:6] = bytes((0x2A, 0xD1, 0xBA, 0xD1, 0x1A, 0xD6))

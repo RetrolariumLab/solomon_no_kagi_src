@@ -46,6 +46,7 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `item-handler-audit` | check all 29 item selectors, pointers, names, and table hash |
 | `ppu-update-audit` | check 18 static stream pointers, coverage, hashes, and byte round trips |
 | `object-animation-audit` | round-trip 2,283 bytes of pointers, descriptors, selectors, and frames |
+| `object-animation-profile-audits` | independently round-trip relocated USA and PAL animation layouts and prove their shared frame payload |
 | `object-motion-audit` | round-trip 524 bytes of pointers, selectors, and vectors |
 | `object-motion-profile-audits` | independently round-trip relocated USA and PAL pointer, selector, and motion-vector layouts |
 | `title-data-audit` | round-trip packed title streams and the adjacent attract-demo tables |
