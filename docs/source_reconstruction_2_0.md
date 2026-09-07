@@ -7,10 +7,10 @@ European source build, regional runtime evidence, and verified level, audio,
 CHR graphics, and title/demo presentation authoring models.
 
 The machine-readable contract is
-`config/source_reconstruction_2_0.json`. Its current status is `development`:
-the accepted technical scope has an executable audit, while the release tag is
-not claimed until the remaining review work is finished and the manifest is
-explicitly changed to `tag-ready` on the final release commit.
+`config/source_reconstruction_2_0.json`. Its current status is `tag-ready`:
+the accepted technical scope and bounded exclusions have completed review, and
+the release tag is created only after `make source-2-check` passes on this exact
+clean release commit.
 
 ## Predecessor and immutable baseline
 
@@ -264,8 +264,9 @@ make source-2-static-check
 ```
 
 It verifies both references and source builds, runs all paired format audits,
-proves all three editor round trips, checks all three headless studios, validates regional
-symbols, and audits the 2.0 manifest. It does not capture emulator traces.
+proves all four editor round trips, checks all four headless studios, validates
+regional symbols, and audits the 2.0 manifest. It does not capture emulator
+traces.
 
 The reusable full technical gate is:
 
@@ -285,36 +286,51 @@ make source-2-check
 
 That command runs `source-2-regression-check` and then enforces `tag-ready`, a
 clean worktree, the exact release commit subject and authorship/trailer policy,
-and absence of the future 2.0 tag locally and on the publish remote. It is
-expected to fail while this manifest says `development`.
+and absence of the future 2.0 tag locally and on the publish remote.
 
-After an annotated tag has been published and the manifest status is `tagged`,
-the publication assertion is:
+After the annotated tag has been published, the publication assertion is:
 
 ```console
 make source-2-post-tag-audit
 ```
 
 It requires the annotated local tag and its remote peeled target to equal the
-reviewed `HEAD`.
+reviewed `HEAD`. The manifest remains `tag-ready` inside that immutable commit:
+changing it to `tagged` would create a new commit after the pre-tag gate and
+make the tag target differ from `HEAD`. This lifecycle deviation is explicit in
+the manifest; the annotated local and remote refs are the publication state.
 
-## Remaining release work
+## Reviewed release boundary
 
-Before changing the status to `tag-ready`:
+The final authoring review accepts four purpose-built studios: complete room
+content, regional audio, fixed CHR plus palette data, and title/demo
+presentation. Their exact encoders, capacity checks, zero-edit regional image
+round trips, and headless projections are release evidence. Level Studio also
+has direct source-built USA/PAL room-entry smoke tests. Sound Studio's command
+VM and APU-like output remain an authoring preview rather than a claim of exact
+console audio synthesis; final subjective emulator audition is recorded as a
+bounded partial exclusion.
 
-1. finish the planned authoring review, especially final source-built emulator
-   audition for edited audio and graphics and the explicit decision about any
-   additional structured-data studios;
-2. review the USA/PAL profile inventory and bounded runtime matrix against the
-   final advertised capability list;
-3. update roadmap wording that still describes already completed editor or
-   regional tasks;
-4. run `make source-2-regression-check` from a clean checkout with both private
-   references and the pinned FCEUX build;
-5. make the final release commit with subject
-   `Complete Source Reconstruction 2.0`, set status to `tag-ready`, and run
-   `make source-2-check` on that exact clean commit.
+PPU update streams, object animations, and object motion retain complete
+regional codecs and byte-round-trip audits but do not claim visual authoring in
+this release. Scheduler entries, AI/handler dispatch, and pointer inventories
+remain engineering contracts rather than user-facing content formats. Adding a
+GUI for any of those structures is optional future work, not an implied 2.0
+capability.
 
-Expanded ROMs, mapper changes, Japanese reconstruction, and unclaimed content
-studios remain outside this tag. They require their own explicit manifests and
-gates rather than being implied by the 2.0 name.
+The accepted runtime boundary is ten direct USA scenarios and four direct PAL
+scenarios, plus one source-built Level Studio room-entry smoke for each
+profile. It covers both timing modes, boot and game entry, pause, scheduler and
+audio activity, and the broader USA movement, casting, life-loss, attract, and
+door paths without claiming an exhaustive longplay or every ending.
+
+`make source-2-regression-check` completed from a clean tree on the supported
+Windows x64/PowerShell host with both private references and the pinned FCEUX
+build. The release commit uses subject `Complete Source Reconstruction 2.0`;
+`make source-2-check` must pass on that exact clean commit before the annotated
+tag is created.
+
+Expanded ROMs, mapper changes, Japanese reconstruction, PPU/object-data visual
+studios, and exhaustive rare-mechanic playback remain outside this tag. They
+require their own explicit manifests and gates rather than being implied by the
+2.0 name.

@@ -11,7 +11,7 @@
   },
   "release_kind": "baseline",
   "tag": "source-reconstruction-2.0",
-  "status": "development",
+  "status": "tag-ready",
   "publish_remote": "origin",
   "predecessor": {
     "manifest": "config/source_reconstruction_1_0.json",
@@ -58,7 +58,7 @@
     {
       "id": "additional_content_studios",
       "status": "planned",
-      "reason": "Level, audio, CHR graphics, and title/demo presentation studios are accepted; the remaining regional structured-data families have codecs and audits but no dedicated visual authoring interface.",
+      "reason": "Level, audio, CHR/palette, and title/demo studios are accepted. PPU update, object animation, and object motion data retain tested regional codecs but no claimed visual editor; scheduler, AI, handler, and pointer tables remain engineering contracts rather than content-authoring targets.",
       "evidence": ["docs/data_formats.md", "docs/source_reconstruction_2_0.md"]
     },
     {
@@ -357,6 +357,12 @@
       "actual_path": "make source-1-regression-check",
       "reason": "The original release-check ends with a future-tag absence test that intentionally cannot pass after Source 1.0 is published.",
       "equivalent_control": "source-1-regression-check executes the same build, identity, lint, tests, formats, symbols, runtime, and manifest audit without publication-state checks; release-check still adds the original pre-tag audit."
+    },
+    {
+      "rule_id": "immutable_tag_publication_status",
+      "actual_path": "config/source_reconstruction_2_0.json#status",
+      "reason": "Changing tag-ready to tagged would create a different commit after the pre-tag gate, so an immutable tag cannot both contain that mutation and keep its peeled target equal to the reviewed release commit.",
+      "equivalent_control": "The manifest remains tag-ready inside the immutable tag; source-2-post-tag-audit proves publication by requiring an annotated local tag and an origin peeled target equal to HEAD."
     }
   ],
   "licensing": [

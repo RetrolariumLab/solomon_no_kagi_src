@@ -15,7 +15,7 @@ subsystems.
 - **Source Reconstruction 1.0 is tag-ready for the fixed USA profile.** Its
   stable contract and tag procedure are in
   [`docs/source_reconstruction_1_0.md`](docs/source_reconstruction_1_0.md).
-- **Source Reconstruction 2.0 is in active development.** USA and Europe are
+- **Source Reconstruction 2.0 is tag-ready.** USA and Europe are
   complete byte-identical source profiles with direct runtime evidence and
   profile-aware level/audio/graphics/presentation authoring; the additive release boundary and gates
   are in [`docs/source_reconstruction_2_0.md`](docs/source_reconstruction_2_0.md).

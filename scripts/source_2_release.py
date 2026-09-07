@@ -658,6 +658,15 @@ def validate_source_2_release(project_root: Path, release: dict[str, Any]) -> li
     return errors
 
 
+def validate_lifecycle_status(release: dict[str, Any], command: str) -> list[str]:
+    """Keep the immutable tagged manifest in its pre-publication ready state."""
+    if command in {"pre-tag-audit", "post-tag-audit"} and release.get(
+        "status"
+    ) != "tag-ready":
+        return [f"{command} requires status tag-ready"]
+    return []
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("audit", "pre-tag-audit", "post-tag-audit"))
@@ -672,13 +681,10 @@ def main() -> int:
     try:
         release = load_json(args.release)
         errors = validate_source_2_release(project_root, release)
+        errors.extend(validate_lifecycle_status(release, args.command))
         if args.command == "pre-tag-audit":
-            if release.get("status") != "tag-ready":
-                errors.append("pre-tag audit requires status tag-ready")
             errors.extend(validate_pre_tag(project_root, release))
         elif args.command == "post-tag-audit":
-            if release.get("status") != "tagged":
-                errors.append("post-tag audit requires status tagged")
             errors.extend(validate_post_tag(project_root, release))
     except (
         OSError,

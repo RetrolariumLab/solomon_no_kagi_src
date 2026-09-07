@@ -14,7 +14,11 @@ from scripts.reconstruction_status import (
     validate,
     validate_release,
 )
-from scripts.source_2_release import make_recipe, validate_source_2_release
+from scripts.source_2_release import (
+    make_recipe,
+    validate_lifecycle_status,
+    validate_source_2_release,
+)
 
 
 class ReconstructionStatusTests(unittest.TestCase):
@@ -293,6 +297,16 @@ class ReconstructionStatusTests(unittest.TestCase):
         self.assertIn(
             "source-2-regression-check",
             make_recipe(root / "Makefile", "source-2-check")[0],
+        )
+
+    def test_source_2_tag_audits_use_the_immutable_ready_status(self) -> None:
+        _root, release = self.make_source_2_release_fixture()
+        self.assertEqual(validate_lifecycle_status(release, "pre-tag-audit"), [])
+        self.assertEqual(validate_lifecycle_status(release, "post-tag-audit"), [])
+        release["status"] = "tagged"
+        self.assertEqual(
+            validate_lifecycle_status(release, "post-tag-audit"),
+            ["post-tag-audit requires status tag-ready"],
         )
 
 

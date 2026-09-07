@@ -427,14 +427,20 @@ passes on the reviewed `main` commit.
   evidence. `make source-2-static-check` passes the additive matrix, while
   `make source-2-regression-check` begins with the complete published 1.0
   technical gate;
-- explicit PAL timing and audio comparisons against the fixed USA baseline;
-- finish source-built audio audition and decide which additional structured
-  formats merit complete authoring studios before the final 2.0 scope review;
-- expand the existing deterministic movement, casting, room-completion,
-  scheduler-sensitive timing, and audio scenarios only when new claims need
-  rarer-mechanic evidence;
-- deepen historical-intent research where 1.0 deliberately retains neutral,
-  behaviorally correct names.
+- profile-aware Graphics Studio owns all fixed CHR and palette data, while
+  Presentation Studio owns both packed title layers and the complete attract
+  controller program; all four accepted studios have exact regional round trips
+  and headless model checks;
+- the final scope review keeps PPU updates, object animations, and object
+  motion as tested regional codecs without claiming visual editors. Scheduler,
+  AI, handler, and pointer tables remain engineering contracts rather than
+  authored content;
+- Source Reconstruction 2.0 is tag-ready. Its bounded runtime matrix contains
+  ten direct USA and four direct PAL scenarios plus two profile-specific Level
+  Studio room-entry smokes; future scenarios are added only for new claims;
+- Japanese reconstruction, expanded layouts, extra content studios, exact APU
+  synthesis, rare-mechanic coverage, and deeper historical-intent research are
+  explicitly later work.
 
 Castle Excellent / Castlequest research is related but intentionally outside
 this repository's byte-identity contract. It should receive its own project so

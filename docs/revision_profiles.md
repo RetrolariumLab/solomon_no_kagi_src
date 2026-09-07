@@ -822,24 +822,29 @@ selected title pattern table, all 34 input steps, and all 1,502 effective demo
 frames, then proves that the unedited visual model reproduces the complete
 reference image byte for byte.
 
-## Remaining Source 2.0 work
+## Source 2.0 release boundary
 
 The complete European source build closes the regional byte-reconstruction
 milestone: semantic symbols align the profiles, every PRG difference is
 classified and source-owned, and both images reproduce without post-link
-patching. The revision-three Source 2.0 manifest now consolidates the regional
-room, audio, scheduler, PPU, title, object, and handler contracts, and the
-aggregate static gate passes. Remaining release work is now bounded authoring
-review and publication:
+patching. The revision-three Source 2.0 manifest consolidates the regional
+room, audio, scheduler, PPU, title, object, and handler contracts. Four
+purpose-built studios accept room content, audio, fixed CHR/palettes, and
+title/demo presentation; all four share their serializers with headless
+round-trip gates.
 
-1. add higher-level composition naming and final emulator audition to Sound
-   Studio, then author the other significant structured formats;
-2. expand the focused PAL baseline and existing USA matrix only when a
-   remaining semantic claim needs new runtime evidence;
-3. review the declared scope and exclusions, change the manifest from
-   `development` to `tag-ready`, and run `make source-2-check` on the final
-   clean release commit;
-4. keep Japanese reconstruction as a later, explicitly scoped profile.
+The scope review deliberately leaves PPU update streams, object animations,
+and object motion as tested regional codecs without a claimed visual editor.
+Scheduler, AI, handler, and pointer records remain engineering contracts, not
+content-authoring targets. Sound preview is deterministic and profile-aware,
+but exact console synthesis and subjective source-built emulator audition are
+not claimed. The direct ten-scenario USA and four-scenario PAL matrices are
+bounded evidence rather than exhaustive longplays.
+
+The manifest is `tag-ready`. Run `make source-2-check` on the exact clean
+release commit before creating the annotated tag. Japanese reconstruction,
+expanded ROMs, mapper changes, unclaimed studios, and rarer runtime paths remain
+later explicitly scoped work.
 
 Regional work must not weaken the byte-identical USA build or mutate the
 Source 1.0 manifest retroactively.
