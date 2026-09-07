@@ -1,7 +1,9 @@
 # Source layout
 
 `src/main.asm` owns the CPU selection, iNES header, hardware/RAM registries, and
-address-ordered includes. Semantic modules own NMI at `$8000-$80FE`, its enemy
+one include per subsystem source. The linker restores physical ROM order from
+the named segments inside those sources; see
+[source organization](source_organization.md). Semantic modules own NMI at `$8000-$80FE`, its enemy
 overlap/fireball collision and Dana action services at `$80FF-$837C`, controller
 sampling at `$837D-$83C1`, Dana control and object-to-OAM composition at
 `$83C2-$863B`, and the per-frame object update pipeline at

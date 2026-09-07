@@ -31,6 +31,8 @@ ASM module.
 - [Architecture](architecture.md) is the high-level execution and data-flow
   overview.
 - [Source layout](source_layout.md) maps semantic modules to the PRG image.
+- [Source organization](source_organization.md) defines subsystem directories,
+  preferred file sizes, and the reviewed exceptions enforced by `make lint`.
 - [RAM map](ram_map.md) records runtime storage, aliases, and record ranges.
 - [Data formats](data_formats.md) summarizes encoded streams and their
   round-trip tooling.

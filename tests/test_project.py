@@ -214,5 +214,44 @@ class RepositoryLintTests(unittest.TestCase):
                 project.lint_python_files(root)
 
 
+class SourceOrganizationTests(unittest.TestCase):
+    def policy(self) -> dict[str, object]:
+        return {
+            "schema_version": 1,
+            "preferred_line_range": {"minimum": 3, "maximum": 5},
+            "maximum_asm_files_per_directory": 2,
+            "exceptions": {},
+        }
+
+    def test_accepts_preferred_size_and_reviewed_exception(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "src" / "game"
+            source.mkdir(parents=True)
+            (source / "runtime.asm").write_text("a\nb\nc\n", encoding="utf-8")
+            (source / "tables.asm").write_text("a\n", encoding="utf-8")
+            policy = self.policy()
+            policy["exceptions"] = {
+                "src/game/tables.asm": "A deliberately compact fixed table owner."
+            }
+            project.validate_source_organization(root, policy)
+
+    def test_rejects_unreviewed_size_and_repeated_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "src" / "game"
+            source.mkdir(parents=True)
+            (source / "room_load.asm").write_text("a\n", encoding="utf-8")
+            (source / "room_clear.asm").write_text("a\nb\nc\n", encoding="utf-8")
+            with self.assertRaisesRegex(project.ProjectError, "without a reviewed exception"):
+                project.validate_source_organization(root, self.policy())
+            policy = self.policy()
+            policy["exceptions"] = {
+                "src/game/room_load.asm": "A deliberately compact layout boundary."
+            }
+            with self.assertRaisesRegex(project.ProjectError, "repeats filename prefix"):
+                project.validate_source_organization(root, policy)
+
+
 if __name__ == "__main__":
     unittest.main()

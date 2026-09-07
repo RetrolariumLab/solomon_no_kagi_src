@@ -8,8 +8,8 @@ Super Mario Bros. preservation projects.
 - `make format-check` checks assembly formatting without changing files
 - `make lint-asm` checks the shared assembly style contract
 - `make lint-source` checks the repository structure, every Python and JSON
-  source, local documentation links, source contracts, and tracked
-  private/generated output policy
+  source, local documentation links, source contracts, ASM module sizes and
+  directory organization, and tracked private/generated output policy
 - `make lint-project` is a compatibility alias for `make lint-source`
 - `make lint` runs every linter
 - `make test` runs the Python unit-test suite
@@ -38,6 +38,13 @@ semantic refinements should continue to follow understood subsystem boundaries
 and remain registered in the reconstruction manifest. Formatting remains safe
 because the release check rebuilds the ROM and compares every byte with the
 reference.
+
+Assembly modules normally contain 300–700 lines. `make lint` requires every
+shorter or longer file to have a concrete architectural justification in
+`config/source_organization.json`, limits each directory to six ASM files, and
+rejects repeated underscore-delimited filename prefixes within one directory.
+This keeps compact fixed tables and generated-asset boundaries possible without
+allowing subsystem code to drift back into a flat collection of tiny files.
 
 Comments that contain only an address, optionally followed by encoded bytes,
 such as `; $B173` or `; $82AD D0 01`, are rejected as

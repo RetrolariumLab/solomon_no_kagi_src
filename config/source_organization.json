@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "preferred_line_range": {
+    "minimum": 300,
+    "maximum": 700
+  },
+  "maximum_asm_files_per_directory": 6,
+  "exceptions": {
+    "src/main.asm": "Composition root: revision selection, iNES header, and one include per subsystem source.",
+    "src/audio/data.asm": "The complete shared audio bank is kept intact so stream labels and pointer-locality remain reviewable.",
+    "src/data/enemies/tables.asm": "Two compact fixed-size enemy tables are isolated from executable behavior and generated records.",
+    "src/data/objects/animations.asm": "Collision dispatch pointers and the complete animation bank form one stable data owner slightly above the preferred range.",
+    "src/data/rooms/metadata.asm": "Small room lifecycle tables occupy separate ROM segments but share one compact metadata owner.",
+    "src/game/scoring.asm": "The complete number formatting, score addition, and auxiliary-effect service is only 82 lines.",
+    "src/game/timer/runtime.asm": "The complete timer subsystem falls just below the preferred range and has no related code worth importing.",
+    "src/game/transitions/orbit.asm": "The complete room-entry orbit and sine lookup service is intrinsically compact.",
+    "src/graphics/chr.asm": "Generated CHR remains a deliberately tiny incbin boundary and is never stored in Git.",
+    "src/graphics/hud/runtime.asm": "All three gameplay HUD producers fit in one compact rendering module."
+  }
+}

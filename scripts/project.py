@@ -466,6 +466,65 @@ def lint_tracked_outputs(root: Path) -> None:
         )
 
 
+def validate_source_organization(root: Path, policy: dict[str, object]) -> None:
+    if policy.get("schema_version") != 1:
+        raise ProjectError("unsupported source organization schema")
+    line_range = policy.get("preferred_line_range")
+    exceptions = policy.get("exceptions")
+    if not isinstance(line_range, dict) or not isinstance(exceptions, dict):
+        raise ProjectError("source organization policy is missing line range or exceptions")
+    minimum = line_range.get("minimum")
+    maximum = line_range.get("maximum")
+    directory_limit = policy.get("maximum_asm_files_per_directory")
+    if not all(isinstance(value, int) for value in (minimum, maximum, directory_limit)):
+        raise ProjectError("source organization limits must be integers")
+    if minimum <= 0 or maximum < minimum or directory_limit <= 0:
+        raise ProjectError("source organization limits are invalid")
+
+    sources = sorted((root / "src").rglob("*.asm"))
+    relative_sources = {path.relative_to(root).as_posix(): path for path in sources}
+    errors: list[str] = []
+    for relative, path in relative_sources.items():
+        line_count = len(path.read_text(encoding="utf-8").splitlines())
+        reason = exceptions.get(relative)
+        outside_range = line_count < minimum or line_count > maximum
+        if outside_range and not isinstance(reason, str):
+            errors.append(
+                f"{relative} has {line_count} lines outside {minimum}-{maximum} "
+                "without a reviewed exception"
+            )
+        elif outside_range and len(reason.strip()) < 24:
+            errors.append(f"{relative} has an insufficient exception reason")
+        elif not outside_range and reason is not None:
+            errors.append(f"{relative} has a stale size exception")
+    for relative in exceptions:
+        if relative not in relative_sources:
+            errors.append(f"source organization exception is stale: {relative}")
+
+    by_directory: dict[Path, list[Path]] = {}
+    for path in sources:
+        by_directory.setdefault(path.parent, []).append(path)
+    for directory, members in by_directory.items():
+        relative_directory = directory.relative_to(root).as_posix()
+        if len(members) > directory_limit:
+            errors.append(
+                f"{relative_directory} contains {len(members)} ASM files; "
+                f"limit is {directory_limit}"
+            )
+        prefixes: dict[str, list[str]] = {}
+        for path in members:
+            prefix = path.stem.split("_", 1)[0]
+            prefixes.setdefault(prefix, []).append(path.name)
+        for prefix, names in prefixes.items():
+            if len(names) > 1:
+                errors.append(
+                    f"{relative_directory} repeats filename prefix {prefix!r}: "
+                    + ", ".join(sorted(names))
+                )
+    if errors:
+        raise ProjectError("source organization: " + "; ".join(errors))
+
+
 def command_lint(_args: argparse.Namespace) -> None:
     required = (
         "README.md",
@@ -479,6 +538,7 @@ def command_lint(_args: argparse.Namespace) -> None:
         "config/enemy_record_pointers.json",
         "config/scheduler_entries.json",
         "config/toolchain.json",
+        "config/source_organization.json",
         "scenarios/runtime_scenarios.json",
         "config/linker/cnrom.cfg",
         "docs/code_quality.md",
@@ -527,41 +587,24 @@ def command_lint(_args: argparse.Namespace) -> None:
         "scripts/verify_rom.py",
         "src/main.asm",
         "src/system/boot_and_frame.asm",
+        "src/system/thread_runtime.asm",
         "src/game/nmi/gameplay_interactions.asm",
         "src/game/nmi/dana_and_sprites.asm",
-        "src/system/thread_runtime.asm",
-        "src/system/thread_runtime.asm",
-        "src/system/boot_and_frame.asm",
         "src/game/flow/runtime.asm",
         "src/game/enemies/runtime.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/enemies/runtime.asm",
-        "src/data/enemies/tables.asm",
-        "src/data/enemies/tables.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/enemies/early_ai.asm",
         "src/game/enemies/early_ai.asm",
         "src/game/enemies/mid_ai.asm",
         "src/game/enemies/pathfinding_ai.asm",
         "src/game/enemies/collision_ai.asm",
         "src/game/enemies/late_ai.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/enemies/runtime.asm",
-        "src/game/objects/update_pipeline.asm",
-        "src/game/objects/update_pipeline.asm",
         "src/game/objects/update_pipeline.asm",
         "src/game/objects/collision_and_motion.asm",
-        "src/game/objects/collision_and_motion.asm",
-        "src/game/objects/update_pipeline.asm",
-        "src/system/thread_runtime.asm",
-        "src/system/thread_runtime.asm",
-        "src/system/thread_runtime.asm",
         "src/game/items/progression.asm",
         "src/game/timer/runtime.asm",
-        "src/game/timer/runtime.asm",
+        "src/data/enemies/tables.asm",
+        "src/audio/engine.asm",
+        "src/audio/data.asm",
+        "src/graphics/chr.asm",
     )
     missing = [name for name in required if not (ROOT / name).is_file()]
     if missing:
@@ -571,6 +614,13 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_json_files(ROOT)
     lint_python_files(ROOT)
     lint_markdown_links(ROOT)
+    try:
+        organization = json.loads(
+            (ROOT / "config/source_organization.json").read_text(encoding="utf-8")
+        )
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProjectError(f"cannot read source organization policy: {exc}") from exc
+    validate_source_organization(ROOT, organization)
     for relative in (
         "config/debugger_watches.json",
         "config/debugger_breakpoints.json",
@@ -592,185 +642,98 @@ def command_lint(_args: argparse.Namespace) -> None:
             raise ProjectError(f"unsupported schema in {relative}")
     source_contract = {
         "src/main.asm": ('.setcpu "6502x"', '.segment "HEADER"'),
-        "src/system/boot_and_frame.asm": ('.segment "PRG_NMI"', "NMI:", "WritePpuScroll:"),
+        "src/system/boot_and_frame.asm": (
+            '.segment "PRG_NMI"',
+            "NMI:",
+            '.segment "PRG_CONTROLLER_INPUT"',
+            "ReadJoyPads:",
+            '.segment "PRG_STARTUP"',
+            "Reset:",
+        ),
+        "src/system/thread_runtime.asm": (
+            '.segment "PRG_SCHEDULER"',
+            "SwitchThreads:",
+            '.segment "PRG_PAUSE_THREAD"',
+            "PauseGameThread:",
+            '.segment "PRG_SOUND_EFFECT_QUEUE"',
+            "AddSoundEffect:",
+            '.segment "PRG_PPU_UPDATE_BUFFER"',
+            "PublishPpuUpdateBuffer:",
+            '.segment "PRG_JUMP_WITH_PARAMS"',
+            "JumpWithParams:",
+        ),
         "src/game/nmi/gameplay_interactions.asm": (
             '.segment "PRG_NMI_GAMEPLAY_INTERACTIONS"',
             "CheckGameplayObjectInteractions:",
-            "UpdateActiveFireballCollision:",
             "QueuePendingThreadStart:",
         ),
         "src/game/nmi/dana_and_sprites.asm": (
             '.segment "PRG_NMI_DANA_AND_SPRITES"',
             "UpdateDanaControlState:",
             "RenderGameplayObjectsToOam:",
-            "UpdateScanlineObjectAllowance:",
-        ),
-        "src/system/boot_and_frame.asm": (
-            '.segment "PRG_STARTUP"',
-            "Reset:",
-            "InitializeNametable:",
-        ),
-        "src/system/thread_runtime.asm": (
-            '.segment "PRG_SCHEDULER"',
-            "StartThread:",
-            "SwitchThreads:",
-            "StopThread:",
-        ),
-        "src/system/thread_runtime.asm": (
-            '.segment "PRG_JUMP_WITH_PARAMS"',
-            "JumpWithParams:",
-        ),
-        "src/system/thread_runtime.asm": (
-            '.segment "PRG_PPU_UPDATE_BUFFER"',
-            "PublishPpuUpdateBuffer:",
-        ),
-        "src/system/thread_runtime.asm": (
-            '.segment "PRG_PAUSE_THREAD"',
-            "PauseGameThread:",
-            "ClearStartLatchWhenReleased:",
-        ),
-        "src/system/thread_runtime.asm": (
-            '.segment "PRG_SOUND_EFFECT_QUEUE"',
-            "AddSoundEffect:",
-            "FindSoundEffectQueueSlot:",
-            "StoreSoundEffectRequest:",
-        ),
-        "src/game/flow/runtime.asm": (
-            '.segment "PRG_MAIN_THREAD"',
-            "MainGameplayThread:",
-            "ContinueMainGameplayThread:",
         ),
         "src/game/objects/update_pipeline.asm": (
+            '.segment "PRG_OBJECT_UPDATE"',
+            "UpdateActiveObjects:",
             '.segment "PRG_COORDINATE_CONVERSION"',
             "ConvertPixelCoordinatesToMapIndex:",
-            "ConvertMapIndexToPixelCoordinates:",
-        ),
-        "src/game/objects/update_pipeline.asm": (
             '.segment "PRG_LOAD_OBJECT_POINTER"',
             "LoadObjectPointer:",
         ),
         "src/game/objects/collision_and_motion.asm": (
+            '.segment "PRG_OBJECT_COLLISION_RESPONSE"',
+            "HandleObjectCollisionMask00:",
             '.segment "PRG_OBJECT_Y_CLAMP"',
             "ObjectClampYCoordinateToSurface:",
+            '.segment "PRG_OBJECT_MOTION_ANIMATION"',
+            "LoadObjectMotionAndAnimationDefinition:",
         ),
-        "src/game/objects/collision_and_motion.asm": (
-            '.segment "PRG_OBJECT_X_LEFT_CLAMP"',
-            "ObjectClampXCoordinateToLeftSurface:",
-            "ClearObjectXMotion:",
-        ),
-        "src/game/objects/update_pipeline.asm": (
-            '.segment "PRG_SET_ACTIVE_OBJECT_STATES"',
-            "SetActiveNonDanaObjectState:",
-        ),
-        "src/game/objects/update_pipeline.asm": (
-            '.segment "PRG_DEACTIVATE_NON_DANA_OBJECTS"',
-            "DeactivateAllNonDanaObjects:",
+        "src/game/flow/runtime.asm": (
+            '.segment "PRG_MAIN_THREAD"',
+            "MainGameplayThread:",
+            '.segment "PRG_ATTRACT_DEMO_FLOW"',
+            '.segment "PRG_GAMEPLAY_EXIT_FLOW"',
         ),
         "src/game/timer/runtime.asm": (
             '.segment "PRG_TIMER"',
             "DecrementTimer:",
-            "DecrementTimerByOne:",
-            "UpdateTimerWarningState:",
-        ),
-        "src/game/timer/runtime.asm": (
             '.segment "PRG_TIMER_DISPLAY"',
             "BuildTimerDisplayUpdate:",
-            "TimerDisplayWriterCallTemplate:",
         ),
         "src/game/enemies/runtime.asm": (
             '.segment "PRG_ENEMY_MOVEMENT"',
             "UpdateEnemiesMovement:",
-            "UpdateNextEnemyMovement:",
-        ),
-        "src/game/enemies/runtime.asm": (
             '.segment "PRG_ENEMY_AI_DISPATCH"',
             "RunEnemyAiDispatcher:",
-            "CheckNextEnemyAiSlot:",
-        ),
-        "src/game/enemies/early_ai.asm": (
-            '.segment "PRG_ENEMY_AI_HANDLERS"',
-            "DispatchEnemyAiHandler:",
-            "EnemyAiHandlerTable:",
-        ),
-        "src/game/enemies/early_ai.asm": (
-            '.segment "PRG_EARLY_ENEMY_AI"',
-            "RunType00To03EnemyAi:",
-            "HandleEnemyCollisionReward:",
-            "RunType04To07EnemyAi:",
-        ),
-        "src/game/enemies/mid_ai.asm": (
-            '.segment "PRG_MID_ENEMY_AI"',
-            "RunType10To13EnemyAi:",
-            "RunType54To5BEnemyAi:",
-            "RunType08To0BEnemyAi:",
-        ),
-        "src/game/enemies/pathfinding_ai.asm": (
-            '.segment "PRG_PATHFINDING_ENEMY_AI"',
-            "UpdateType08To0BPhaseAction:",
-            "RunType14To17EnemyAi:",
-            "Type14To1BPathMaskHandlers:",
-        ),
-        "src/game/enemies/collision_ai.asm": (
-            '.segment "PRG_COLLISION_ENEMY_AI"',
-            "RunType1CTo37EnemyAi:",
-            "SampleCurrentEnemyRoomMapCollision:",
-            "RunType5CTo63EnemyAi:",
-        ),
-        "src/game/enemies/late_ai.asm": (
-            '.segment "PRG_LATE_ENEMY_AI"',
-            "RunType64To6BEnemyAi:",
-            "RunType0CTo0FEnemyAi:",
-            "RunType48To53EnemyAi:",
-        ),
-        "src/game/enemies/runtime.asm": (
-            '.segment "PRG_ENEMY_POSITION"',
-            "LoadCurrentEnemyPosition:",
-        ),
-        "src/game/enemies/runtime.asm": (
-            '.segment "PRG_ENEMY_POINTERS"',
-            "LoadEnemyObjectPointer:",
-            "LoadEnemyAiPointer:",
-        ),
-        "src/game/enemies/runtime.asm": (
-            '.segment "PRG_FIND_FREE_ENEMY_SLOT"',
-            "FindFreeEnemySlotIndex:",
-            "FinishEnemySlotSearch:",
-        ),
-        "src/game/enemies/runtime.asm": (
+            '.segment "PRG_ENEMY_INITIALIZATION"',
+            "InitializeEnemy:",
+            '.segment "PRG_ENEMY_TYPE_CONFIGURATION"',
+            "ConfigureEnemyType:",
             '.segment "PRG_ENEMY_DEACTIVATION"',
             "DeactivateEnemySlot:",
         ),
-        "src/game/enemies/runtime.asm": (
-            '.segment "PRG_CURRENT_ENEMY_DEACTIVATION"',
-            "DeactivateCurrentEnemy:",
+        "src/game/enemies/early_ai.asm": (
+            '.segment "PRG_ENEMY_AI_HANDLERS"',
+            "EnemyAiHandlerTable:",
+            '.segment "PRG_EARLY_ENEMY_AI"',
+            "RunType00To03EnemyAi:",
         ),
-        "src/game/items/progression.asm": (
-            '.segment "PRG_FIREBALL_LIFETIME"',
-            "UpdateFireballLifetime:",
-            "FinishFireballLifetimeUpdate:",
+        "src/game/enemies/mid_ai.asm": ('.segment "PRG_MID_ENEMY_AI"',),
+        "src/game/enemies/pathfinding_ai.asm": (
+            '.segment "PRG_PATHFINDING_ENEMY_AI"',
         ),
-        "src/game/enemies/runtime.asm": (
-            '.segment "PRG_ENEMY_INITIALIZATION"',
-            "InitializeEnemy:",
-            "ClearEnemyAiStateFields:",
+        "src/game/enemies/collision_ai.asm": (
+            '.segment "PRG_COLLISION_ENEMY_AI"',
         ),
-        "src/game/enemies/runtime.asm": (
-            '.segment "PRG_ENEMY_TYPE_CONFIGURATION"',
-            "ConfigureEnemyType:",
-            "FinishEnemyTypeConfiguration:",
-        ),
+        "src/game/enemies/late_ai.asm": ('.segment "PRG_LATE_ENEMY_AI"',),
         "src/data/enemies/tables.asm": (
             '.segment "PRG_ENEMY_TYPE_DATA"',
             "EnemyTypeConfigurationTable:",
-            "EnemyTypeConfigurationCount =",
-        ),
-        "src/data/enemies/tables.asm": (
             '.segment "PRG_ENEMY_POINTER_TABLES"',
             "EnemyAiRecordPointerLowTable:",
-            "EnemyAiRecordPointerHighTable:",
-            "ObjectRecordPointerLowTable:",
-            "ObjectRecordPointerHighTable:",
         ),
+        "src/audio/engine.asm": ('.segment "PRG_AUDIO_ENGINE"',),
+        "src/audio/data.asm": ('.segment "PRG_AUDIO_TIMING_TABLES"',),
         "src/graphics/chr.asm": (
             '.segment "PRG_BANK_1"',
             '.incbin "../../assets/generated/chr/solomons_key.chr"',
@@ -787,7 +750,7 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_tracked_outputs(ROOT)
     print(
         "[OK] project structure, manifests, source contract, Python/JSON syntax, "
-        "documentation links, and private/generated file policy"
+        "documentation links, source organization, and private/generated file policy"
     )
 
 

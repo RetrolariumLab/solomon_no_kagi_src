@@ -49,7 +49,7 @@ class ReconstructionStatusTests(unittest.TestCase):
         root = Path(temporary.name)
         (root / "src" / "system").mkdir(parents=True)
         (root / "src" / "preservation").mkdir(parents=True)
-        (root / "src" / "system" / "nmi.asm").write_text(
+        (root / "src" / "system" / "boot_and_frame.asm").write_text(
             '.segment "PRG_NMI"\nNMI:\n    RTI\n',
             encoding="utf-8",
         )
@@ -152,7 +152,7 @@ class ReconstructionStatusTests(unittest.TestCase):
 
     def test_rejects_semantic_label_without_provenance(self) -> None:
         root, manifest, ledger, map_path, labels_path = self.make_fixture()
-        module = root / "src" / "system" / "nmi.asm"
+        module = root / "src" / "system" / "boot_and_frame.asm"
         module.write_text(
             module.read_text(encoding="utf-8") + "UndocumentedName:\n    RTS\n",
             encoding="utf-8",
