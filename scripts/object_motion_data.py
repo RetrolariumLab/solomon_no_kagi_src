@@ -37,6 +37,12 @@ class MotionVector:
     x_velocity: int
 
 
+OBJECT_MOTION_MANIFESTS = {
+    "usa": "object_motion.json",
+    "europe": "object_motion_europe.json",
+}
+
+
 def encode_selectors(selectors: list[int]) -> bytes:
     if any(not 0 <= selector <= 0xFF for selector in selectors):
         raise RoomDataError("object motion selector is outside byte range")
@@ -54,6 +60,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
     if not isinstance(pointers, list) or not pointers:
         raise RoomDataError("object motion manifest needs object_type_pointers")
     return value
+
+
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"object motion profile mismatch: expected={profile}, manifest={actual}"
+        )
 
 
 def decode_motion_vectors(
@@ -317,11 +331,17 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit", "source"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(OBJECT_MOTION_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "object_motion.json"
+    manifest_path = args.manifest or (
+        root / "config" / OBJECT_MOTION_MANIFESTS[args.profile]
+    )
     try:
         manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
         prg = extract_prg(args.image.read_bytes())
         if args.command == "source":
             print(emit_source(prg, manifest), end="")
@@ -340,7 +360,7 @@ def main() -> int:
         print(f"[FAIL] Object motion audit found {len(errors)} error(s)", file=sys.stderr)
         return 1
     print(
-        "[OK] Object motion: "
+        f"[OK] Object motion ({args.profile}): "
         f"{report['object_type_count']} type pointers, "
         f"{report['selector_group_count']} selector groups, "
         f"{report['selector_count']} action selectors, and "

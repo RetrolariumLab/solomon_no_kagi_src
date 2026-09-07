@@ -367,6 +367,8 @@ passes on the reviewed `main` commit.
   27 watch ranges against each build, with explicit PAL relocation overrides;
 - four ROM- and symbol-bound PAL traces cover boot, Room 1 entry, pause/resume,
   scheduler/timer cadence, and relocated audio-stream priority behavior;
+- independent object-motion manifests round-trip the relocated pointers,
+  shared selectors, and all 35 profile-selected USA/PAL velocity pairs;
 - the level authoring document and editor described in
   `docs/revision_profiles.md` are the first content-tooling deliverable. The
   document importer, validator, ROM builder, capacity checks, and byte-exact

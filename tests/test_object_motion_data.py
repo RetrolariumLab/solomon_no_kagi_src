@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
 import unittest
 
 from scripts.object_motion_data import (
@@ -9,11 +10,24 @@ from scripts.object_motion_data import (
     emit_source,
     encode_motion_vectors,
     encode_selectors,
+    load_manifest,
+    validate_manifest_profile,
     validate_report,
 )
 
 
 class ObjectMotionDataTests(unittest.TestCase):
+    def test_committed_profiles_record_shared_selectors_and_distinct_vectors(self) -> None:
+        root = Path(__file__).resolve().parent.parent
+        usa = load_manifest(root / "config" / "object_motion.json")
+        europe = load_manifest(root / "config" / "object_motion_europe.json")
+        validate_manifest_profile(usa, "usa")
+        validate_manifest_profile(europe, "europe")
+        self.assertEqual(usa["selector_sha1"], europe["selector_sha1"])
+        self.assertNotEqual(usa["pointer_sha1"], europe["pointer_sha1"])
+        self.assertNotEqual(usa["vector_sha1"], europe["vector_sha1"])
+        self.assertEqual(usa["motion_vector_count"], europe["motion_vector_count"])
+
     def test_decodes_y_and_x_motion_pairs(self) -> None:
         prg = bytearray(32_768)
         prg[0:4] = bytes((0x80, 0x10, 0x40, 0x68))

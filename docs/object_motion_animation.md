@@ -20,7 +20,8 @@ corresponding component is preserved rather than overwritten.
 
 ## Motion selection
 
-`ObjectMotionSelectorPointers` at `$D9D3` contains 33 little-endian pointers.
+`ObjectMotionSelectorPointers` at USA `$D9D3` / Europe `$D953` contains 33
+little-endian pointers.
 The loader groups byte-1 values in sets of four by calculating
 `(type >> 2) * 2`, then indexes the selected table by the action byte. A
 nonnegative selector directly indexes paired Y/X values at `$DB99`.
@@ -30,7 +31,7 @@ A negative selector is a room-state mask. The loader intersects it with
 uses that value for a second lookup in the same selector table. This accounts
 for room-dependent motion without changing the object action.
 
-`make object-motion-audit` locks the full adjacent layout before source
+`make object-motion-audit` locks the frozen USA layout before source
 extraction: 33 object-type pointers, 20 unique selector groups containing 388
 action bytes, and 35 paired Y/X motion vectors. It also rejects any nonnegative
 selector outside the vector table and checks independent SHA-1 values for all
@@ -38,6 +39,14 @@ three regions. Its encoder additionally reconstructs all 524 bytes from the
 decoded pointer, selector, and vector records and compares them byte-for-byte.
 `make object-motion-report` emits the decoded JSON view from the built ROM
 using `config/object_motion.json`.
+
+Source Reconstruction 2.0 adds the independent
+`config/object_motion_europe.json` contract. The 66-byte pointer table and
+388-byte selector region move `$80` bytes earlier; selectors are semantically
+and byte-identical after relocation, while all 35 paired PAL vectors are
+profile-selected values with their own hash. Run
+`make object-motion-profile-audits` to decode, validate exact coverage, and
+round-trip all 524 bytes from both source-built ROMs.
 
 The complete `$D9D3-$DBDE` range is now source-owned in the 523-line
 `src/data/object_motion.asm`. Its macros distinguish direct vector indices

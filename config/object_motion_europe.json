@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "profile": "europe",
+  "pointer_table_address": "0xd953",
+  "object_type_pointers": [
+    "0xd995", "0xda59", "0xd995", "0xda59", "0xda59", "0xd9d1",
+    "0xd9f5", "0xd9d5", "0xd9e9", "0xdafd", "0xd9ed", "0xd9ed",
+    "0xd9f9", "0xda09", "0xda19", "0xda29", "0xd9f9", "0xda09",
+    "0xda19", "0xda29", "0xd9b5", "0xda39", "0xda55", "0xd9b5",
+    "0xda39", "0xda71", "0xda8d", "0xd9b5", "0xdaa9", "0xdac5",
+    "0xdae1", "0xd9b5", "0xdafd"
+  ],
+  "selector_data_start": "0xd995",
+  "selector_data_end": "0xdb18",
+  "selector_groups": [
+    {"address": "0xd995", "action_count": 32},
+    {"address": "0xd9b5", "action_count": 28},
+    {"address": "0xd9d1", "action_count": 4},
+    {"address": "0xd9d5", "action_count": 20},
+    {"address": "0xd9e9", "action_count": 4},
+    {"address": "0xd9ed", "action_count": 8},
+    {"address": "0xd9f5", "action_count": 4},
+    {"address": "0xd9f9", "action_count": 16},
+    {"address": "0xda09", "action_count": 16},
+    {"address": "0xda19", "action_count": 16},
+    {"address": "0xda29", "action_count": 16},
+    {"address": "0xda39", "action_count": 28},
+    {"address": "0xda55", "action_count": 4},
+    {"address": "0xda59", "action_count": 24},
+    {"address": "0xda71", "action_count": 28},
+    {"address": "0xda8d", "action_count": 28},
+    {"address": "0xdaa9", "action_count": 28},
+    {"address": "0xdac5", "action_count": 28},
+    {"address": "0xdae1", "action_count": 28},
+    {"address": "0xdafd", "action_count": 28}
+  ],
+  "selector_count": 388,
+  "motion_vector_address": "0xdb19",
+  "motion_vector_count": 35,
+  "pointer_sha1": "94261b5b97f3eba0857029a070be1db47bc85f56",
+  "selector_sha1": "1aed6ad168b7cb6c18a7f0b4dbad1d50e925b268",
+  "vector_sha1": "fb19179e1a07a9163dd1848d5d7a2c8caaceb79e"
+}

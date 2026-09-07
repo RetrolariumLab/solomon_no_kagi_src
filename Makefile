@@ -173,7 +173,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	item-handler-report item-handler-audit \
 	enemy-pointer-report enemy-pointer-audit ppu-update-report ppu-update-audit \
 	object-animation-report object-animation-audit \
-	object-motion-report object-motion-audit \
+	object-motion-report object-motion-audit object-motion-profile-audit \
+	object-motion-profile-audits \
 	title-data-report title-data-audit audio-data-report audio-data-audit \
 	audio-profile-audit audio-profile-audits clean \
 	list-revisions identify-revision verify-revision-reference \
@@ -580,6 +581,14 @@ object-motion-report: $(ROM)
 
 object-motion-audit: $(ROM)
 	$(PYTHON) scripts/object_motion_data.py audit --image "$(ROM)"
+
+object-motion-profile-audit: build-revision
+	$(PYTHON) scripts/object_motion_data.py audit --image "$(REVISION_ROM)" \
+		--profile "$(PROFILE)"
+
+object-motion-profile-audits:
+	$(MAKE) object-motion-profile-audit PROFILE=usa
+	$(MAKE) object-motion-profile-audit PROFILE=europe
 
 title-data-report: $(ROM)
 	$(PYTHON) scripts/title_data.py report --image "$(ROM)"

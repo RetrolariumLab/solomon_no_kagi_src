@@ -191,6 +191,12 @@ profile-selected fixed-point object-motion vectors, PAL timer rates, the
 relocated ending calls, and the PAL post-game restart flow. Regional filler is
 expressed as layout data rather than imported as an opaque blob.
 
+The object-motion codec now audits both physical layouts independently. USA
+uses `$D9D3-$DBDE`; Europe uses `$D953-$DB5E`. Their 388 action selectors are
+identical, but relocated pointer values and all 35 PAL Y/X vector records have
+separate reviewed hashes. `make object-motion-profile-audits` proves exact
+524-byte coverage and decode/encode identity for each source-built image.
+
 Run the combined source ownership gate with:
 
 ```console
