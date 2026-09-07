@@ -77,6 +77,11 @@ ROOM_SPRITE_PALETTE = (
 )
 ENEMY_TYPE_CONFIGURATION_COUNT = 27
 OBJECT_ANIMATION_POINTER_COUNT = 33
+DANA_WALK_ACTION_RIGHT = 0x14
+DANA_WALK_ACTION_LEFT = 0x15
+TRANSLUCENT_OPACITY = 128
+GROUND_ENEMY_TYPE_MINIMUM = 0x50
+GROUND_ENEMY_TYPE_LIMIT = 0x80
 
 # Four six-metatile constellation layouts. The decoder selects one layout
 # with opcode bits 0-1 and applies a separate palette value to every record.
@@ -139,6 +144,7 @@ class RoomPreview:
     chr_bank: int
     palette: tuple[int, ...]
     rendered_enemy_indices: tuple[int, ...]
+    rendered_player: bool = False
 
     def ppm(self) -> bytes:
         header = f"P6\n{self.width} {self.height}\n255\n".encode("ascii")
@@ -248,10 +254,14 @@ class EnemySpriteDecoder:
             phase = (phase & 0x0F) * 0x11
         return (phase >> 3) + (phase >> 4)
 
-    def frame(self, enemy_type: int) -> SpriteFrame | None:
-        action = self.initial_action(enemy_type)
-        pointer_index = enemy_type >> 2
-        if action is None or not 0 <= pointer_index < OBJECT_ANIMATION_POINTER_COUNT:
+    def action_frame(
+        self, pointer_index: int, action: int, variant: int = 0
+    ) -> SpriteFrame | None:
+        if (
+            not 0 <= pointer_index < OBJECT_ANIMATION_POINTER_COUNT
+            or not 0 <= action <= 0xFF
+            or not 0 <= variant <= 3
+        ):
             return None
         descriptor_group = self.word(self.pointer_address + pointer_index * 2)
         descriptor = descriptor_group + action * 4
@@ -259,13 +269,28 @@ class EnemySpriteDecoder:
         flags = self.byte(descriptor + 1)
         frame_pointer = self.word(descriptor + 2)
         if flags & 1:
-            frame_pointer = self.word(frame_pointer + (enemy_type & 3) * 2)
+            frame_pointer = self.word(frame_pointer + variant * 2)
         frame_pointer += self.initial_frame_offset(initial_phase)
         return SpriteFrame(
             self.byte(frame_pointer),
             self.byte(frame_pointer + 1),
             self.byte(frame_pointer + 2),
         )
+
+    def frame(self, enemy_type: int) -> SpriteFrame | None:
+        action = self.initial_action(enemy_type)
+        if action is None:
+            return None
+        return self.action_frame(enemy_type >> 2, action, enemy_type & 3)
+
+    def dana_frame(self, faces_left: bool) -> SpriteFrame | None:
+        action = DANA_WALK_ACTION_LEFT if faces_left else DANA_WALK_ACTION_RIGHT
+        return self.action_frame(0, action)
+
+
+def mirror_ground_enemy(enemy_type: int) -> bool:
+    """Correct the editor projection for the lateral ground-enemy families."""
+    return GROUND_ENEMY_TYPE_MINIMUM <= enemy_type < GROUND_ENEMY_TYPE_LIMIT
 
 
 def decode_chr_tiles(chr_data: bytes) -> tuple[tuple[tuple[int, ...], ...], ...]:
@@ -517,7 +542,15 @@ class LevelPreviewRenderer:
             return RoomPreview(
                 METATILE_SIZE, METATILE_SIZE, bytes(rgb), bank, palette, ()
             )
-        self._draw_enemy_sprite(rgb, METATILE_SIZE, 0, 0, bank, frame)
+        self._draw_enemy_sprite(
+            rgb,
+            METATILE_SIZE,
+            0,
+            0,
+            bank,
+            frame,
+            mirror_x=mirror_ground_enemy(enemy_type),
+        )
         return RoomPreview(
             METATILE_SIZE, METATILE_SIZE, bytes(rgb), bank, palette, (0,)
         )
@@ -537,15 +570,96 @@ class LevelPreviewRenderer:
         width = ROOM_WIDTH * METATILE_SIZE
         height = ROOM_HEIGHT * METATILE_SIZE
         rgb = bytearray(width * height * 3)
+        combined_blocks = {
+            (position["x"], position["y"])
+            for position in room.get("blocks", {}).get("brown", ())
+            if position in room.get("blocks", {}).get("white", ())
+        }
 
         for cell_y, row in enumerate(values):
             for cell_x, value in enumerate(row):
                 pattern = None
-                if value == ROOM_MAP_EMPTY:
+                translucent_block = (
+                    (cell_x, cell_y) in combined_blocks
+                    and value == ROOM_MAP_WHITE_BLOCK
+                )
+                if value == ROOM_MAP_EMPTY or translucent_block:
                     pattern = constellation_pattern(constellation, cell_x, cell_y)
                 if pattern is None:
-                    pattern = document_pattern(self.document, classify_pattern(value))
+                    pattern_index = (
+                        ROOM_MAP_EMPTY
+                        if translucent_block
+                        else classify_pattern(value)
+                    )
+                    pattern = document_pattern(self.document, pattern_index)
                 self._draw_metatile(rgb, width, cell_x, cell_y, bank, palette, pattern)
+                if translucent_block:
+                    self._draw_metatile(
+                        rgb,
+                        width,
+                        cell_x,
+                        cell_y,
+                        bank,
+                        palette,
+                        document_pattern(self.document, 3),
+                        opacity=TRANSLUCENT_OPACITY,
+                        transparent_zero=True,
+                    )
+
+        if layers.items:
+            patterns = self.document.get("tile_patterns", ())
+            for item_type, position in item_placements(
+                room.get("items", {}).get("commands", ())
+            ):
+                if not item_type & (ROOM_MAP_DECORATION_BIT | ROOM_MAP_SOLID_BIT):
+                    continue
+                if values[position["y"]][position["x"]] != item_type:
+                    continue
+                identity = item_type & 0x3F
+                pattern_index = identity if identity < len(patterns) else ROOM_MAP_EMPTY
+                self._draw_metatile(
+                    rgb,
+                    width,
+                    position["x"],
+                    position["y"],
+                    bank,
+                    palette,
+                    document_pattern(self.document, pattern_index),
+                    opacity=TRANSLUCENT_OPACITY,
+                    transparent_zero=True,
+                )
+
+        metadata = room.get("items", {}).get("metadata", {})
+        if layers.metadata and metadata.get("key_status") in {"hidden", "in_block"}:
+            key = metadata.get("key")
+            expected = KEY_CLASS_BITS[metadata["key_status"]] | ROOM_MAP_KEY
+            if visible(key) and values[key["y"]][key["x"]] == expected:
+                self._draw_metatile(
+                    rgb,
+                    width,
+                    key["x"],
+                    key["y"],
+                    bank,
+                    palette,
+                    document_pattern(self.document, ROOM_MAP_KEY),
+                    opacity=TRANSLUCENT_OPACITY,
+                    transparent_zero=True,
+                )
+
+        rendered_player = False
+        player_start = metadata.get("player_start")
+        if layers.metadata and visible(player_start) and self.enemy_decoder is not None:
+            frame = self.enemy_decoder.dana_frame(player_start["x"] >= ROOM_WIDTH // 2)
+            if frame is not None:
+                self._draw_enemy_sprite(
+                    rgb,
+                    width,
+                    player_start["x"],
+                    player_start["y"],
+                    bank,
+                    frame,
+                )
+                rendered_player = True
         rendered_enemy_indices: list[int] = []
         if layers.enemies and self.enemy_decoder is not None:
             placements = room.get("enemies", {}).get("placements", ())
@@ -564,6 +678,7 @@ class LevelPreviewRenderer:
                     position["y"],
                     bank,
                     frame,
+                    mirror_x=mirror_ground_enemy(enemy_type),
                 )
                 rendered_enemy_indices.append(index)
         return RoomPreview(
@@ -573,6 +688,7 @@ class LevelPreviewRenderer:
             bank,
             palette,
             tuple(rendered_enemy_indices),
+            rendered_player,
         )
 
     def _draw_metatile(
@@ -584,17 +700,34 @@ class LevelPreviewRenderer:
         bank: int,
         palette: tuple[int, ...],
         pattern: PatternRecord,
+        opacity: int = 255,
+        transparent_zero: bool = False,
     ) -> None:
+        if not 0 <= opacity <= 255:
+            raise LevelPreviewError("preview opacity is outside byte range")
         for quadrant, tile_index in enumerate(pattern.tiles):
             tile = self.tile(bank, tile_index)
             origin_x = cell_x * METATILE_SIZE + (quadrant & 1) * 8
             origin_y = cell_y * METATILE_SIZE + (quadrant >> 1) * 8
             for pixel_y, row in enumerate(tile):
                 for pixel_x, pixel in enumerate(row):
+                    if transparent_zero and pixel == 0:
+                        continue
                     palette_index = pattern.palette * 4 + pixel
                     color = NES_RGB[palette[palette_index] & 0x3F]
                     offset = ((origin_y + pixel_y) * output_width + origin_x + pixel_x) * 3
-                    output[offset : offset + 3] = bytes(color)
+                    if opacity == 255:
+                        output[offset : offset + 3] = bytes(color)
+                    else:
+                        output[offset : offset + 3] = bytes(
+                            (
+                                output[offset + channel] * (255 - opacity)
+                                + color[channel] * opacity
+                                + 127
+                            )
+                            // 255
+                            for channel in range(3)
+                        )
 
     def _draw_enemy_sprite(
         self,
@@ -604,6 +737,7 @@ class LevelPreviewRenderer:
         cell_y: int,
         bank: int,
         frame: SpriteFrame,
+        mirror_x: bool = False,
     ) -> None:
         attributes = sprite_attributes(frame.flags)
         for half, tile_byte in enumerate((frame.left_tile, frame.right_tile)):
@@ -622,7 +756,10 @@ class LevelPreviewRenderer:
                     if pixel == 0:
                         continue
                     output_x = 7 - source_x if horizontal_flip else source_x
-                    x = cell_x * METATILE_SIZE + half * 8 + output_x
+                    relative_x = half * 8 + output_x
+                    if mirror_x:
+                        relative_x = METATILE_SIZE - 1 - relative_x
+                    x = cell_x * METATILE_SIZE + relative_x
                     y = cell_y * METATILE_SIZE + output_y
                     color = NES_RGB[
                         ROOM_SPRITE_PALETTE[palette_offset + pixel] & 0x3F

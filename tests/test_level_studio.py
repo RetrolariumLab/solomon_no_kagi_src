@@ -920,8 +920,19 @@ def enemy_preview_data() -> tuple[bytes, bytes, dict[str, str]]:
     frame_offset = 0xD300 - level_preview.PRG_BASE
     prg[frame_offset : frame_offset + 3] = bytes((0x02, 0x04, 0x00))
 
+    dana_pointer_offset = pointer_address - level_preview.PRG_BASE
+    prg[dana_pointer_offset : dana_pointer_offset + 2] = bytes((0x00, 0xD4))
+    dana_descriptor = (
+        0xD400
+        + level_preview.DANA_WALK_ACTION_RIGHT * 4
+        - level_preview.PRG_BASE
+    )
+    prg[dana_descriptor : dana_descriptor + 4] = bytes((0x10, 0x08, 0x00, 0xD5))
+    dana_frame = 0xD500 - level_preview.PRG_BASE
+    prg[dana_frame : dana_frame + 3] = bytes((0x06, 0x08, 0x00))
+
     chr_data = bytearray(level_preview.CHR_BANK_SIZE * 4)
-    for tile in (0x02, 0x03, 0x04, 0x05):
+    for tile in (0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09):
         write_uniform_chr_tile(chr_data, 1, tile, 1)
     contract = {
         "object_animation_pointer_address": hex(pointer_address),
@@ -1006,6 +1017,52 @@ class NativePreviewTests(unittest.TestCase):
             level_preview.classify_pattern(values[4][3]),
             level_preview.ROOM_MAP_EMPTY,
         )
+
+    def test_hidden_and_embedded_items_are_translucent_over_their_base(self) -> None:
+        room = preview_room()
+        room["items"]["commands"] = [
+            {"kind": "item", "type": 0x48, "position": {"x": 2, "y": 0}},
+            {"kind": "item", "type": 0x88, "position": {"x": 3, "y": 0}},
+            {"kind": "end", "opcode": 0xE4},
+        ]
+        document = {"tile_patterns": preview_patterns(), "rooms": [room]}
+        chr_data = chr_with_uniform_tiles(
+            {(1, 0): 2, (1, 8): 3, (1, 16): 1}
+        )
+        preview = level_preview.LevelPreviewRenderer(document, chr_data).render(0)
+        palette = level_preview.room_palette(0)
+
+        def blended(background_pixel: int, foreground_pixel: int) -> tuple[int, ...]:
+            background = level_preview.NES_RGB[palette[background_pixel]]
+            foreground = level_preview.NES_RGB[palette[foreground_pixel]]
+            opacity = level_preview.TRANSLUCENT_OPACITY
+            return tuple(
+                (background[channel] * (255 - opacity)
+                 + foreground[channel] * opacity + 127) // 255
+                for channel in range(3)
+            )
+
+        hidden = tuple(preview.rgb[(2 * 16) * 3 : (2 * 16) * 3 + 3])
+        embedded = tuple(preview.rgb[(3 * 16) * 3 : (3 * 16) * 3 + 3])
+        self.assertEqual(hidden, blended(1, 3))
+        self.assertEqual(embedded, blended(2, 3))
+
+    def test_combined_gray_block_is_translucent_over_background(self) -> None:
+        room = preview_room()
+        room["blocks"]["white"].append({"x": 0, "y": 0})
+        document = {"tile_patterns": preview_patterns(), "rooms": [room]}
+        chr_data = chr_with_uniform_tiles({(1, 3): 3, (1, 16): 1})
+        preview = level_preview.LevelPreviewRenderer(document, chr_data).render(0)
+        palette = level_preview.room_palette(0)
+        background = level_preview.NES_RGB[palette[1]]
+        foreground = level_preview.NES_RGB[palette[3]]
+        opacity = level_preview.TRANSLUCENT_OPACITY
+        expected = tuple(
+            (background[channel] * (255 - opacity)
+             + foreground[channel] * opacity + 127) // 255
+            for channel in range(3)
+        )
+        self.assertEqual(tuple(preview.rgb[:3]), expected)
 
     def test_special_room_palette_branch_is_reproduced(self) -> None:
         palette = level_preview.room_palette(48)
@@ -1111,6 +1168,44 @@ class NativePreviewTests(unittest.TestCase):
         self.assertEqual(preview.rgb[0:3], sprite_color)
         self.assertEqual(preview.rgb[8 * 3 : 9 * 3], sprite_color)
         self.assertEqual(preview.rendered_enemy_indices, (0,))
+
+    def test_renders_dana_at_the_room_start_position(self) -> None:
+        prg, chr_data, contract = enemy_preview_data()
+        room = preview_room()
+        room["items"]["metadata"]["player_start"] = {"x": 0, "y": 0}
+        document = {"tile_patterns": preview_patterns(), "rooms": [room]}
+        preview = level_preview.LevelPreviewRenderer(
+            document, chr_data, prg, contract
+        ).render(0)
+        sprite_color = bytes(
+            level_preview.NES_RGB[level_preview.ROOM_SPRITE_PALETTE[1]]
+        )
+        self.assertTrue(preview.rendered_player)
+        self.assertEqual(preview.rgb[:3], sprite_color)
+
+    def test_ground_enemy_projection_is_horizontally_mirrored(self) -> None:
+        chr_data = bytearray(level_preview.CHR_BANK_SIZE * 4)
+        for tile in (2, 3):
+            write_uniform_chr_tile(chr_data, 1, tile, 1)
+        document = {"tile_patterns": preview_patterns(), "rooms": [preview_room()]}
+        renderer = level_preview.LevelPreviewRenderer(document, bytes(chr_data))
+        background = bytes(level_preview.NES_RGB[level_preview.ROOM_SPRITE_PALETTE[0]])
+        rgb = bytearray(background * (16 * 16))
+        renderer._draw_enemy_sprite(
+            rgb,
+            16,
+            0,
+            0,
+            1,
+            level_preview.SpriteFrame(2, 4, 0),
+            mirror_x=True,
+        )
+        sprite = bytes(level_preview.NES_RGB[level_preview.ROOM_SPRITE_PALETTE[1]])
+        self.assertEqual(rgb[0:3], background)
+        self.assertEqual(rgb[15 * 3 : 16 * 3], sprite)
+        self.assertTrue(level_preview.mirror_ground_enemy(0x50))
+        self.assertTrue(level_preview.mirror_ground_enemy(0x7F))
+        self.assertFalse(level_preview.mirror_ground_enemy(0x34))
 
     def test_enemy_layer_removes_native_sprite_from_preview(self) -> None:
         prg, chr_data, contract = enemy_preview_data()
