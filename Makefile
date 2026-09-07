@@ -17,6 +17,7 @@ SOUND_STUDIO := scripts/sound_studio.py
 AUDIO_PREVIEW_TOOL := scripts/audio_preview.py
 GRAPHICS_EDITOR := scripts/graphics_editor.py
 GRAPHICS_STUDIO := scripts/graphics_studio.py
+PRESENTATION_EDITOR := scripts/presentation_editor.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -31,6 +32,8 @@ AUDIO_PREVIEW_SECONDS ?= 12
 AUDIO_PREVIEW ?= build/content/$(PROFILE)/effect$(AUDIO_EFFECT)-preview.wav
 GRAPHICS_DOCUMENT ?= content/workspace/$(PROFILE)/graphics.json
 GRAPHICS_ROM ?= build/content/$(PROFILE)/solomons_key_graphics.nes
+PRESENTATION_DOCUMENT ?= content/workspace/$(PROFILE)/presentation.json
+PRESENTATION_ROM ?= build/content/$(PROFILE)/solomons_key_presentation.nes
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
@@ -205,6 +208,9 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	export-graphics validate-graphics build-graphics roundtrip-graphics \
 	roundtrip-graphics-profiles graphics-summary graphics-studio \
 	check-graphics-studio \
+	export-presentation validate-presentation build-presentation \
+	roundtrip-presentation roundtrip-presentation-profiles \
+	presentation-summary \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions revision-symbols validate-revision-symbols \
 	validate-revision-symbol-profiles trace-revision-runtime \
@@ -434,6 +440,30 @@ check-graphics-studio:
 		--profile usa --check
 	$(PYTHON) "$(GRAPHICS_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
 		--profile europe --check
+
+export-presentation:
+	$(PYTHON) "$(PRESENTATION_EDITOR)" --profiles "$(REVISION_MANIFEST)" export \
+		--profile "$(PROFILE)" --output "$(PRESENTATION_DOCUMENT)"
+
+validate-presentation:
+	$(PYTHON) "$(PRESENTATION_EDITOR)" --profiles "$(REVISION_MANIFEST)" validate \
+		--input "$(PRESENTATION_DOCUMENT)"
+
+build-presentation:
+	$(PYTHON) "$(PRESENTATION_EDITOR)" --profiles "$(REVISION_MANIFEST)" build \
+		--input "$(PRESENTATION_DOCUMENT)" --output "$(PRESENTATION_ROM)"
+
+roundtrip-presentation:
+	$(PYTHON) "$(PRESENTATION_EDITOR)" --profiles "$(REVISION_MANIFEST)" roundtrip \
+		--profile "$(PROFILE)"
+
+roundtrip-presentation-profiles:
+	$(MAKE) roundtrip-presentation PROFILE=usa
+	$(MAKE) roundtrip-presentation PROFILE=europe
+
+presentation-summary:
+	$(PYTHON) "$(PRESENTATION_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
+		--input "$(PRESENTATION_DOCUMENT)"
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \

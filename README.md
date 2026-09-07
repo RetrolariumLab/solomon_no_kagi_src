@@ -244,6 +244,11 @@ make roundtrip-graphics-profiles # prove untouched USA and Europe CHR identity
 make graphics-summary PROFILE=usa # summarize banks, tiles, and pixels
 make graphics-studio PROFILE=usa # edit all CNROM tiles and palette tables
 make check-graphics-studio # project both regional tile atlases without a GUI
+make export-presentation PROFILE=usa # export title graphics and attract-demo input
+make validate-presentation PROFILE=usa # validate a presentation workspace
+make build-presentation PROFILE=usa # build its fixed-allocation content ROM
+make roundtrip-presentation-profiles # prove USA/PAL presentation identity
+make presentation-summary PROFILE=usa # summarize streams, tiles, and demo steps
 make build-revision PROFILE=europe # assemble the complete PAL source profile
 make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
@@ -374,6 +379,7 @@ scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
 scripts/sound_studio.py    visual audio-bank editor over the shared codec
 scripts/graphics_editor.py deterministic CHR and palette document codec
 scripts/graphics_studio.py visual tile-atlas and NES palette editor
+scripts/presentation_editor.py packed title and attract-demo document codec
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit

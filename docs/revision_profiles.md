@@ -762,6 +762,31 @@ for each profile without opening Tk. Save and build still pass through the
 headless encoder and canonical decode check, so the GUI introduces no second
 serialization path.
 
+## Presentation authoring document
+
+`scripts/presentation_editor.py` combines the two packed title-screen graphics
+streams and the complete attract-demo controller program in one profile-bound
+schema. The `record` and `logo` streams expose cursor commands and 377 literal
+tile values; the demo exposes all 34 duration/button steps with named NES
+buttons rather than opaque masks.
+
+```console
+make export-presentation PROFILE=usa
+make validate-presentation PROFILE=usa
+make build-presentation PROFILE=usa
+make roundtrip-presentation-profiles
+```
+
+Both streams retain their original fixed encoded sizes, and literal bytes must
+remain in the packed format's `$80-$FF` tile range. Demo indices, durations,
+and button names are validated before the two physical tables are emitted.
+The USA and PAL payloads are semantically identical but relocated by `$70`, so
+each document records its own address layout and complete source-ROM identity.
+Build writes only the declared PRG ranges, decodes the result, and compares the
+canonical document. Untouched workspaces reproduce both complete ROMs byte for
+byte. The visual Presentation Studio will be accepted into the Source 2.0 gate
+only after it provides title and demo views over this codec.
+
 ## Remaining Source 2.0 work
 
 The complete European source build closes the regional byte-reconstruction
