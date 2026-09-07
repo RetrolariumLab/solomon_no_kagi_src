@@ -752,10 +752,15 @@ Private ROMs, split CHR, editable workspaces, and built content images remain
 ignored. Open the visual layer with `make graphics-studio PROFILE=usa` (or
 `europe`). It presents one complete 512-tile atlas per bank and an enlarged
 8x8 editor with drag painting, fill, reflections, rotation, copy/paste, and a
-bounded shared undo history. `make check-graphics-studio` projects all 131,072
-pixels for each profile without opening Tk. Save and build still pass through
-the headless encoder and canonical decode check, so the GUI introduces no
-second serialization path.
+bounded shared undo history. The palette panel provides a complete 64-color
+NES picker for all eight background/sprite subpalettes, the fourteen room-group
+selectors, and the three ending-fade colors. `$80` is an explicit special-room
+marker rather than a fake color and can be selected only for a group entry.
+Selecting a subpalette recolors both the bank atlas and enlarged tile.
+`make check-graphics-studio` projects all 131,072 pixels and 49 palette values
+for each profile without opening Tk. Save and build still pass through the
+headless encoder and canonical decode check, so the GUI introduces no second
+serialization path.
 
 ## Remaining Source 2.0 work
 

@@ -227,7 +227,7 @@ class GraphicsStudioTests(unittest.TestCase):
         self.assertTrue(model.edit_pixel(2, 7, 4, 5, 3))
         self.assertTrue(model.dirty)
         self.assertNotEqual(model.rebuilt_image(), model.base_image)
-        self.assertEqual(model.undo(), (2, 7))
+        self.assertEqual(model.undo(), graphics_studio.UndoResult("tile", 2, 7))
         self.assertFalse(model.dirty)
         self.assertEqual(model.rebuilt_image(), model.base_image)
 
@@ -256,6 +256,44 @@ class GraphicsStudioTests(unittest.TestCase):
             graphics_studio.tile_position(512)
         with self.assertRaisesRegex(graphics_editor.GraphicsEditorError, "outside"):
             model.edit_pixel(0, 0, 8, 0, 1)
+
+    def test_palette_edits_share_the_tile_undo_history(self) -> None:
+        model = self.model()
+        original = model.document["palette_data"]["room_palettes"][2][1]
+        replacement = 0x3F if original != 0x3F else 0x2F
+        self.assertTrue(
+            model.edit_palette_value("room_palettes", 2, 1, replacement)
+        )
+        self.assertTrue(model.dirty)
+        self.assertEqual(
+            model.undo(), graphics_studio.UndoResult("room_palettes", 2, 1)
+        )
+        self.assertEqual(
+            model.document["palette_data"]["room_palettes"][2][1], original
+        )
+        self.assertFalse(model.dirty)
+
+    def test_room_group_special_marker_is_typed_and_undoable(self) -> None:
+        model = self.model()
+        original = model.document["palette_data"]["room_group_colors"][0]
+        self.assertTrue(
+            model.edit_palette_value("room_group_colors", 0, 0, 0x80)
+        )
+        model.validate()
+        self.assertEqual(
+            model.undo(), graphics_studio.UndoResult("room_group_colors", 0, 0)
+        )
+        self.assertEqual(
+            model.document["palette_data"]["room_group_colors"][0], original
+        )
+        with self.assertRaisesRegex(
+            graphics_editor.GraphicsEditorError, "0..63 or \\$80"
+        ):
+            model.edit_palette_value("room_group_colors", 0, 0, 0x81)
+
+    def test_nes_palette_indices_have_stable_preview_colors(self) -> None:
+        self.assertEqual(graphics_studio.rgb_hex(0x00), "#545454")
+        self.assertEqual(graphics_studio.rgb_hex(0x30), "#eceeec")
 
 
 if __name__ == "__main__":

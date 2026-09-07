@@ -192,10 +192,15 @@ make check-graphics-studio
 
 Graphics Studio presents a complete per-bank atlas and an enlarged tile editor
 with drag painting, fill, horizontal and vertical reflection, rotation, copy,
-paste, and bounded undo. Save and build actions call the same headless codec;
-the UI has no private serializer. The headless check projects all 131,072
-pixels for each profile, and untouched documents reproduce both complete ROM
-images byte for byte.
+paste, and bounded undo. A semantic palette panel selects any background or
+sprite subpalette, edits its four slots against the complete 64-color NES
+palette, and exposes the room-group and ending-fade tables; the room loader's
+`$80` marker is available only for a group selector. The selected subpalette
+colors the complete atlas and enlarged tile immediately. Save and build actions
+call the same headless codec; the UI has no private serializer. The headless
+check projects all 131,072 pixels and all 49 stored palette values for each
+profile, and untouched documents reproduce both complete ROM images byte for
+byte.
 
 USA and Europe currently share their CHR bytes, but documents remain bound to
 the complete selected ROM identity as well as the CHR hash. This prevents a

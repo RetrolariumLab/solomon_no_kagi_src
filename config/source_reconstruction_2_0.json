@@ -301,7 +301,7 @@
       "profiles": ["usa", "europe"],
       "workspace_pattern": "content/workspace/{profile}/graphics.json",
       "output_pattern": "build/content/{profile}/solomons_key_graphics.nes",
-      "capabilities": ["four_cnrom_banks", "complete_8x8_tile_atlases", "two_bit_pixel_editing", "tile_transformations", "profile_bound_chr_identity"],
+      "capabilities": ["four_cnrom_banks", "complete_8x8_tile_atlases", "two_bit_pixel_editing", "tile_transformations", "room_and_sprite_subpalettes", "room_group_color_selectors", "ending_fade_colors", "profile_bound_chr_identity"],
       "capacity_contract": {"owner": "profile", "evidence": ["scripts/graphics_editor.py", "config/revision_profiles.json", "docs/chr_bank_policy.md"]},
       "targets": {"export": "export-graphics", "validate": "validate-graphics", "build": "build-graphics", "roundtrip": "roundtrip-graphics-profiles", "headless_check": "check-graphics-studio"}
     }

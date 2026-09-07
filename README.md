@@ -242,7 +242,7 @@ make validate-graphics PROFILE=usa # validate and decode a rebuilt graphics imag
 make build-graphics PROFILE=usa # build a ROM with the workspace's edited CHR
 make roundtrip-graphics-profiles # prove untouched USA and Europe CHR identity
 make graphics-summary PROFILE=usa # summarize banks, tiles, and pixels
-make graphics-studio PROFILE=usa # edit every tile in all four CNROM banks
+make graphics-studio PROFILE=usa # edit all CNROM tiles and palette tables
 make check-graphics-studio # project both regional tile atlases without a GUI
 make build-revision PROFILE=europe # assemble the complete PAL source profile
 make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG
@@ -373,7 +373,7 @@ scripts/audio_editor.py    deterministic audio document import/build pipeline
 scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
 scripts/sound_studio.py    visual audio-bank editor over the shared codec
 scripts/graphics_editor.py deterministic CHR and palette document codec
-scripts/graphics_studio.py visual atlas and 8x8 two-bit tile editor
+scripts/graphics_studio.py visual tile-atlas and NES palette editor
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit

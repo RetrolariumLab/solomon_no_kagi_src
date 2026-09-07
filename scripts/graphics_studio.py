@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from dataclasses import dataclass
 from pathlib import Path
 import sys
 import tkinter as tk
@@ -12,6 +13,7 @@ from tkinter import messagebox, ttk
 from typing import Any, Callable
 
 import graphics_editor
+from level_preview import NES_RGB
 from project import ProjectError, write_if_changed
 from revision_profiles import (
     ROOT,
@@ -27,6 +29,22 @@ ATLAS_ROWS = graphics_editor.TILES_PER_BANK // ATLAS_COLUMNS
 ATLAS_SCALE = 2
 EDITOR_SCALE = 32
 DISPLAY_COLORS = ("#101820", "#54616c", "#a7b0b7", "#f2f4f5")
+PALETTE_TABLE_CHOICES = tuple(
+    f"Room palette {index} ({'background' if index < 4 else 'sprite'})"
+    for index in range(graphics_editor.ROOM_PALETTE_COUNT)
+) + ("Room group colors", "Ending fade")
+
+
+def rgb_hex(index: int) -> str:
+    red, green, blue = NES_RGB[index & 0x3F]
+    return f"#{red:02x}{green:02x}{blue:02x}"
+
+
+@dataclass(frozen=True)
+class UndoResult:
+    kind: str
+    first: int
+    second: int
 
 
 def tile_position(index: int) -> tuple[int, int]:
@@ -78,7 +96,7 @@ class GraphicsStudioDocument:
         self.base_image = base_image
         self.path = path
         self.output = output
-        self.undo_stack: list[tuple[int, int, list[str]]] = []
+        self.undo_stack: list[tuple[UndoResult, object]] = []
         self.saved = graphics_editor.canonical_document(self.document)
         self.validate()
 
@@ -98,7 +116,7 @@ class GraphicsStudioDocument:
         if current == checked:
             return False
         graphics_editor.encode_tile(checked)
-        self.undo_stack.append((bank, tile, current))
+        self.undo_stack.append((UndoResult("tile", bank, tile), current))
         del self.undo_stack[:-100]
         self.document["banks"][bank]["tiles"][tile]["rows"] = list(checked)
         return True
@@ -124,12 +142,62 @@ class GraphicsStudioDocument:
             raise graphics_editor.GraphicsEditorError(f"unknown tile operation: {operation}")
         return self.replace_rows(bank, tile, changed)
 
-    def undo(self) -> tuple[int, int] | None:
+    def edit_palette_value(
+        self, section: str, first: int, second: int, value: int
+    ) -> bool:
+        palettes = self.document["palette_data"]
+        if section == "room_palettes":
+            if not 0 <= first < 8 or not 0 <= second < 4:
+                raise graphics_editor.GraphicsEditorError("room palette slot is invalid")
+            graphics_editor.validate_palette_value(value, "room palette color")
+            values = palettes[section][first]
+            current = values[second]
+        elif section == "room_group_colors":
+            if not 0 <= first < 14 or second != 0:
+                raise graphics_editor.GraphicsEditorError("room-group slot is invalid")
+            if value not in range(0x40) and value != 0x80:
+                raise graphics_editor.GraphicsEditorError(
+                    "room-group color must be 0..63 or $80"
+                )
+            values = palettes[section]
+            current = values[first]
+        elif section == "ending_fade":
+            if not 0 <= first < 3 or second != 0:
+                raise graphics_editor.GraphicsEditorError("ending-fade slot is invalid")
+            graphics_editor.validate_palette_value(value, "ending fade color")
+            values = palettes[section]
+            current = values[first]
+        else:
+            raise graphics_editor.GraphicsEditorError(
+                f"unknown palette section: {section}"
+            )
+        if current == value:
+            return False
+        result = UndoResult(section, first, second)
+        self.undo_stack.append((result, current))
+        del self.undo_stack[:-100]
+        if section == "room_palettes":
+            values[second] = value
+        else:
+            values[first] = value
+        graphics_editor.validate_palette_data(palettes)
+        return True
+
+    def undo(self) -> UndoResult | None:
         if not self.undo_stack:
             return None
-        bank, tile, rows = self.undo_stack.pop()
-        self.document["banks"][bank]["tiles"][tile]["rows"] = rows
-        return bank, tile
+        result, previous = self.undo_stack.pop()
+        if result.kind == "tile":
+            self.document["banks"][result.first]["tiles"][result.second][
+                "rows"
+            ] = previous
+        elif result.kind == "room_palettes":
+            self.document["palette_data"][result.kind][result.first][
+                result.second
+            ] = previous
+        else:
+            self.document["palette_data"][result.kind][result.first] = previous
+        return result
 
     def rebuilt_image(self) -> bytes:
         image = graphics_editor.build_graphics_image(
@@ -175,12 +243,16 @@ class GraphicsStudio(tk.Tk):
         self.bank = tk.IntVar(value=0)
         self.tile = tk.IntVar(value=0)
         self.pixel = tk.IntVar(value=1)
+        self.palette_table = tk.StringVar(value=PALETTE_TABLE_CHOICES[0])
+        self.palette_slot = tk.IntVar(value=0)
+        self.preview_palette = 0
         self.status = tk.StringVar()
         self.clipboard_tile: list[str] | None = None
         self.atlas_image: tk.PhotoImage | None = None
         self.atlas_zoom: tk.PhotoImage | None = None
+        self.pixel_buttons: list[tk.Radiobutton] = []
         self.title(f"Solomon's Key Graphics Studio [{model.profile['id']}]")
-        self.geometry("920x690")
+        self.geometry("920x820")
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.build_ui()
         self.bind_shortcuts()
@@ -272,6 +344,7 @@ class GraphicsStudio(tk.Tk):
                 command=self.refresh_status,
             )
             button.pack(side="left", padx=2)
+            self.pixel_buttons.append(button)
 
         actions = ttk.Frame(editor_frame)
         actions.pack(pady=12)
@@ -286,6 +359,47 @@ class GraphicsStudio(tk.Tk):
             ttk.Button(actions, text=label, command=command).pack(
                 side="left", padx=3
             )
+
+        palette_editor = ttk.LabelFrame(
+            editor_frame, text="NES palette tables", padding=7
+        )
+        palette_editor.pack(fill="x", pady=(3, 8))
+        selector = ttk.Combobox(
+            palette_editor,
+            textvariable=self.palette_table,
+            values=PALETTE_TABLE_CHOICES,
+            state="readonly",
+            width=31,
+        )
+        selector.pack(anchor="w")
+        selector.bind(
+            "<<ComboboxSelected>>", lambda _event: self.select_palette_table()
+        )
+        self.palette_slots = tk.Canvas(
+            palette_editor,
+            width=14 * 31,
+            height=42,
+            highlightthickness=0,
+            bg="#202830",
+        )
+        self.palette_slots.pack(anchor="w", pady=(6, 5))
+        self.palette_slots.bind("<Button-1>", self.click_palette_slot)
+        master = ttk.Frame(palette_editor)
+        master.pack(anchor="w")
+        self.nes_palette = tk.Canvas(
+            master,
+            width=16 * 18,
+            height=4 * 18,
+            highlightthickness=1,
+            highlightbackground="#39434c",
+        )
+        self.nes_palette.pack(side="left")
+        self.nes_palette.bind("<Button-1>", self.click_nes_color)
+        ttk.Button(
+            master,
+            text="$80 special",
+            command=self.set_special_group_color,
+        ).pack(side="left", padx=8)
 
         ttk.Label(
             editor_frame,
@@ -315,6 +429,76 @@ class GraphicsStudio(tk.Tk):
         except (graphics_editor.GraphicsEditorError, OSError, KeyError, IndexError) as exc:
             messagebox.showerror("Graphics Studio", str(exc), parent=self)
             return None
+
+    def palette_binding(self) -> tuple[str, int, int]:
+        table = PALETTE_TABLE_CHOICES.index(self.palette_table.get())
+        slot = self.palette_slot.get()
+        if table < graphics_editor.ROOM_PALETTE_COUNT:
+            if not 0 <= slot < 4:
+                raise graphics_editor.GraphicsEditorError("palette slot is outside 0..3")
+            return "room_palettes", table, slot
+        if table == graphics_editor.ROOM_PALETTE_COUNT:
+            if not 0 <= slot < 14:
+                raise graphics_editor.GraphicsEditorError("room-group slot is outside 0..13")
+            return "room_group_colors", slot, 0
+        if not 0 <= slot < 3:
+            raise graphics_editor.GraphicsEditorError("ending-fade slot is outside 0..2")
+        return "ending_fade", slot, 0
+
+    def palette_values(self) -> list[int]:
+        table = PALETTE_TABLE_CHOICES.index(self.palette_table.get())
+        palettes = self.model.document["palette_data"]
+        if table < graphics_editor.ROOM_PALETTE_COUNT:
+            return list(palettes["room_palettes"][table])
+        if table == graphics_editor.ROOM_PALETTE_COUNT:
+            return list(palettes["room_group_colors"])
+        return list(palettes["ending_fade"])
+
+    def display_colors(self) -> tuple[str, ...]:
+        values = self.model.document["palette_data"]["room_palettes"][
+            self.preview_palette
+        ]
+        return tuple(rgb_hex(value) for value in values)
+
+    def select_palette_table(self) -> None:
+        table = PALETTE_TABLE_CHOICES.index(self.palette_table.get())
+        self.palette_slot.set(0)
+        if table < graphics_editor.ROOM_PALETTE_COUNT:
+            self.preview_palette = table
+        self.refresh_all()
+
+    def click_palette_slot(self, event: tk.Event[tk.Misc]) -> None:
+        values = self.palette_values()
+        self.palette_slot.set(max(0, min(len(values) - 1, event.x // 31)))
+        self.refresh_palette()
+
+    def click_nes_color(self, event: tk.Event[tk.Misc]) -> None:
+        column = max(0, min(15, event.x // 18))
+        row = max(0, min(3, event.y // 18))
+        self.set_palette_value(row * 16 + column)
+
+    def set_palette_value(self, value: int) -> None:
+        binding = self.guarded(self.palette_binding)
+        if binding is None:
+            return
+        changed = self.guarded(
+            lambda: self.model.edit_palette_value(*binding, value)
+        )
+        if changed:
+            self.refresh_all()
+
+    def set_special_group_color(self) -> None:
+        binding = self.guarded(self.palette_binding)
+        if binding is None:
+            return
+        if binding[0] != "room_group_colors":
+            messagebox.showerror(
+                "Graphics Studio",
+                "$80 is valid only in the room-group color table",
+                parent=self,
+            )
+            return
+        self.set_palette_value(0x80)
 
     def select_bank(self) -> None:
         self.bank.set(max(0, min(3, self.bank.get())))
@@ -384,9 +568,21 @@ class GraphicsStudio(tk.Tk):
     def undo(self) -> None:
         restored = self.model.undo()
         if restored is not None:
-            bank, tile = restored
-            self.bank.set(bank)
-            self.tile.set(tile)
+            if restored.kind == "tile":
+                self.bank.set(restored.first)
+                self.tile.set(restored.second)
+            elif restored.kind == "room_palettes":
+                self.palette_table.set(PALETTE_TABLE_CHOICES[restored.first])
+                self.palette_slot.set(restored.second)
+                self.preview_palette = restored.first
+            elif restored.kind == "room_group_colors":
+                self.palette_table.set(
+                    PALETTE_TABLE_CHOICES[graphics_editor.ROOM_PALETTE_COUNT]
+                )
+                self.palette_slot.set(restored.first)
+            else:
+                self.palette_table.set(PALETTE_TABLE_CHOICES[-1])
+                self.palette_slot.set(restored.first)
             self.refresh_all()
 
     def save(self) -> None:
@@ -401,12 +597,13 @@ class GraphicsStudio(tk.Tk):
 
     def refresh_atlas(self) -> None:
         pixels = atlas_pixels(self.model.document, self.bank.get())
+        display_colors = self.display_colors()
         image = tk.PhotoImage(
             width=ATLAS_COLUMNS * 8,
             height=ATLAS_ROWS * 8,
         )
         for y, row in enumerate(pixels):
-            colors = " ".join(DISPLAY_COLORS[int(pixel)] for pixel in row)
+            colors = " ".join(display_colors[int(pixel)] for pixel in row)
             image.put("{" + colors + "}", to=(0, y))
         self.atlas_image = image
         self.atlas_zoom = image.zoom(ATLAS_SCALE, ATLAS_SCALE)
@@ -426,6 +623,7 @@ class GraphicsStudio(tk.Tk):
     def refresh_selection(self) -> None:
         self.editor.delete("all")
         rows = self.model.rows(self.bank.get(), self.tile.get())
+        display_colors = self.display_colors()
         for y, row in enumerate(rows):
             for x, pixel in enumerate(row):
                 self.editor.create_rectangle(
@@ -433,7 +631,7 @@ class GraphicsStudio(tk.Tk):
                     y * EDITOR_SCALE,
                     (x + 1) * EDITOR_SCALE,
                     (y + 1) * EDITOR_SCALE,
-                    fill=DISPLAY_COLORS[int(pixel)],
+                    fill=display_colors[int(pixel)],
                     outline="#39434c",
                 )
         column, row = tile_position(self.tile.get())
@@ -452,6 +650,61 @@ class GraphicsStudio(tk.Tk):
         self.address.configure(text=f"bank ${self.bank.get():X}  tile ${self.tile.get():03X}  absolute ${absolute:03X}")
         self.refresh_status()
 
+    def refresh_palette(self) -> None:
+        values = self.palette_values()
+        selected = max(0, min(len(values) - 1, self.palette_slot.get()))
+        self.palette_slot.set(selected)
+        self.palette_slots.delete("all")
+        for index, value in enumerate(values):
+            left = index * 31
+            color = "#c04080" if value == 0x80 else rgb_hex(value)
+            self.palette_slots.create_rectangle(
+                left + 1,
+                1,
+                left + 30,
+                30,
+                fill=color,
+                outline="#ffcc33" if index == selected else "#65727c",
+                width=3 if index == selected else 1,
+            )
+            self.palette_slots.create_text(
+                left + 15,
+                36,
+                text=f"{value:02X}",
+                fill="#f2f4f5",
+                font=("Consolas", 8),
+            )
+        self.nes_palette.delete("all")
+        selected_value = values[selected]
+        for value in range(64):
+            column, row = value % 16, value // 16
+            left, top = column * 18, row * 18
+            self.nes_palette.create_rectangle(
+                left,
+                top,
+                left + 18,
+                top + 18,
+                fill=rgb_hex(value),
+                outline="#ffcc33" if value == selected_value else "#202830",
+                width=3 if value == selected_value else 1,
+            )
+        display_colors = self.display_colors()
+        for index, button in enumerate(self.pixel_buttons):
+            color = display_colors[index]
+            red, green, blue = NES_RGB[
+                self.model.document["palette_data"]["room_palettes"][
+                    self.preview_palette
+                ][index]
+                & 0x3F
+            ]
+            foreground = "white" if red + green + blue < 300 else "black"
+            button.configure(
+                bg=color,
+                activebackground=color,
+                selectcolor=color,
+                fg=foreground,
+            )
+
     def refresh_status(self) -> None:
         marker = "modified" if self.model.dirty else "saved"
         self.status.set(
@@ -459,6 +712,7 @@ class GraphicsStudio(tk.Tk):
         )
 
     def refresh_all(self) -> None:
+        self.refresh_palette()
         self.refresh_atlas()
         self.refresh_selection()
 
@@ -486,9 +740,20 @@ def check_profile(profile: dict[str, Any], reference: Path) -> str:
         if len(projection) != 256 or any(len(row) != 128 for row in projection):
             raise graphics_editor.GraphicsEditorError("invalid bank atlas projection")
         pixel_total += sum(len(row) for row in projection)
+    palettes = graphics_editor.validate_palette_data(
+        model.document.get("palette_data")
+    )
+    palette_values = sum(len(values) for values in palettes.values())
+    if palette_values != 49:
+        raise graphics_editor.GraphicsEditorError(
+            "Graphics Studio palette projection is incomplete"
+        )
     if model.rebuilt_image() != reference.read_bytes():
         raise graphics_editor.GraphicsEditorError("Graphics Studio changed stock CHR")
-    return f"4 bank atlases, 2,048 tiles, {pixel_total:,} projected pixels"
+    return (
+        f"4 bank atlases, 2,048 tiles, {pixel_total:,} projected pixels, "
+        f"{palette_values} palette values"
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
