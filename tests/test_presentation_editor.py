@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import presentation_editor
+import presentation_studio
 from project import digest
 from revision_profiles import get_profile, load_profiles
 
@@ -156,6 +157,72 @@ class RegionalPresentationTests(unittest.TestCase):
             usa_document["source_rom_sha256"],
             europe_document["source_rom_sha256"],
         )
+
+
+class PresentationStudioTests(unittest.TestCase):
+    def model(self, profile_id: str = "usa") -> presentation_studio.PresentationStudioDocument:
+        profile, image = reference_case(profile_id)
+        document = presentation_editor.export_document(image, profile)
+        return presentation_studio.PresentationStudioDocument(
+            document,
+            profile,
+            image,
+            ROOT / f"content/workspace/{profile_id}/presentation.json",
+            ROOT / f"build/content/{profile_id}/presentation.nes",
+        )
+
+    def test_projects_every_literal_with_title_chr_bank(self) -> None:
+        model = self.model()
+        total = sum(
+            presentation_studio.projected_literal_count(model.projection(index))
+            for index in range(2)
+        )
+        self.assertEqual(total, 377)
+        self.assertEqual(len(model.title_tiles), 256)
+        self.assertTrue(all(len(tile) == 8 for tile in model.title_tiles))
+
+    def test_literal_edit_is_validated_dirty_and_undoable(self) -> None:
+        model = self.model()
+        tokens = model.document["streams"][0]["tokens"]
+        index = next(i for i, token in enumerate(tokens) if token["kind"] == "literal")
+        changed = list(tokens[index]["tiles"])
+        changed[0] = 0x80 if changed[0] != 0x80 else 0x81
+        self.assertTrue(model.edit_literal(0, index, changed))
+        self.assertTrue(model.dirty)
+        self.assertNotEqual(model.rebuilt_image(), model.base_image)
+        self.assertTrue(model.undo())
+        self.assertFalse(model.dirty)
+        self.assertEqual(model.rebuilt_image(), model.base_image)
+
+    def test_demo_edit_shares_the_same_undo_history(self) -> None:
+        model = self.model("europe")
+        original = copy.deepcopy(model.document["demo_steps"][0])
+        self.assertTrue(model.edit_demo_step(0, 17, ["LEFT", "A"]))
+        self.assertEqual(model.document["demo_steps"][0]["buttons"], ["A", "LEFT"])
+        self.assertTrue(model.undo())
+        self.assertEqual(model.document["demo_steps"][0], original)
+        self.assertFalse(model.dirty)
+
+    def test_rejects_literal_resize_and_bad_command_value(self) -> None:
+        model = self.model()
+        tokens = model.document["streams"][0]["tokens"]
+        literal = next(i for i, token in enumerate(tokens) if token["kind"] == "literal")
+        with self.assertRaisesRegex(
+            presentation_editor.PresentationEditorError, "fixed stream capacity"
+        ):
+            model.edit_literal(0, literal, tokens[literal]["tiles"] + [0x80])
+        command = next(i for i, token in enumerate(tokens) if token["kind"] == "set_column")
+        with self.assertRaisesRegex(
+            presentation_editor.PresentationEditorError, "invalid packed title command"
+        ):
+            model.edit_command(0, command, "set_column", 0x40)
+
+    def test_hex_literal_parser_preserves_exact_run_length(self) -> None:
+        self.assertEqual(presentation_studio.parse_literal("$80, 9f FF", 3), [0x80, 0x9F, 0xFF])
+        with self.assertRaisesRegex(
+            presentation_editor.PresentationEditorError, "exactly 2"
+        ):
+            presentation_studio.parse_literal("80", 2)
 
 
 if __name__ == "__main__":

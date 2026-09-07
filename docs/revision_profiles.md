@@ -784,8 +784,21 @@ The USA and PAL payloads are semantically identical but relocated by `$70`, so
 each document records its own address layout and complete source-ROM identity.
 Build writes only the declared PRG ranges, decodes the result, and compares the
 canonical document. Untouched workspaces reproduce both complete ROMs byte for
-byte. The visual Presentation Studio will be accepted into the Source 2.0 gate
-only after it provides title and demo views over this codec.
+byte. Open the visual layer with `make presentation-studio PROFILE=usa` (or
+`europe`). Its title tab renders the physical 32x30 nametable destinations with
+the original fourth CNROM bank and background pattern table selected by
+`PpuCtrlShadow = $B0`. Packed cursor commands and fixed-length literal runs can
+be edited without exposing raw offsets. The attract tab presents all 34 steps
+as named buttons, duration bytes, and a proportional timeline; a zero duration
+is shown with its effective 256-frame meaning. Both tabs share one bounded undo
+history, and every mutation passes through the headless codec before it becomes
+editor state.
+
+`make check-presentation-studio` runs without Tk and projects both regional
+documents. It accounts for all 377 literal destinations, all 256 glyphs in the
+selected title pattern table, all 34 input steps, and all 1,502 effective demo
+frames, then proves that the unedited visual model reproduces the complete
+reference image byte for byte.
 
 ## Remaining Source 2.0 work
 
