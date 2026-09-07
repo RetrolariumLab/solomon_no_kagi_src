@@ -662,6 +662,63 @@ class MirrorDataEditingTests(unittest.TestCase):
         with self.assertRaisesRegex(level_studio.LevelEditorError, "42-byte budget"):
             model.set_mirror_enemy_set(0, [0x50] * 10, 0)
 
+
+class SpecialRoomEditingTests(unittest.TestCase):
+    def test_updates_each_fixed_position_family_with_one_undo_path(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        cases = (
+            ("random_bonus_room", 2, {"x": 9, "y": 10}),
+            ("solomon_seals", 1, {"x": 8, "y": 7}),
+            ("princess_room_hidden_cells", 3, {"x": 6, "y": 5}),
+        )
+        for family, index, position in cases:
+            with self.subTest(family=family):
+                self.assertTrue(
+                    model.set_special_position(
+                        family, index, position["x"], position["y"]
+                    )
+                )
+        special = model.document["special_room_data"]
+        self.assertEqual(special["random_bonus_room"]["positions"][2], cases[0][2])
+        self.assertEqual(special["solomon_seals"][1]["position"], cases[1][2])
+        self.assertEqual(special["princess_room_hidden_cells"][3], cases[2][2])
+        self.assertEqual(len(model.undo_stack), 3)
+
+    def test_updates_bonus_item_type_without_accepting_stream_opcodes(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.set_special_bonus_item_type(4, 0x98))
+        self.assertEqual(
+            model.document["special_room_data"]["random_bonus_room"][
+                "item_types"
+            ][4],
+            0x98,
+        )
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "\\$01..\\$BF"):
+            model.set_special_bonus_item_type(4, 0xC0)
+
+    def test_toggles_special_item_bitplanes_in_grid_order(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        family = "room_20_bat_symbols"
+        self.assertTrue(model.set_special_bitplane_cell(family, 8, 9, True))
+        self.assertTrue(model.set_special_bitplane_cell(family, 2, 3, True))
+        self.assertEqual(
+            model.document["special_room_data"][family],
+            [{"x": 2, "y": 3}, {"x": 8, "y": 9}],
+        )
+        self.assertFalse(model.set_special_bitplane_cell(family, 2, 3, True))
+        self.assertTrue(model.set_special_bitplane_cell(family, 2, 3, False))
+        self.assertEqual(
+            model.document["special_room_data"][family], [{"x": 8, "y": 9}]
+        )
+
+    def test_rejects_unknown_special_family_and_out_of_grid_cell(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "position family"):
+            model.set_special_position("pages", 0, 1, 2)
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "outside 16x12"):
+            model.set_special_bitplane_cell("room_30_blue_opals", 16, 0, True)
+
+
 class StudioLoadingTests(unittest.TestCase):
     def test_loads_existing_matching_workspace(self) -> None:
         document = studio_document()

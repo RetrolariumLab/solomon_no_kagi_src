@@ -631,6 +631,87 @@ class StudioDocument:
 
         return self.mutate(apply)
 
+    def set_special_position(
+        self,
+        family: str,
+        index: int,
+        x: int,
+        y: int,
+    ) -> bool:
+        special = self.document["special_room_data"]
+        if family == "random_bonus_room":
+            records = special[family]["positions"]
+            field = None
+        elif family == "solomon_seals":
+            records = special[family]
+            field = "position"
+        elif family == "princess_room_hidden_cells":
+            records = special[family]
+            field = None
+        else:
+            raise LevelEditorError(f"unknown special-room position family: {family}")
+        if not 0 <= index < len(records):
+            raise LevelEditorError(f"special-room position index is invalid: {index}")
+        position = clean_position({"x": x, "y": y})
+
+        def apply() -> bool:
+            current = records[index][field] if field is not None else records[index]
+            if current == position:
+                return False
+            if field is None:
+                records[index] = position
+            else:
+                records[index][field] = position
+            return True
+
+        return self.mutate(apply)
+
+    def set_special_bonus_item_type(self, index: int, item_type: int) -> bool:
+        item_types = self.document["special_room_data"]["random_bonus_room"][
+            "item_types"
+        ]
+        if not 0 <= index < len(item_types):
+            raise LevelEditorError(f"special-room item index is invalid: {index}")
+        if not 1 <= item_type < 0xC0:
+            raise LevelEditorError("special-room item type must be $01..$BF")
+
+        def apply() -> bool:
+            if item_types[index] == item_type:
+                return False
+            item_types[index] = item_type
+            return True
+
+        return self.mutate(apply)
+
+    def set_special_bitplane_cell(
+        self,
+        family: str,
+        x: int,
+        y: int,
+        enabled: bool,
+    ) -> bool:
+        if family not in {"room_20_bat_symbols", "room_30_blue_opals"}:
+            raise LevelEditorError(f"unknown special-room bitplane: {family}")
+        if not 0 <= x < ROOM_WIDTH or not 0 <= y < ROOM_HEIGHT:
+            raise LevelEditorError("special-room bitplane cell is outside 16x12")
+        positions = self.document["special_room_data"][family]
+        existing = next(
+            (value for value in positions if self.same_position(value, x, y)),
+            None,
+        )
+
+        def apply() -> bool:
+            if enabled and existing is None:
+                positions.append({"x": x, "y": y})
+                positions.sort(key=lambda value: (value["y"], value["x"]))
+                return True
+            if not enabled and existing is not None:
+                positions.remove(existing)
+                return True
+            return False
+
+        return self.mutate(apply)
+
     def set_mirror_schedule(
         self,
         schedule_index: int,
