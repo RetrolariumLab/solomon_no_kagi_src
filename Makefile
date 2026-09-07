@@ -30,6 +30,7 @@ AUDIO_DOCUMENT ?= content/workspace/$(PROFILE)/audio.json
 AUDIO_ROM ?= build/content/$(PROFILE)/solomons_key_audio.nes
 AUDIO_EFFECT ?= 1
 AUDIO_PREVIEW_SECONDS ?= 12
+AUDIO_CHANNELS ?= all
 AUDIO_PREVIEW ?= build/content/$(PROFILE)/effect$(AUDIO_EFFECT)-preview.wav
 GRAPHICS_DOCUMENT ?= content/workspace/$(PROFILE)/graphics.json
 GRAPHICS_ROM ?= build/content/$(PROFILE)/solomons_key_graphics.nes
@@ -394,6 +395,7 @@ preview-audio:
 	$(PYTHON) "$(AUDIO_PREVIEW_TOOL)" --profiles "$(REVISION_MANIFEST)" \
 		--input "$(AUDIO_DOCUMENT)" --profile "$(PROFILE)" \
 		--effect "$(AUDIO_EFFECT)" --seconds "$(AUDIO_PREVIEW_SECONDS)" \
+		--channels "$(AUDIO_CHANNELS)" \
 		--output "$(AUDIO_PREVIEW)"
 
 sound-studio:

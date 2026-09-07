@@ -28,6 +28,7 @@ NOISE_PERIODS = {
 PULSE_DUTIES = (0.125, 0.25, 0.5, 0.75)
 MAX_COMMANDS_PER_NOTE = 10_000
 MAX_STACK_DEPTH = 8
+VOICE_NAMES = ("pulse1", "pulse2", "triangle", "noise")
 
 
 class AudioPreviewError(ValueError):
@@ -375,19 +376,45 @@ class ApuRenderer:
 
 
 def render_trace(
-    trace: PreviewTrace, timing: str, sample_rate: int = SAMPLE_RATE
+    trace: PreviewTrace,
+    timing: str,
+    sample_rate: int = SAMPLE_RATE,
+    enabled_voices: set[int] | None = None,
 ) -> bytes:
+    if enabled_voices is None:
+        enabled_voices = set(range(len(VOICE_NAMES)))
+    invalid = enabled_voices - set(range(len(VOICE_NAMES)))
+    if invalid:
+        raise AudioPreviewError(f"unknown APU voice indices: {sorted(invalid)}")
     renderer = ApuRenderer(timing, sample_rate)
     samples = bytearray()
     frame_rate = FRAME_RATES[timing]
     boundary = 0.0
     emitted = 0
     for frame_number, frame in enumerate(trace.frames, 1):
+        audible = tuple(
+            value if voice in enabled_voices else HardwareFrame(None, 0, 0, 0, 0)
+            for voice, value in enumerate(frame)
+        )
         boundary = frame_number * sample_rate / frame_rate
         while emitted < round(boundary):
-            samples.extend(struct.pack("<h", renderer.sample(frame)))
+            samples.extend(struct.pack("<h", renderer.sample(audible)))
             emitted += 1
     return bytes(samples)
+
+
+def parse_voices(value: str) -> set[int]:
+    """Parse a comma-separated CLI mixer selection."""
+    requested = [name.strip().lower() for name in value.split(",") if name.strip()]
+    if requested == ["all"]:
+        return set(range(len(VOICE_NAMES)))
+    unknown = sorted(set(requested) - set(VOICE_NAMES))
+    if unknown:
+        raise AudioPreviewError(
+            f"unknown APU voices: {', '.join(unknown)}; "
+            f"choose from {', '.join(VOICE_NAMES)} or all"
+        )
+    return {VOICE_NAMES.index(name) for name in requested}
 
 
 def write_preview(
@@ -397,13 +424,14 @@ def write_preview(
     output: Path,
     seconds: float,
     sample_rate: int = SAMPLE_RATE,
+    enabled_voices: set[int] | None = None,
 ) -> PreviewTrace:
     if not 0.05 <= seconds <= 120.0:
         raise AudioPreviewError("preview length must be between 0.05 and 120 seconds")
     timing = profile["timing"]
     maximum_frames = math.ceil(seconds * FRAME_RATES[timing])
     trace = trace_effect(document, effect_number, maximum_frames)
-    payload = render_trace(trace, timing, sample_rate)
+    payload = render_trace(trace, timing, sample_rate, enabled_voices)
     output.parent.mkdir(parents=True, exist_ok=True)
     with wave.open(str(output), "wb") as target:
         target.setnchannels(1)
@@ -422,6 +450,11 @@ def main() -> int:
     parser.add_argument("--profile")
     parser.add_argument("--effect", required=True, type=int)
     parser.add_argument("--seconds", type=float, default=12.0)
+    parser.add_argument(
+        "--channels",
+        default="all",
+        help="comma-separated pulse1,pulse2,triangle,noise selection, or all",
+    )
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     try:
@@ -430,7 +463,12 @@ def main() -> int:
         profile = get_profile(load_profiles(args.profiles), profile_id)
         audio_editor.validate_header(document, profile)
         trace = write_preview(
-            document, profile, args.effect, args.output, args.seconds
+            document,
+            profile,
+            args.effect,
+            args.output,
+            args.seconds,
+            enabled_voices=parse_voices(args.channels),
         )
         print(
             f"[OK] effect {args.effect:02d}: {len(trace.frames)} frames, "

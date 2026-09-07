@@ -353,6 +353,29 @@ class AudioPreviewTests(unittest.TestCase):
         self.assertTrue(any(payload))
         self.assertGreater(trace.note_events, 0)
 
+    def test_preview_mixer_can_isolate_or_mute_apu_voices(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        trace = audio_preview.trace_effect(document, 5, 30)
+        pulse = audio_preview.render_trace(
+            trace, profile["timing"], sample_rate=8_000, enabled_voices={0}
+        )
+        muted = audio_preview.render_trace(
+            trace, profile["timing"], sample_rate=8_000, enabled_voices=set()
+        )
+        self.assertTrue(any(pulse))
+        self.assertFalse(any(muted))
+        self.assertNotEqual(pulse, muted)
+
+    def test_parses_named_preview_channels(self) -> None:
+        self.assertEqual(audio_preview.parse_voices("all"), {0, 1, 2, 3})
+        self.assertEqual(audio_preview.parse_voices("pulse1, noise"), {0, 3})
+        self.assertEqual(audio_preview.parse_voices(""), set())
+        with self.assertRaisesRegex(audio_preview.AudioPreviewError, "unknown APU"):
+            audio_preview.parse_voices("pulse3")
+
     def test_piano_roll_segments_cover_each_voice_without_gaps(self) -> None:
         profile, reference = audio_case("usa")
         document = audio_editor.export_document(
