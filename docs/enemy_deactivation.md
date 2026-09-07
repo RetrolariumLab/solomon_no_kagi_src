@@ -1,6 +1,6 @@
 # Enemy slot deactivation
 
-`src/game/enemies/deactivation.asm` owns CPU `$B492-$B4B5`. The routine accepts
+`src/game/enemies/runtime.asm` owns CPU `$B492-$B4B5`. The routine accepts
 an enemy slot index in `A`, resolves both parallel record pointers, clears byte
 0 in the AI and object records, and writes `$F8` to object offset 7.
 

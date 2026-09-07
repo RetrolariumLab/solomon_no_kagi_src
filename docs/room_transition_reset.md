@@ -1,6 +1,6 @@
 # Room-transition state reset
 
-`src/game/rooms/transition_reset.asm` owns CPU `$C981-$C9BC`: the presentation
+`src/game/rooms/lifecycle.asm` owns CPU `$C981-$C9BC`: the presentation
 data immediately before the reset helper and the helper itself. Both reset
 callers are named in the source-owned gameplay-exit flow beginning at `$C78A`.
 

@@ -1,6 +1,6 @@
 # Early enemy AI families
 
-`src/game/enemies/ai_early.asm` owns `$A4B3-$A68B`, the first two targets of the
+`src/game/enemies/early_ai.asm` owns `$A4B3-$A68B`, the first two targets of the
 28-entry enemy AI dispatcher.
 
 `RunType00To03EnemyAi` combines lifetime/action gating, map collision, motion

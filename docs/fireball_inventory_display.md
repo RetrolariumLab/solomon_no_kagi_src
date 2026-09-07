@@ -1,6 +1,6 @@
 # Fireball inventory display
 
-`src/graphics/hud/fireball_inventory.asm` owns CPU `$A30C-$A39A`; its
+`src/graphics/hud/runtime.asm` owns CPU `$A30C-$A39A`; its
 three tile/header tables occupy `$A39B-$A3A3`. Both known callers refresh the
 HUD after packed fireball inventory can have changed: Dana's successful cast
 at `$9B74` and `RefreshGameplayHud` at `$C3DA`.

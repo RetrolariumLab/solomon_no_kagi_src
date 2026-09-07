@@ -1,6 +1,6 @@
 # Enemy type configuration
 
-`src/game/enemies/type_configuration.asm` owns CPU `$A3F8-$A44D`. Five call
+`src/game/enemies/runtime.asm` owns CPU `$A3F8-$A44D`. Five call
 sites supply `SpawnSlotIndex` and `SpawnType`; three complete spawn paths call
 it immediately after `InitializeEnemy`, while two gameplay paths reconfigure
 already allocated slots from encoded type streams.

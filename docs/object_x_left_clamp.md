@@ -1,6 +1,6 @@
 # Object X-coordinate left-surface clamp
 
-`src/game/objects/clamp_x_left.asm` owns CPU `$8A7F-$8AA3`. Its three callers
+`src/game/objects/collision_and_motion.asm` owns CPU `$8A7F-$8AA3`. Its three callers
 operate on the object selected by `TempPointer08` during collision handling.
 
 Calling convention:

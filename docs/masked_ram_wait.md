@@ -1,6 +1,6 @@
 # Cooperative masked-RAM waits
 
-`src/system/masked_ram_wait.asm` owns CPU `$9165-$9189`. Its two entries use
+`src/system/thread_runtime.asm` owns CPU `$9165-$9189`. Its two entries use
 the same zero-page calling convention:
 
 ```text

@@ -12,7 +12,7 @@ Room metadata decoding resolves two eight-byte schedule pointers at
 two mirror Y/X positions at `$0441-$0444`.
 
 The ROM definitions are source-owned at `$DC00-$DCEB` in
-`src/game/demon_mirror/schedule.asm`: split pointers select 16 fixed-size
+`src/game/demon_mirror/runtime.asm`: split pointers select 16 fixed-size
 schedules and 17 variable-length enemy-set streams. Count, adjacency, and total
 payload assertions guard all four data segments.
 

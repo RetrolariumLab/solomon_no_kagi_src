@@ -8,7 +8,7 @@
   "modules": [
     {
       "id": "nmi",
-      "path": "src/system/nmi.asm",
+      "path": "src/system/boot_and_frame.asm",
       "segment": "PRG_NMI",
       "start": "0x8000",
       "end": "0x80fe",
@@ -45,7 +45,7 @@
     },
     {
       "id": "controller_input",
-      "path": "src/system/controller_input.asm",
+      "path": "src/system/boot_and_frame.asm",
       "segment": "PRG_CONTROLLER_INPUT",
       "start": "0x837d",
       "end": "0x83c1",
@@ -77,7 +77,7 @@
     },
     {
       "id": "object_update",
-      "path": "src/game/objects/update.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_OBJECT_UPDATE",
       "start": "0x863c",
       "end": "0x8688",
@@ -94,7 +94,7 @@
     },
     {
       "id": "object_motion",
-      "path": "src/game/objects/motion.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_OBJECT_MOTION",
       "start": "0x8689",
       "end": "0x86d3",
@@ -109,7 +109,7 @@
     },
     {
       "id": "object_collision",
-      "path": "src/game/objects/collision.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_OBJECT_COLLISION",
       "start": "0x86d4",
       "end": "0x8788",
@@ -135,7 +135,7 @@
     },
     {
       "id": "object_animation",
-      "path": "src/game/objects/animation.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_OBJECT_ANIMATION",
       "start": "0x8789",
       "end": "0x87df",
@@ -149,7 +149,7 @@
     },
     {
       "id": "object_collision_dispatch",
-      "path": "src/game/objects/collision_dispatch.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_OBJECT_COLLISION_DISPATCH",
       "start": "0x87e0",
       "end": "0x8805",
@@ -161,7 +161,7 @@
     },
     {
       "id": "object_collision_handlers",
-      "path": "src/data/objects/collision_handlers.asm",
+      "path": "src/data/objects/animations.asm",
       "segment": "PRG_OBJECT_COLLISION_HANDLERS",
       "start": "0x8806",
       "end": "0x8825",
@@ -172,7 +172,7 @@
     },
     {
       "id": "object_collision_response",
-      "path": "src/game/objects/collision_response.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_COLLISION_RESPONSE",
       "start": "0x8826",
       "end": "0x8a40",
@@ -213,7 +213,7 @@
     },
     {
       "id": "object_y_thirteen_clamp",
-      "path": "src/game/objects/clamp_y_thirteen.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_Y_THIRTEEN_CLAMP",
       "start": "0x8a41",
       "end": "0x8a61",
@@ -224,7 +224,7 @@
     },
     {
       "id": "object_y_clamp",
-      "path": "src/game/objects/clamp_y.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_Y_CLAMP",
       "start": "0x8a62",
       "end": "0x8a7e",
@@ -235,7 +235,7 @@
     },
     {
       "id": "object_x_left_clamp",
-      "path": "src/game/objects/clamp_x_left.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_X_LEFT_CLAMP",
       "start": "0x8a7f",
       "end": "0x8aa3",
@@ -247,7 +247,7 @@
     },
     {
       "id": "object_x_right_clamp",
-      "path": "src/game/objects/clamp_x_right.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_X_RIGHT_CLAMP",
       "start": "0x8aa4",
       "end": "0x8abf",
@@ -258,7 +258,7 @@
     },
     {
       "id": "object_motion_animation",
-      "path": "src/game/objects/motion_animation.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_MOTION_ANIMATION",
       "start": "0x8ac0",
       "end": "0x8b50",
@@ -275,7 +275,7 @@
     },
     {
       "id": "ppu_attribute_read",
-      "path": "src/graphics/ppu/attribute_read.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_PPU_ATTRIBUTE_READ",
       "start": "0x8b51",
       "end": "0x8b7e",
@@ -289,7 +289,7 @@
     },
     {
       "id": "ppu_update_stream",
-      "path": "src/graphics/ppu/update_stream.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_PPU_UPDATE_STREAM",
       "start": "0x8b7f",
       "end": "0x8be1",
@@ -308,7 +308,7 @@
     },
     {
       "id": "pre_startup_padding",
-      "path": "src/data/pre_startup_padding.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_PRE_STARTUP_PADDING",
       "start": "0x8be2",
       "end": "0x8bff",
@@ -319,7 +319,7 @@
     },
     {
       "id": "scheduler",
-      "path": "src/system/scheduler.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_SCHEDULER",
       "start": "0x8d5f",
       "end": "0x8e46",
@@ -335,7 +335,7 @@
     },
     {
       "id": "pause_thread",
-      "path": "src/system/pause_thread.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_PAUSE_THREAD",
       "start": "0x8e47",
       "end": "0x8e8c",
@@ -352,7 +352,7 @@
     },
     {
       "id": "sound_effect_queue",
-      "path": "src/system/sound_effect_queue.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_SOUND_EFFECT_QUEUE",
       "start": "0x8e8d",
       "end": "0x8e9f",
@@ -365,7 +365,7 @@
     },
     {
       "id": "ppu_update_buffer",
-      "path": "src/system/ppu_update_buffer.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_PPU_UPDATE_BUFFER",
       "start": "0x8ea0",
       "end": "0x8ea8",
@@ -376,7 +376,7 @@
     },
     {
       "id": "jump_with_params",
-      "path": "src/system/jump_with_params.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_JUMP_WITH_PARAMS",
       "start": "0x8ea9",
       "end": "0x8ebf",
@@ -387,7 +387,7 @@
     },
     {
       "id": "room_load_palette",
-      "path": "src/data/rooms/load_palette.asm",
+      "path": "src/data/rooms/metadata.asm",
       "segment": "PRG_ROOM_LOAD_PALETTE",
       "start": "0x8ec0",
       "end": "0x8ee3",
@@ -398,7 +398,7 @@
     },
     {
       "id": "room_clear_thread",
-      "path": "src/game/rooms/clear_thread.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_CLEAR_THREAD",
       "start": "0x8ee4",
       "end": "0x8fa1",
@@ -416,7 +416,7 @@
     },
     {
       "id": "room_clear_data",
-      "path": "src/data/rooms/clear.asm",
+      "path": "src/data/rooms/metadata.asm",
       "segment": "PRG_ROOM_CLEAR_DATA",
       "start": "0x8fa2",
       "end": "0x8faf",
@@ -429,7 +429,7 @@
     },
     {
       "id": "room_time_bonus",
-      "path": "src/game/rooms/time_bonus.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_TIME_BONUS",
       "start": "0x8fb0",
       "end": "0x901d",
@@ -449,7 +449,7 @@
     },
     {
       "id": "room_load_thread",
-      "path": "src/game/rooms/load_thread.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_LOAD_THREAD",
       "start": "0x901e",
       "end": "0x911d",
@@ -473,7 +473,7 @@
     },
     {
       "id": "room_load_data",
-      "path": "src/data/rooms/load.asm",
+      "path": "src/data/rooms/metadata.asm",
       "segment": "PRG_ROOM_LOAD_DATA",
       "start": "0x911e",
       "end": "0x9133",
@@ -486,7 +486,7 @@
     },
     {
       "id": "new_game_state_reset",
-      "path": "src/game/flow/new_game_reset.asm",
+      "path": "src/game/flow/runtime.asm",
       "segment": "PRG_NEW_GAME_STATE_RESET",
       "start": "0x9134",
       "end": "0x915d",
@@ -499,7 +499,7 @@
     },
     {
       "id": "coordinate_conversion",
-      "path": "src/game/objects/coordinate_conversion.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_COORDINATE_CONVERSION",
       "start": "0x918a",
       "end": "0x91b8",
@@ -511,7 +511,7 @@
     },
     {
       "id": "room_door_key_update",
-      "path": "src/game/rooms/door_key_update.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_DOOR_KEY_UPDATE",
       "start": "0x91b9",
       "end": "0x91ea",
@@ -524,7 +524,7 @@
     },
     {
       "id": "room_intro",
-      "path": "src/game/rooms/intro.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_INTRO",
       "start": "0x91eb",
       "end": "0x9271",
@@ -541,7 +541,7 @@
     },
     {
       "id": "room_intro_data",
-      "path": "src/data/rooms/intro.asm",
+      "path": "src/data/rooms/metadata.asm",
       "segment": "PRG_ROOM_INTRO_DATA",
       "start": "0x9272",
       "end": "0x92a8",
@@ -554,7 +554,7 @@
     },
     {
       "id": "two_digit_number",
-      "path": "src/game/two_digit_number.asm",
+      "path": "src/game/scoring.asm",
       "segment": "PRG_TWO_DIGIT_NUMBER",
       "start": "0x92a9",
       "end": "0x92bb",
@@ -568,7 +568,7 @@
     },
     {
       "id": "room_entry_animation",
-      "path": "src/game/rooms/entry_animation.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_ENTRY_ANIMATION",
       "start": "0x92bc",
       "end": "0x932e",
@@ -582,7 +582,7 @@
     },
     {
       "id": "room_entry_animation_data",
-      "path": "src/data/rooms/entry_animation.asm",
+      "path": "src/data/rooms/metadata.asm",
       "segment": "PRG_ROOM_ENTRY_ANIMATION_DATA",
       "start": "0x932f",
       "end": "0x933f",
@@ -595,7 +595,7 @@
     },
     {
       "id": "transition_object_orbit",
-      "path": "src/game/transitions/object_orbit.asm",
+      "path": "src/game/transitions/orbit.asm",
       "segment": "PRG_TRANSITION_OBJECT_ORBIT",
       "start": "0x9340",
       "end": "0x93b7",
@@ -612,7 +612,7 @@
     },
     {
       "id": "transition_orbit_position",
-      "path": "src/game/transitions/orbit_position.asm",
+      "path": "src/game/transitions/orbit.asm",
       "segment": "PRG_TRANSITION_ORBIT_POSITION",
       "start": "0x93b8",
       "end": "0x9428",
@@ -626,7 +626,7 @@
     },
     {
       "id": "transition_orbit_scale",
-      "path": "src/game/transitions/orbit_scale.asm",
+      "path": "src/game/transitions/orbit.asm",
       "segment": "PRG_TRANSITION_ORBIT_SCALE",
       "start": "0x9429",
       "end": "0x943f",
@@ -639,7 +639,7 @@
     },
     {
       "id": "quarter_sine",
-      "path": "src/game/transitions/quarter_sine.asm",
+      "path": "src/game/transitions/orbit.asm",
       "segment": "PRG_QUARTER_SINE",
       "start": "0x9440",
       "end": "0x9450",
@@ -651,7 +651,7 @@
     },
     {
       "id": "quarter_sine_data",
-      "path": "src/data/quarter_sine.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_QUARTER_SINE_DATA",
       "start": "0x9451",
       "end": "0x9470",
@@ -662,7 +662,7 @@
     },
     {
       "id": "direct_ppu_transfer",
-      "path": "src/graphics/ppu/direct_transfer.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_DIRECT_PPU_TRANSFER",
       "start": "0x96dc",
       "end": "0x970a",
@@ -674,7 +674,7 @@
     },
     {
       "id": "room_nametable_frame",
-      "path": "src/graphics/rooms/nametable_frame.asm",
+      "path": "src/graphics/rooms/rendering.asm",
       "segment": "PRG_ROOM_NAMETABLE_FRAME",
       "start": "0x970b",
       "end": "0x97a2",
@@ -685,7 +685,7 @@
     },
     {
       "id": "ppu_data_writers",
-      "path": "src/graphics/ppu/data_writers.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_PPU_DATA_WRITERS",
       "start": "0x97a3",
       "end": "0x97b7",
@@ -698,7 +698,7 @@
     },
     {
       "id": "repeated_ppu_patterns",
-      "path": "src/data/repeated_ppu_patterns.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_REPEATED_PPU_PATTERNS",
       "start": "0x97b8",
       "end": "0x97c7",
@@ -712,7 +712,7 @@
     },
     {
       "id": "room_item_decode",
-      "path": "src/game/rooms/item_decode.asm",
+      "path": "src/game/rooms/decoding.asm",
       "segment": "PRG_ROOM_ITEM_DECODE",
       "start": "0x97c8",
       "end": "0x9952",
@@ -747,7 +747,7 @@
     },
     {
       "id": "room_item_decode_data",
-      "path": "src/data/rooms/item_decode.asm",
+      "path": "src/data/rooms/metadata.asm",
       "segment": "PRG_ROOM_ITEM_DECODE_DATA",
       "start": "0x9953",
       "end": "0x99f1",
@@ -762,7 +762,7 @@
     },
     {
       "id": "room_block_decode",
-      "path": "src/game/rooms/block_decode.asm",
+      "path": "src/game/rooms/decoding.asm",
       "segment": "PRG_ROOM_BLOCK_DECODE",
       "start": "0x99f2",
       "end": "0x9a6c",
@@ -821,7 +821,7 @@
     },
     {
       "id": "counter_wait",
-      "path": "src/system/counter_wait.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_COUNTER_WAIT",
       "start": "0x9c52",
       "end": "0x9c5f",
@@ -832,7 +832,7 @@
     },
     {
       "id": "map_interactions",
-      "path": "src/game/rooms/map_interactions.asm",
+      "path": "src/game/rooms/mechanics.asm",
       "segment": "PRG_MAP_INTERACTIONS",
       "start": "0x9c60",
       "end": "0x9db0",
@@ -867,7 +867,7 @@
     },
     {
       "id": "coordinate_object_overlap",
-      "path": "src/game/objects/coordinate_overlap.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_COORDINATE_OBJECT_OVERLAP",
       "start": "0x9db1",
       "end": "0x9dcf",
@@ -879,7 +879,7 @@
     },
     {
       "id": "room_map_cell_update",
-      "path": "src/graphics/rooms/map_cell_update.asm",
+      "path": "src/graphics/rooms/rendering.asm",
       "segment": "PRG_ROOM_MAP_CELL_UPDATE",
       "start": "0x9dd0",
       "end": "0x9edf",
@@ -906,7 +906,7 @@
     },
     {
       "id": "room_map_ppu_address",
-      "path": "src/graphics/rooms/map_ppu_address.asm",
+      "path": "src/graphics/rooms/rendering.asm",
       "segment": "PRG_ROOM_MAP_PPU_ADDRESS",
       "start": "0x9ee0",
       "end": "0x9f22",
@@ -919,7 +919,7 @@
     },
     {
       "id": "main_thread_padding",
-      "path": "src/data/main_thread_padding.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_MAIN_THREAD_PADDING",
       "start": "0x9f23",
       "end": "0x9fff",
@@ -930,7 +930,7 @@
     },
     {
       "id": "static_ppu_update_queue",
-      "path": "src/graphics/ppu/static_update_queue.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_STATIC_PPU_UPDATE_QUEUE",
       "start": "0x9471",
       "end": "0x9487",
@@ -942,7 +942,7 @@
     },
     {
       "id": "static_ppu_update_pointers",
-      "path": "src/data/static_ppu_update_streams.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_STATIC_PPU_UPDATE_POINTERS",
       "start": "0x9488",
       "end": "0x94ab",
@@ -954,7 +954,7 @@
     },
     {
       "id": "static_ppu_update_streams",
-      "path": "src/data/static_ppu_update_streams.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_STATIC_PPU_UPDATE_STREAMS",
       "start": "0x94ac",
       "end": "0x961a",
@@ -982,7 +982,7 @@
     },
     {
       "id": "room_enemy_load",
-      "path": "src/game/rooms/enemy_load.asm",
+      "path": "src/game/rooms/decoding.asm",
       "segment": "PRG_ROOM_ENEMY_LOAD",
       "start": "0x961b",
       "end": "0x9660",
@@ -995,7 +995,7 @@
     },
     {
       "id": "room_map_render",
-      "path": "src/graphics/rooms/map_render.asm",
+      "path": "src/graphics/rooms/rendering.asm",
       "segment": "PRG_ROOM_MAP_RENDER",
       "start": "0x9661",
       "end": "0x96db",
@@ -1012,7 +1012,7 @@
     },
     {
       "id": "gameplay_delay_setup",
-      "path": "src/system/gameplay_delay_setup.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_GAMEPLAY_DELAY_SETUP",
       "start": "0x915e",
       "end": "0x9164",
@@ -1023,7 +1023,7 @@
     },
     {
       "id": "masked_ram_wait",
-      "path": "src/system/masked_ram_wait.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_MASKED_RAM_WAIT",
       "start": "0x9165",
       "end": "0x9189",
@@ -1036,7 +1036,7 @@
     },
     {
       "id": "startup",
-      "path": "src/system/startup.asm",
+      "path": "src/system/boot_and_frame.asm",
       "segment": "PRG_STARTUP",
       "start": "0x8c00",
       "end": "0x8d5e",
@@ -1052,7 +1052,7 @@
     },
     {
       "id": "main_gameplay_thread",
-      "path": "src/game/flow/main_thread.asm",
+      "path": "src/game/flow/runtime.asm",
       "segment": "PRG_MAIN_THREAD",
       "start": "0xa000",
       "end": "0xa04b",
@@ -1064,7 +1064,7 @@
     },
     {
       "id": "demon_mirror_activation",
-      "path": "src/game/demon_mirror/activation.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_ACTIVATION",
       "start": "0xa04c",
       "end": "0xa0a6",
@@ -1081,7 +1081,7 @@
     },
     {
       "id": "demon_mirror_schedule",
-      "path": "src/game/demon_mirror/schedule.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_SCHEDULE",
       "start": "0xa0a7",
       "end": "0xa10f",
@@ -1096,7 +1096,7 @@
     },
     {
       "id": "demon_mirror_spawn",
-      "path": "src/game/demon_mirror/spawn.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_SPAWN",
       "start": "0xa110",
       "end": "0xa143",
@@ -1109,7 +1109,7 @@
     },
     {
       "id": "demon_mirror_initialization",
-      "path": "src/game/demon_mirror/initialization.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_INITIALIZATION",
       "start": "0xa144",
       "end": "0xa15e",
@@ -1134,7 +1134,7 @@
     },
     {
       "id": "timer_warning_data",
-      "path": "src/data/timer_warning.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_TIMER_WARNING_DATA",
       "start": "0xa226",
       "end": "0xa237",
@@ -1148,7 +1148,7 @@
     },
     {
       "id": "timer_display",
-      "path": "src/game/timer/display.asm",
+      "path": "src/game/timer/runtime.asm",
       "segment": "PRG_TIMER_DISPLAY",
       "start": "0xa238",
       "end": "0xa273",
@@ -1162,7 +1162,7 @@
     },
     {
       "id": "enemy_movement",
-      "path": "src/game/enemies/movement.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_MOVEMENT",
       "start": "0xa274",
       "end": "0xa2db",
@@ -1175,7 +1175,7 @@
     },
     {
       "id": "enemy_ai_dispatch",
-      "path": "src/game/enemies/ai_dispatch.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_AI_DISPATCH",
       "start": "0xa2dc",
       "end": "0xa30b",
@@ -1188,7 +1188,7 @@
     },
     {
       "id": "fireball_inventory_display",
-      "path": "src/graphics/hud/fireball_inventory.asm",
+      "path": "src/graphics/hud/runtime.asm",
       "segment": "PRG_FIREBALL_INVENTORY_DISPLAY",
       "start": "0xa30c",
       "end": "0xa39a",
@@ -1208,7 +1208,7 @@
     },
     {
       "id": "fireball_inventory_display_data",
-      "path": "src/data/fireball_inventory_display.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_FIREBALL_INVENTORY_DISPLAY_DATA",
       "start": "0xa39b",
       "end": "0xa3a3",
@@ -1221,7 +1221,7 @@
     },
     {
       "id": "fireball_lifetime",
-      "path": "src/game/items/fireball_lifetime.asm",
+      "path": "src/game/items/progression.asm",
       "segment": "PRG_FIREBALL_LIFETIME",
       "start": "0xa3a4",
       "end": "0xa3d6",
@@ -1235,7 +1235,7 @@
     },
     {
       "id": "enemy_initialization",
-      "path": "src/game/enemies/initialization.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_INITIALIZATION",
       "start": "0xa3d7",
       "end": "0xa3f7",
@@ -1247,7 +1247,7 @@
     },
     {
       "id": "enemy_type_configuration",
-      "path": "src/game/enemies/type_configuration.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_TYPE_CONFIGURATION",
       "start": "0xa3f8",
       "end": "0xa44d",
@@ -1261,7 +1261,7 @@
     },
     {
       "id": "enemy_type_data",
-      "path": "src/data/enemies/types.asm",
+      "path": "src/data/enemies/tables.asm",
       "segment": "PRG_ENEMY_TYPE_DATA",
       "start": "0xa44e",
       "end": "0xa468",
@@ -1272,7 +1272,7 @@
     },
     {
       "id": "enemy_ai_handlers",
-      "path": "src/game/enemies/ai_handlers.asm",
+      "path": "src/game/enemies/early_ai.asm",
       "segment": "PRG_ENEMY_AI_HANDLERS",
       "start": "0xa469",
       "end": "0xa4a5",
@@ -1284,7 +1284,7 @@
     },
     {
       "id": "enemy_position",
-      "path": "src/game/enemies/position.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_POSITION",
       "start": "0xa4a6",
       "end": "0xa4b2",
@@ -1295,7 +1295,7 @@
     },
     {
       "id": "early_enemy_ai",
-      "path": "src/game/enemies/ai_early.asm",
+      "path": "src/game/enemies/early_ai.asm",
       "segment": "PRG_EARLY_ENEMY_AI",
       "start": "0xa4b3",
       "end": "0xa68b",
@@ -1311,7 +1311,7 @@
     },
     {
       "id": "mid_enemy_ai",
-      "path": "src/game/enemies/ai_mid.asm",
+      "path": "src/game/enemies/mid_ai.asm",
       "segment": "PRG_MID_ENEMY_AI",
       "start": "0xa68c",
       "end": "0xa997",
@@ -1330,7 +1330,7 @@
     },
     {
       "id": "pathfinding_enemy_ai",
-      "path": "src/game/enemies/ai_pathfinding.asm",
+      "path": "src/game/enemies/pathfinding_ai.asm",
       "segment": "PRG_PATHFINDING_ENEMY_AI",
       "start": "0xa998",
       "end": "0xad36",
@@ -1349,7 +1349,7 @@
     },
     {
       "id": "collision_enemy_ai",
-      "path": "src/game/enemies/ai_collision.asm",
+      "path": "src/game/enemies/collision_ai.asm",
       "segment": "PRG_COLLISION_ENEMY_AI",
       "start": "0xad37",
       "end": "0xaf5b",
@@ -1367,7 +1367,7 @@
     },
     {
       "id": "late_enemy_ai",
-      "path": "src/game/enemies/ai_late.asm",
+      "path": "src/game/enemies/late_ai.asm",
       "segment": "PRG_LATE_ENEMY_AI",
       "start": "0xaf5c",
       "end": "0xb289",
@@ -1387,7 +1387,7 @@
     },
     {
       "id": "enemy_pointers",
-      "path": "src/game/enemies/pointers.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_POINTERS",
       "start": "0xb28a",
       "end": "0xb2a1",
@@ -1399,7 +1399,7 @@
     },
     {
       "id": "linked_enemy_ai",
-      "path": "src/game/enemies/ai_handlers.asm",
+      "path": "src/game/enemies/early_ai.asm",
       "segment": "PRG_LINKED_ENEMY_AI",
       "start": "0xb2a2",
       "end": "0xb429",
@@ -1420,7 +1420,7 @@
     },
     {
       "id": "enemy_record_pointer_tables",
-      "path": "src/data/enemies/record_pointers.asm",
+      "path": "src/data/enemies/tables.asm",
       "segment": "PRG_ENEMY_POINTER_TABLES",
       "start": "0xb446",
       "end": "0xb491",
@@ -1438,7 +1438,7 @@
     },
     {
       "id": "enemy_slot_allocation",
-      "path": "src/game/enemies/slot_allocation.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_FIND_FREE_ENEMY_SLOT",
       "start": "0xb42a",
       "end": "0xb445",
@@ -1452,7 +1452,7 @@
     },
     {
       "id": "enemy_deactivation",
-      "path": "src/game/enemies/deactivation.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_DEACTIVATION",
       "start": "0xb492",
       "end": "0xb4b5",
@@ -1463,7 +1463,7 @@
     },
     {
       "id": "current_enemy_deactivation",
-      "path": "src/game/enemies/current_deactivation.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_CURRENT_ENEMY_DEACTIVATION",
       "start": "0xb4b6",
       "end": "0xb4c3",
@@ -1474,7 +1474,7 @@
     },
     {
       "id": "enemy_lifetime",
-      "path": "src/game/enemies/current_deactivation.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_ENEMY_LIFETIME",
       "start": "0xb4c4",
       "end": "0xb4f0",
@@ -1486,7 +1486,7 @@
     },
     {
       "id": "filler_before_special_rooms",
-      "path": "src/game/enemies/current_deactivation.asm",
+      "path": "src/game/enemies/runtime.asm",
       "segment": "PRG_FILLER_BEFORE_SPECIAL_ROOMS",
       "start": "0xb4f1",
       "end": "0xb7ff",
@@ -1497,7 +1497,7 @@
     },
     {
       "id": "special_room_scripts",
-      "path": "src/game/rooms/special_scripts.asm",
+      "path": "src/game/rooms/mechanics.asm",
       "segment": "PRG_SPECIAL_ROOM_SCRIPTS",
       "start": "0xb800",
       "end": "0xba33",
@@ -1563,7 +1563,7 @@
     },
     {
       "id": "enemy_drop_processing",
-      "path": "src/game/items/red_bottle.asm",
+      "path": "src/game/items/collection.asm",
       "segment": "PRG_ENEMY_DROP_PROCESSING",
       "start": "0xc100",
       "end": "0xc1e2",
@@ -1580,7 +1580,7 @@
     },
     {
       "id": "random_state",
-      "path": "src/game/items/red_bottle.asm",
+      "path": "src/game/items/collection.asm",
       "segment": "PRG_RANDOM_STATE",
       "start": "0xc1e3",
       "end": "0xc23b",
@@ -1595,7 +1595,7 @@
     },
     {
       "id": "key_collection_presentation",
-      "path": "src/game/items/key.asm",
+      "path": "src/game/items/progression.asm",
       "segment": "PRG_KEY_COLLECTION_PRESENTATION",
       "start": "0xc23c",
       "end": "0xc2a5",
@@ -1611,7 +1611,7 @@
     },
     {
       "id": "key_door_animation",
-      "path": "src/game/items/key.asm",
+      "path": "src/game/items/progression.asm",
       "segment": "PRG_KEY_DOOR_ANIMATION",
       "start": "0xc2a6",
       "end": "0xc363",
@@ -1630,7 +1630,7 @@
     },
     {
       "id": "coordinate_delta",
-      "path": "src/game/objects/coordinate_delta.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_COORDINATE_DELTA",
       "start": "0xc364",
       "end": "0xc385",
@@ -1643,7 +1643,7 @@
     },
     {
       "id": "item_presentation",
-      "path": "src/game/items/collision.asm",
+      "path": "src/game/items/collection.asm",
       "segment": "PRG_ITEM_PRESENTATION",
       "start": "0xc386",
       "end": "0xc3d3",
@@ -1659,7 +1659,7 @@
     },
     {
       "id": "gameplay_hud",
-      "path": "src/graphics/hud/gameplay.asm",
+      "path": "src/graphics/hud/runtime.asm",
       "segment": "PRG_GAMEPLAY_HUD",
       "start": "0xc3d4",
       "end": "0xc3fd",
@@ -1673,7 +1673,7 @@
     },
     {
       "id": "gameplay_hud_data",
-      "path": "src/data/gameplay_hud.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_GAMEPLAY_HUD_DATA",
       "start": "0xc3fe",
       "end": "0xc402",
@@ -1684,7 +1684,7 @@
     },
     {
       "id": "score_display",
-      "path": "src/graphics/hud/score.asm",
+      "path": "src/graphics/hud/runtime.asm",
       "segment": "PRG_SCORE_DISPLAY",
       "start": "0xc403",
       "end": "0xc42d",
@@ -1699,7 +1699,7 @@
     },
     {
       "id": "item_collision",
-      "path": "src/game/items/collision.asm",
+      "path": "src/game/items/collection.asm",
       "segment": "PRG_ITEM_COLLISION",
       "start": "0xc42e",
       "end": "0xc4d2",
@@ -1720,7 +1720,7 @@
     },
     {
       "id": "item_handler_table",
-      "path": "src/data/item_handlers.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_ITEM_HANDLER_TABLE",
       "start": "0xc4d3",
       "end": "0xc50c",
@@ -1731,7 +1731,7 @@
     },
     {
       "id": "red_bottle_item",
-      "path": "src/game/items/red_bottle.asm",
+      "path": "src/game/items/collection.asm",
       "segment": "PRG_RED_BOTTLE_ITEM",
       "start": "0xc50d",
       "end": "0xc53c",
@@ -1745,7 +1745,7 @@
     },
     {
       "id": "special_item_flags",
-      "path": "src/game/items/special_flags.asm",
+      "path": "src/game/items/collection.asm",
       "segment": "PRG_SPECIAL_ITEM_FLAGS",
       "start": "0xc53d",
       "end": "0xc562",
@@ -1760,7 +1760,7 @@
     },
     {
       "id": "key_item",
-      "path": "src/game/items/key.asm",
+      "path": "src/game/items/progression.asm",
       "segment": "PRG_KEY_ITEM",
       "start": "0xc563",
       "end": "0xc586",
@@ -1772,7 +1772,7 @@
     },
     {
       "id": "door_item",
-      "path": "src/game/items/door.asm",
+      "path": "src/game/items/progression.asm",
       "segment": "PRG_DOOR_ITEM",
       "start": "0xc587",
       "end": "0xc60d",
@@ -1790,7 +1790,7 @@
     },
     {
       "id": "gameplay_pool_clear",
-      "path": "src/game/objects/pool_clear.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_GAMEPLAY_POOL_CLEAR",
       "start": "0xc60e",
       "end": "0xc627",
@@ -1804,7 +1804,7 @@
     },
     {
       "id": "timer_item_effects",
-      "path": "src/game/timer/item_effects.asm",
+      "path": "src/game/timer/runtime.asm",
       "segment": "PRG_TIMER_ITEM_EFFECTS",
       "start": "0xc628",
       "end": "0xc697",
@@ -1826,7 +1826,7 @@
     },
     {
       "id": "inventory_item_effects",
-      "path": "src/game/items/inventory_effects.asm",
+      "path": "src/game/items/progression.asm",
       "segment": "PRG_INVENTORY_ITEM_EFFECTS",
       "start": "0xc698",
       "end": "0xc70f",
@@ -1853,7 +1853,7 @@
     },
     {
       "id": "item_score_tables",
-      "path": "src/data/item_scores.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_ITEM_SCORE_TABLES",
       "start": "0xc710",
       "end": "0xc717",
@@ -1865,7 +1865,7 @@
     },
     {
       "id": "auxiliary_effect",
-      "path": "src/game/auxiliary_effect.asm",
+      "path": "src/game/scoring.asm",
       "segment": "PRG_AUXILIARY_EFFECT",
       "start": "0xc718",
       "end": "0xc73a",
@@ -1879,7 +1879,7 @@
     },
     {
       "id": "score_addition",
-      "path": "src/game/score.asm",
+      "path": "src/game/scoring.asm",
       "segment": "PRG_SCORE_ADDITION",
       "start": "0xc73b",
       "end": "0xc755",
@@ -1893,7 +1893,7 @@
     },
     {
       "id": "secondary_thread_reset",
-      "path": "src/system/secondary_thread_reset.asm",
+      "path": "src/system/thread_runtime.asm",
       "segment": "PRG_SECONDARY_THREAD_RESET",
       "start": "0xc756",
       "end": "0xc789",
@@ -1907,7 +1907,7 @@
     },
     {
       "id": "gameplay_exit_transition",
-      "path": "src/game/flow/exit_transition.asm",
+      "path": "src/game/flow/runtime.asm",
       "segment": "PRG_GAMEPLAY_EXIT_FLOW",
       "start": "0xc78a",
       "end": "0xc980",
@@ -1935,7 +1935,7 @@
     },
     {
       "id": "gameplay_exit_data",
-      "path": "src/game/rooms/transition_reset.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_GAMEPLAY_EXIT_DATA",
       "start": "0xc981",
       "end": "0xc9a6",
@@ -1948,7 +1948,7 @@
     },
     {
       "id": "room_transition_reset",
-      "path": "src/game/rooms/transition_reset.asm",
+      "path": "src/game/rooms/lifecycle.asm",
       "segment": "PRG_ROOM_TRANSITION_RESET",
       "start": "0xc9a7",
       "end": "0xc9bc",
@@ -1959,7 +1959,7 @@
     },
     {
       "id": "nametable_clear",
-      "path": "src/graphics/nametable_clear.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_NAMETABLE_CLEAR",
       "start": "0xc9bd",
       "end": "0xca32",
@@ -1975,7 +1975,7 @@
     },
     {
       "id": "nametable_clear_data",
-      "path": "src/data/nametable_clear.asm",
+      "path": "src/data/static_layout.asm",
       "segment": "PRG_NAMETABLE_CLEAR_DATA",
       "start": "0xca33",
       "end": "0xca3b",
@@ -1986,7 +1986,7 @@
     },
     {
       "id": "active_object_states",
-      "path": "src/game/objects/active_states.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_SET_ACTIVE_OBJECT_STATES",
       "start": "0xca3c",
       "end": "0xca4e",
@@ -1999,7 +1999,7 @@
     },
     {
       "id": "object_pointer",
-      "path": "src/game/objects/pointer.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_LOAD_OBJECT_POINTER",
       "start": "0xca4f",
       "end": "0xca59",
@@ -2010,7 +2010,7 @@
     },
     {
       "id": "non_dana_object_deactivation",
-      "path": "src/game/objects/non_dana_deactivation.asm",
+      "path": "src/game/objects/update_pipeline.asm",
       "segment": "PRG_DEACTIVATE_NON_DANA_OBJECTS",
       "start": "0xca5a",
       "end": "0xca6d",
@@ -2022,7 +2022,7 @@
     },
     {
       "id": "attract_demo_flow",
-      "path": "src/game/flow/attract_demo.asm",
+      "path": "src/game/flow/runtime.asm",
       "segment": "PRG_ATTRACT_DEMO_FLOW",
       "start": "0xca6e",
       "end": "0xcb6e",
@@ -2044,7 +2044,7 @@
     },
     {
       "id": "full_nametable_clear",
-      "path": "src/graphics/full_nametable_clear.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_FULL_NAMETABLE_CLEAR",
       "start": "0xcb6f",
       "end": "0xcba5",
@@ -2084,7 +2084,7 @@
     },
     {
       "id": "ppu_address",
-      "path": "src/graphics/ppu/address.asm",
+      "path": "src/graphics/ppu/runtime.asm",
       "segment": "PRG_SET_PPU_ADDRESS",
       "start": "0xcd53",
       "end": "0xcd5e",
@@ -2107,7 +2107,7 @@
     },
     {
       "id": "demo_input_data",
-      "path": "src/game/flow/attract_demo.asm",
+      "path": "src/game/flow/runtime.asm",
       "segment": "PRG_DEMO_INPUT_DATA",
       "start": "0xcef1",
       "end": "0xcf34",
@@ -2119,7 +2119,7 @@
     },
     {
       "id": "pre_room_tile_pattern_filler",
-      "path": "src/game/flow/attract_demo.asm",
+      "path": "src/game/flow/runtime.asm",
       "segment": "PRG_FILLER_BEFORE_ROOM_TILE_PATTERNS",
       "start": "0xcf35",
       "end": "0xcfff",
@@ -2130,7 +2130,7 @@
     },
     {
       "id": "room_tile_patterns",
-      "path": "src/graphics/rooms/map_cell_update.asm",
+      "path": "src/graphics/rooms/rendering.asm",
       "segment": "PRG_ROOM_TILE_PATTERNS",
       "start": "0xd000",
       "end": "0xd0e7",
@@ -2141,7 +2141,7 @@
     },
     {
       "id": "object_animation_descriptor_pointers",
-      "path": "src/game/objects/motion_animation.asm",
+      "path": "src/game/objects/collision_and_motion.asm",
       "segment": "PRG_OBJECT_ANIMATION_DESCRIPTOR_POINTERS",
       "start": "0xd0e8",
       "end": "0xd129",
@@ -2220,7 +2220,7 @@
     },
     {
       "id": "demon_mirror_schedule_pointers",
-      "path": "src/game/demon_mirror/schedule.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_SCHEDULE_POINTERS",
       "start": "0xdc00",
       "end": "0xdc1f",
@@ -2232,7 +2232,7 @@
     },
     {
       "id": "demon_mirror_enemy_set_pointers",
-      "path": "src/game/demon_mirror/schedule.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_ENEMY_SET_POINTERS",
       "start": "0xdc20",
       "end": "0xdc41",
@@ -2244,7 +2244,7 @@
     },
     {
       "id": "demon_mirror_schedule_data",
-      "path": "src/game/demon_mirror/schedule.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_SCHEDULE_DATA",
       "start": "0xdc42",
       "end": "0xdcc1",
@@ -2256,7 +2256,7 @@
     },
     {
       "id": "demon_mirror_enemy_set_data",
-      "path": "src/game/demon_mirror/schedule.asm",
+      "path": "src/game/demon_mirror/runtime.asm",
       "segment": "PRG_DEMON_MIRROR_ENEMY_SET_DATA",
       "start": "0xdcc2",
       "end": "0xdceb",
@@ -2339,7 +2339,7 @@
     },
     {
       "id": "audio_engine",
-      "path": "src/system/audio_engine.asm",
+      "path": "src/audio/engine.asm",
       "segment": "PRG_AUDIO_ENGINE",
       "start": "0xf000",
       "end": "0xf367",
@@ -2355,7 +2355,7 @@
     },
     {
       "id": "audio_timing_tables",
-      "path": "src/data/audio.asm",
+      "path": "src/audio/data.asm",
       "segment": "PRG_AUDIO_TIMING_TABLES",
       "start": "0xf368",
       "end": "0xf399",
@@ -2367,7 +2367,7 @@
     },
     {
       "id": "audio_envelopes",
-      "path": "src/data/audio.asm",
+      "path": "src/audio/data.asm",
       "segment": "PRG_AUDIO_ENVELOPES",
       "start": "0xf39a",
       "end": "0xf47b",
@@ -2380,7 +2380,7 @@
     },
     {
       "id": "sound_effect_data",
-      "path": "src/data/audio.asm",
+      "path": "src/audio/data.asm",
       "segment": "PRG_SOUND_EFFECT_DATA",
       "start": "0xf47c",
       "end": "0xf591",
@@ -2393,7 +2393,7 @@
     },
     {
       "id": "audio_streams",
-      "path": "src/data/audio.asm",
+      "path": "src/audio/data.asm",
       "segment": "PRG_AUDIO_STREAMS",
       "start": "0xf592",
       "end": "0xfff9",
@@ -2405,7 +2405,7 @@
     },
     {
       "id": "cpu_vectors",
-      "path": "src/data/audio.asm",
+      "path": "src/audio/data.asm",
       "segment": "VECTORS",
       "start": "0xfffa",
       "end": "0xffff",

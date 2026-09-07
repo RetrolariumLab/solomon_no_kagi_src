@@ -181,5 +181,5 @@ row advances the PPU address by 32 bytes.
 | 3 | 32 | `$20` | `$2080` | 26 |
 | 6 | 30 | `$20` | `$2080` | 24 |
 
-The source keeps the records in `src/data/nametable_clear.asm` and asserts the
+The source keeps the records in `src/data/static_layout.asm` and asserts the
 three-record extent at assembly time.

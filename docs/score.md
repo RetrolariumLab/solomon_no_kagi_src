@@ -1,6 +1,6 @@
 # Score addition
 
-`src/game/score.asm` owns CPU `$C73B-$C755`. `AddScoreByAAtDigitX` has six
+`src/game/scoring.asm` owns CPU `$C73B-$C755`. `AddScoreByAAtDigitX` has six
 direct callers and uses the following contract:
 
 ```text

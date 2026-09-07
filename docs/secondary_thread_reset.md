@@ -1,6 +1,6 @@
 # Secondary-thread transition reset
 
-`src/system/secondary_thread_reset.asm` owns CPU `$C756-$C789` and has six
+`src/system/thread_runtime.asm` owns CPU `$C756-$C789` and has six
 direct callers. `ResetOtherSecondaryThreads` accepts in `X` the secondary
 context that must remain active during a scene transition.
 

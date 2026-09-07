@@ -2,7 +2,7 @@
 
 ## Owned range
 
-`src/system/nmi.asm` owns CPU `$8000-$80FE` (255 bytes). The adjacent gameplay
+`src/system/boot_and_frame.asm` owns CPU `$8000-$80FE` (255 bytes). The adjacent gameplay
 services at `$80FF-$837C` are reconstructed separately in
 `src/game/nmi/gameplay_interactions.asm`. The linker places both segments
 before the remaining fixed PRG, and

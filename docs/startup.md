@@ -2,7 +2,7 @@
 
 ## Owned range
 
-`src/system/startup.asm` owns CPU `$8C00-$8D5E` (351 bytes). Its
+`src/system/boot_and_frame.asm` owns CPU `$8C00-$8D5E` (351 bytes). Its
 `PRG_STARTUP` linker segment sits between the unresolved pre-startup range and
 the cooperative scheduler. `make reconstruction-audit` verifies that exact
 layout and every accepted ROM-label address.

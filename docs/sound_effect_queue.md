@@ -1,6 +1,6 @@
 # Sound-effect request queue
 
-`src/system/sound_effect_queue.asm` owns CPU `$8E8D-$8E9F`. Bisqwit's map
+`src/system/thread_runtime.asm` owns CPU `$8E8D-$8E9F`. Bisqwit's map
 names its entry `AddSoundEffect`; all 34 static callers now use that symbol.
 
 Calling convention:

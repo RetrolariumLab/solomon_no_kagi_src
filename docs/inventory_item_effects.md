@@ -1,6 +1,6 @@
 # Inventory and item effects
 
-`src/game/items/inventory_effects.asm` owns CPU `$C698-$C70F`. Bisqwit's map
+`src/game/items/progression.asm` owns CPU `$C698-$C70F`. Bisqwit's map
 identifies the public entries as Scroll Extender, two fireball bottles, Fairy
 Bell, blue/red Tzo, Blue Crystal, and the shared type-04/type-06 score effect.
 
@@ -21,8 +21,8 @@ carry to the high byte. The exact incoming-carry contract is still tied to the
 item dispatcher and remains a runtime-trace item.
 
 The complete selector mapping is now reconstructed in
-`src/data/item_handlers.asm`; see `docs/item_interactions.md`. The three
+`src/data/static_layout.asm`; see `docs/item_interactions.md`. The three
 score-producing paths call `AddScoreByAAtDigitX` at `$C73B`.
 Bisqwit's map confirms that entry and all six direct control-flow references
 use its symbol. Its decimal arithmetic and game-state gate are reconstructed
-in `src/game/score.asm`; see `docs/score.md`.
+in `src/game/scoring.asm`; see `docs/score.md`.

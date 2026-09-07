@@ -29,7 +29,7 @@ compares the two high timer digits with a four-entry BCD threshold table at
 `TimerWarningState` as the threshold is crossed. The thresholds are `$02`,
 `$04`, `$10`, and `$23`.
 
-`src/data/timer_warning.asm` owns `$A226-$A237`. The fourth threshold byte at
+`src/data/static_layout.asm` owns `$A226-$A237`. The fourth threshold byte at
 `$A22C` is deliberately shared with `EnterTimerWarningPpuUpdate`: the two
 six-byte streams write two literal bytes at PPU `$23C2`, using `$F0,$30` on
 entry and `$A0,$20` on exit. The three bytes at `$A226-$A228` duplicate the
@@ -38,7 +38,7 @@ proved, so the source keeps the conservative `PreTimerWarningTableBytes` name.
 
 ## Display update builder
 
-`src/game/timer/display.asm` owns `$A238-$A273`. It constructs a small update
+`src/game/timer/runtime.asm` owns `$A238-$A273`. It constructs a small update
 program in RAM at `$03E6`: a copied three-byte `JSR $4469` prefix, the four
 timer digits in most-significant-first order, and two zero terminators. Leading
 zero digits are replaced with blank tile `$24`. The OR of all four digits is

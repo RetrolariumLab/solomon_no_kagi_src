@@ -1,6 +1,6 @@
 # Enemy AI dispatcher
 
-`src/game/enemies/ai_dispatch.asm` owns CPU `$A2DC-$A30B`. Bisqwit's map calls
+`src/game/enemies/runtime.asm` owns CPU `$A2DC-$A30B`. Bisqwit's map calls
 the entry `MaybeRunAllEnemyAI`; this reconstruction uses
 `RunEnemyAiDispatcher` because the routine's proven responsibility is slot
 selection, while the behavior-specific work remains in `$A469`.

@@ -1,6 +1,6 @@
 # Scaled coordinate deltas
 
-`src/game/objects/coordinate_delta.asm` owns CPU `$C364-$C385`. Five callers use the
+`src/game/objects/update_pipeline.asm` owns CPU `$C364-$C385`. Five callers use the
 same scratch-register contract when seeding room-entry, room-clear, enemy, and
 other transition motion.
 

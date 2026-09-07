@@ -1,6 +1,6 @@
 # Inline appendix dispatcher
 
-`src/system/jump_with_params.asm` owns CPU `$8EA9-$8EBF`. Bisqwit's map names
+`src/system/thread_runtime.asm` owns CPU `$8EA9-$8EBF`. Bisqwit's map names
 the entry `JumpWithParams` and classifies it as a jump-table routine whose
 parameters are appended to the caller.
 

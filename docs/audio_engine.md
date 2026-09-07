@@ -1,6 +1,6 @@
 # Audio engine
 
-`src/system/audio_engine.asm` owns CPU `$F000-$F367`. `UpdateAudio` is called
+`src/audio/engine.asm` owns CPU `$F000-$F367`. `UpdateAudio` is called
 from NMI after input sampling whenever the game-state audio-disable bit is
 clear. It first consumes the three pending sound-effect mailboxes, then updates
 and publishes channel state.
@@ -125,7 +125,7 @@ audio is left, which proves their role but not a historical composition name.
 ## Audio data
 
 The engine's period, duration, envelope, sound-effect, and music streams are
-source-owned at `$F368-$FFF9` in `src/data/audio.asm`. Periods and all pointer
+source-owned at `$F368-$FFF9` in `src/audio/data.asm`. Periods and all pointer
 operands use symbolic words; `$F2/$F3` bytecode targets reference 114 named
 stream entries. The adjacent CPU vectors are symbolic through `$FFFF`.
 

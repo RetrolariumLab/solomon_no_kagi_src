@@ -1,6 +1,6 @@
 # Room-map object interactions
 
-`src/game/rooms/map_interactions.asm` owns `$9C60-$9DB0`. It connects runtime
+`src/game/rooms/mechanics.asm` owns `$9C60-$9DB0`. It connects runtime
 `RoomMap` cells, object-record initialization, and Dana's block magic. The
 adjacent coordinate/object overlap predicate at `$9DB1-$9DCF` is separated
 because it has a stable general-purpose calling contract.

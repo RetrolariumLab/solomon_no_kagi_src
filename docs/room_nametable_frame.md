@@ -24,5 +24,5 @@ the direct-transfer guard, switches `PPU_CTRL` between 32-byte and one-byte
 increments as needed, and tail-calls `EndDirectPpuTransfer`.
 
 Its four source records and repeated writers are separately owned by
-`src/data/repeated_ppu_patterns.asm` and
-`src/graphics/ppu/data_writers.asm`.
+`src/data/static_layout.asm` and
+`src/graphics/ppu/runtime.asm`.

@@ -72,101 +72,27 @@ DEBUG_SYMBOLS := $(PYTHON) scripts/debug_symbols.py --debug "$(DEBUG)" --map "$(
 	--labels "$(LABELS)" --breakpoints config/debugger_breakpoints.json \
 	--watches config/debugger_watches.json --output-dir "$(SYMBOL_DIR)" \
 	--rom-name "$(notdir $(ROM))" --summary "$(SYMBOL_SUMMARY)"
-SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi/gameplay_interactions.asm \
-	src/system/controller_input.asm src/game/nmi/dana_and_sprites.asm \
-	src/game/objects/update.asm src/game/objects/motion.asm \
-	src/game/objects/collision.asm src/game/objects/animation.asm \
-	src/game/objects/collision_dispatch.asm src/data/objects/collision_handlers.asm \
-	src/game/objects/collision_response.asm src/game/objects/clamp_y_thirteen.asm \
-	src/system/startup.asm \
-	src/system/scheduler.asm src/system/pause_thread.asm \
-	src/system/sound_effect_queue.asm \
-	src/system/ppu_update_buffer.asm src/system/jump_with_params.asm \
-	src/data/rooms/load_palette.asm src/game/rooms/clear_thread.asm \
-	src/data/rooms/clear.asm src/game/rooms/time_bonus.asm \
-	src/game/rooms/load_thread.asm src/data/rooms/load.asm \
-	src/game/flow/new_game_reset.asm \
-	src/system/gameplay_delay_setup.asm \
-	src/system/masked_ram_wait.asm \
-	src/system/secondary_thread_reset.asm \
-	src/game/rooms/door_key_update.asm src/game/rooms/intro.asm \
-	src/data/rooms/intro.asm src/game/two_digit_number.asm \
-	src/game/rooms/entry_animation.asm src/data/rooms/entry_animation.asm \
-	src/game/transitions/object_orbit.asm \
-	src/game/transitions/orbit_position.asm \
-	src/game/transitions/orbit_scale.asm src/game/transitions/quarter_sine.asm \
-	src/data/quarter_sine.asm \
-	src/game/rooms/transition_reset.asm \
-	src/graphics/nametable_clear.asm src/data/nametable_clear.asm \
-	src/graphics/full_nametable_clear.asm \
-	src/graphics/title_screen.asm \
-	src/graphics/ppu/address.asm \
-	src/graphics/ppu/direct_transfer.asm \
-	src/graphics/ppu/data_writers.asm src/data/repeated_ppu_patterns.asm \
-	src/graphics/rooms/nametable_frame.asm \
-	src/game/rooms/item_decode.asm src/data/rooms/item_decode.asm \
-	src/game/rooms/block_decode.asm src/data/rooms/blocks.asm \
-	src/data/rooms/items.asm \
-	src/system/audio_engine.asm \
-	src/data/audio.asm src/data/audio_streams_europe.asm \
-	src/game/dana_actions.asm \
-	src/system/counter_wait.asm \
-	src/game/rooms/map_interactions.asm src/game/objects/coordinate_overlap.asm \
-	src/graphics/rooms/map_cell_update.asm src/graphics/rooms/map_ppu_address.asm \
-	src/data/main_thread_padding.asm \
-	src/graphics/ppu/static_update_queue.asm src/data/static_ppu_update_streams.asm \
-	src/game/rooms/enemy_load.asm src/data/rooms/enemies.asm \
-	src/graphics/rooms/map_render.asm \
-	src/game/objects/clamp_y.asm \
-	src/game/objects/clamp_x_left.asm \
-	src/game/objects/clamp_x_right.asm \
-	src/game/objects/motion_animation.asm \
-	src/data/objects/animations.asm \
-	src/data/objects/motion.asm \
-	src/graphics/ppu/update_stream.asm \
-	src/graphics/ppu/attribute_read.asm \
-	src/data/pre_startup_padding.asm \
-	src/game/flow/main_thread.asm \
-	src/game/demon_mirror/activation.asm \
-	src/game/demon_mirror/schedule.asm src/game/demon_mirror/spawn.asm \
-	src/game/demon_mirror/initialization.asm src/game/timer/runtime.asm \
-	src/data/timer_warning.asm \
-	src/game/timer/item_effects.asm \
-	src/game/items/inventory_effects.asm \
-	src/data/item_scores.asm src/game/auxiliary_effect.asm \
-	src/game/score.asm src/game/flow/exit_transition.asm \
-	src/game/objects/coordinate_conversion.asm \
-	src/game/timer/display.asm src/game/enemies/movement.asm \
-	src/game/enemies/ai_dispatch.asm \
-	src/graphics/hud/fireball_inventory.asm \
-	src/data/fireball_inventory_display.asm \
-	src/game/items/fireball_lifetime.asm \
-	src/game/enemies/initialization.asm \
-	src/game/enemies/type_configuration.asm \
-	src/data/enemies/types.asm \
-	src/game/enemies/ai_handlers.asm src/game/enemies/ai_early.asm \
-	src/game/enemies/ai_mid.asm src/game/enemies/ai_pathfinding.asm \
-	src/game/enemies/ai_collision.asm src/game/enemies/ai_late.asm \
-	src/game/enemies/position.asm \
-	src/game/enemies/pointers.asm \
-	src/game/enemies/slot_allocation.asm \
-	src/data/enemies/record_pointers.asm \
-	src/game/enemies/deactivation.asm \
-	src/game/enemies/current_deactivation.asm \
-	src/game/rooms/special_scripts.asm \
-	src/game/ending/sequence.asm \
-	src/game/ending/special_room_support.asm \
-	src/game/objects/active_states.asm \
-	src/game/objects/pointer.asm \
-	src/game/objects/non_dana_deactivation.asm src/game/flow/attract_demo.asm \
-	src/graphics/hud/gameplay.asm src/data/gameplay_hud.asm \
-	src/graphics/hud/score.asm \
-	src/game/items/collision.asm src/data/item_handlers.asm \
-	src/game/items/red_bottle.asm src/game/items/special_flags.asm \
-	src/game/items/key.asm src/game/items/door.asm \
-	src/game/objects/pool_clear.asm \
-	src/game/objects/coordinate_delta.asm \
-	src/graphics/chr.asm src/memory/hardware.inc src/memory/ram.inc
+SOURCE_FILES := src/main.asm \
+	src/system/boot_and_frame.asm src/system/thread_runtime.asm \
+	src/audio/engine.asm src/audio/data.asm src/audio/europe_streams.asm \
+	src/game/nmi/gameplay_interactions.asm src/game/nmi/dana_and_sprites.asm \
+	src/game/objects/update_pipeline.asm src/game/objects/collision_and_motion.asm \
+	src/game/enemies/runtime.asm src/game/enemies/early_ai.asm \
+	src/game/enemies/mid_ai.asm src/game/enemies/pathfinding_ai.asm \
+	src/game/enemies/collision_ai.asm src/game/enemies/late_ai.asm \
+	src/game/rooms/lifecycle.asm src/game/rooms/decoding.asm \
+	src/game/rooms/mechanics.asm src/game/items/collection.asm \
+	src/game/items/progression.asm src/game/demon_mirror/runtime.asm \
+	src/game/ending/sequence.asm src/game/ending/special_room_support.asm \
+	src/game/flow/runtime.asm src/game/timer/runtime.asm \
+	src/game/transitions/orbit.asm src/game/dana_actions.asm src/game/scoring.asm \
+	src/graphics/ppu/runtime.asm src/graphics/rooms/rendering.asm \
+	src/graphics/hud/runtime.asm src/graphics/title_screen.asm src/graphics/chr.asm \
+	src/data/static_layout.asm src/data/enemies/tables.asm \
+	src/data/objects/animations.asm src/data/objects/motion.asm \
+	src/data/rooms/metadata.asm src/data/rooms/blocks.asm \
+	src/data/rooms/enemies.asm src/data/rooms/items.asm \
+	src/memory/hardware.inc src/memory/ram.inc
 
 .PHONY: all build split verify verify-reference verify-built verify-header \
 	verify-prg verify-chr verify-payload verify-rom verify-assets check-assets \

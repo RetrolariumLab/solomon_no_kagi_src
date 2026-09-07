@@ -1,6 +1,6 @@
 # PPU update-buffer publication
 
-`src/system/ppu_update_buffer.asm` owns CPU `$8EA0-$8EA8`. Its single entry,
+`src/system/thread_runtime.asm` owns CPU `$8EA0-$8EA8`. Its single entry,
 `PublishPpuUpdateBuffer`, publishes the shared RAM update-program buffer at
 `$03E6` through `PpuUpdateStreamPointer` at `$001A-$001B`.
 

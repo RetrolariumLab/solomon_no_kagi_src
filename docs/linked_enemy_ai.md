@@ -1,6 +1,6 @@
 # Linked enemy AI support
 
-`src/game/enemies/ai_handlers.asm` now owns the contiguous `$B2A2-$B429`
+`src/game/enemies/early_ai.asm` now owns the contiguous `$B2A2-$B429`
 support range in addition to the primary handler table. The source file is 300
 lines, keeping the related code together without introducing another small
 assembly module.
@@ -18,7 +18,7 @@ retire the current slot after AI phase `$11`, begin horizontal movement, or
 run the single-linked-slot state machine.
 
 The adjacent `$B178` handler is reconstructed as `RunType48To53EnemyAi` in
-`src/game/enemies/ai_late.asm`; its inline appendix calls
+`src/game/enemies/late_ai.asm`; its inline appendix calls
 `SetEnemyHorizontalStepAndFacing` and `UpdateLinkedEnemyPairSpawn` in this
 range.
 

@@ -1,6 +1,6 @@
 # Pause thread
 
-`src/system/pause_thread.asm` owns CPU `$8E47-$8E8C`. The scheduler's context
+`src/system/thread_runtime.asm` owns CPU `$8E47-$8E8C`. The scheduler's context
 2 table begins at `$8E29`; selector 1 stores return address `$8E46`, proving
 that packed thread code `$21` enters `PauseGameThread` at `$8E47` through the
 scheduler's RTS-plus-one convention.

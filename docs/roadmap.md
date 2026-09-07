@@ -42,7 +42,7 @@ decrease.
 ### 2. Mechanical modularization - Complete
 
 - `$8000-$80FE`: NMI, CNROM bank selection, OAM DMA, and PPU scroll commit are
-  isolated in `src/system/nmi.asm`;
+  isolated in `src/system/boot_and_frame.asm`;
 - `$80FF-$837C`: alternating enemy overlap scans, fireball RoomMap collision,
   A/B Dana action setup, and the pending-thread request queue are isolated in
   `src/game/nmi/gameplay_interactions.asm`;
@@ -50,43 +50,43 @@ decrease.
   sorting, scanline allowance pass, and two-sprite OAM composition are isolated
   in `src/game/nmi/dana_and_sprites.asm`;
 - `$837D-$83C1`: both controller ports are serially sampled and merged into
-  raw and policy-filtered cached input bytes in `src/system/controller_input.asm`;
+  raw and policy-filtered cached input bytes in `src/system/boot_and_frame.asm`;
 - `$863C-$87DF`: the 21-record active-object traversal, signed fixed-point
   motion, six-cell RoomMap collision sampling, and packed animation sequencer
   are isolated as four adjacent modules;
 - `$87E0-$8A61`: the object-state gate, 16-entry collision-handler table, all
   mask-specific responses, and shared `$...D` Y clamp are source-owned;
 - `$8C00-$8D5E`: reset, warm-boot state, PPU initialization, and scheduler
-  bootstrap are isolated in `src/system/startup.asm`;
+  bootstrap are isolated in `src/system/boot_and_frame.asm`;
 - `$8D5F-$8E46`: the eight-context cooperative scheduler and its initial
-  stack/entry tables are isolated in `src/system/scheduler.asm`;
+  stack/entry tables are isolated in `src/system/thread_runtime.asm`;
 - `$8A62-$8A7E`: the shared object Y-to-surface clamp is isolated in
-  `src/game/objects/clamp_y.asm`, with all three calls named;
+  `src/game/objects/collision_and_motion.asm`, with all three calls named;
 - `$8A7F-$8AA3`: the left-surface object X clamp and motion reset are isolated
-  in `src/game/objects/clamp_x_left.asm`, with all three calls named;
+  in `src/game/objects/collision_and_motion.asm`, with all three calls named;
 - `$8AA4-$8ABF`: the complementary right-surface object X clamp is isolated,
   with all three calls named and the shared motion-clear tail documented;
 - `$8AC0-$8B50`: type/action-driven Y/X motion and animation descriptor
-  resolution is isolated in `src/game/objects/motion_animation.asm`;
+  resolution is isolated in `src/game/objects/collision_and_motion.asm`;
 - `$8B51-$8B7E`: the NMI-side RoomMap attribute-byte read and stale-request
-  timeout are isolated in `src/graphics/ppu/attribute_read.asm`;
+  timeout are isolated in `src/graphics/ppu/runtime.asm`;
 - `$8BE2-$8BFF`: Bisqwit's 30-byte `FillerBefore8C00` range is explicitly
-  classified in `src/data/pre_startup_padding.asm`;
+  classified in `src/data/static_layout.asm`;
 - `$8E47-$8E8C`: context 2 selector 1's Start-button pause/debounce loop is
-  isolated in `src/system/pause_thread.asm`;
+  isolated in `src/system/thread_runtime.asm`;
 - `$8E8D-$8E9F`: the three-slot sound-effect request producer is isolated in
-  `src/system/sound_effect_queue.asm`, with all 34 calls named;
+  `src/system/thread_runtime.asm`, with all 34 calls named;
 - `$8EA0-$8EA8`: the shared RAM PPU update-program publisher is isolated in
-  `src/system/ppu_update_buffer.asm`, with all 16 calls named;
+  `src/system/thread_runtime.asm`, with all 16 calls named;
 - `$8EA9-$8EBF`: the stack-consuming inline appendix tail dispatcher is
-  isolated in `src/system/jump_with_params.asm`, with all 11 calls named;
+  isolated in `src/system/thread_runtime.asm`, with all 11 calls named;
 - `$8EC0-$915D`: the room palette template, context-one room-clear flow,
   decimal remaining-time bonus, common room loader, selection tables, and
   new-game state reset are split into seven source-owned modules;
 - `$9165-$9189`: inverse cooperative waits yield until selected masked
   zero-page bits clear or become set, with all ten callers named;
 - `$918A-$91B8`: both directions of the pixel/packed-room-index conversion are
-  isolated in `src/game/objects/coordinate_conversion.asm`, with all 31 calls named;
+  isolated in `src/game/objects/update_pipeline.asm`, with all 31 calls named;
 - `$91B9-$9470`: initial door/key publication, intro UI and data, two-digit
   formatting, room-entry placement, the fifteen-object transition orbit,
   fixed-point scaling, and the quarter-sine table are source-owned;
@@ -109,7 +109,7 @@ decrease.
 - `$9F23-$9FFF`: 221 bytes before the main thread are explicitly classified as
   non-code filler rather than disassembled instructions;
 - `$A000-$A04B`: scheduler context 3's main gameplay service loop and queued
-  fairy path are isolated in `src/game/flow/main_thread.asm`;
+  fairy path are isolated in `src/game/flow/runtime.asm`;
 - `$A04C-$A15E`: both Demon Mirror schedules, capacity gating, placeholder
   allocation, cyclic enemy-set decoding, delayed activation, and coordinate
   initialization are isolated as four runtime modules;
@@ -118,25 +118,25 @@ decrease.
 - `$A226-$A237`: the overlapping four-entry BCD threshold table and two timer
   warning PPU streams are isolated with their shared `$A22C` byte preserved;
 - `$A238-$A273`: timer digit formatting and NMI update-program construction
-  are isolated in `src/game/timer/display.asm`;
+  are isolated in `src/game/timer/runtime.asm`;
 - `$A274-$A2DB`: the 17-slot active-enemy movement prepass is isolated in
-  `src/game/enemies/movement.asm`;
+  `src/game/enemies/runtime.asm`;
 - `$A2DC-$A30B`: the eligibility scan and per-enemy AI dispatch are isolated
-  in `src/game/enemies/ai_dispatch.asm`;
+  in `src/game/enemies/runtime.asm`;
 - `$A30C-$A3A3`: the two-row fireball-inventory HUD producer, two-bit slot
   decoding, tile mapping, and reverse-copy command headers are source-owned;
 - `$A3A4-$A3D6`: fireball lifetime comparison, expiration, and delayed object
-  cleanup are isolated in `src/game/items/fireball_lifetime.asm`;
+  cleanup are isolated in `src/game/items/progression.asm`;
 - `$A3D7-$A3F7`: parallel AI/object slot initialization and coordinate setup
-  are isolated in `src/game/enemies/initialization.asm`;
+  are isolated in `src/game/enemies/runtime.asm`;
 - `$A3F8-$A44D`: spawn-type decoding and conditional object/AI configuration
-  are isolated in `src/game/enemies/type_configuration.asm`;
+  are isolated in `src/game/enemies/runtime.asm`;
 - `$A44E-$A468`: the directly indexed 27-byte enemy-type flag table is
-  isolated in `src/data/enemies/types.asm`;
+  isolated in `src/data/enemies/tables.asm`;
 - `$A469-$A4A5`: selector normalization, inline dispatch, and all 28 handler
-  pointers are isolated in `src/game/enemies/ai_handlers.asm`;
+  pointers are isolated in `src/game/enemies/early_ai.asm`;
 - `$A4A6-$A4B2`: the shared current-enemy position-copy helper is isolated in
-  `src/game/enemies/position.asm`;
+  `src/game/enemies/runtime.asm`;
 - `$A4B3-$A68B`: the first two enemy AI families, collision reward dispatch,
   and small-to-large fireball inventory upgrade are source-owned;
 - `$A68C-$A997`: four additional AI families, their inline action tables,
@@ -151,16 +151,16 @@ decrease.
   collision-direction helpers, linked cleanup, and paired-enemy state paths
   are source-owned; the legacy preservation listing is eliminated;
 - `$B28A-$B2A1`: the indexed object/AI record pointer resolvers are isolated
-  in `src/game/enemies/pointers.asm`, and all 28 call sites use their symbols;
+  in `src/game/enemies/runtime.asm`, and all 28 call sites use their symbols;
 - `$B2A2-$B429`: action dispatch for the `$50-$5B` type family, shared
   `$50-$67` direction helpers, forward map probes, and one/two linked-slot
   allocation paths are source-owned;
 - `$B42A-$B445`: the seventeen-entry free enemy-slot allocator and its carry
-  return contract are isolated in `src/game/enemies/slot_allocation.asm`;
+  return contract are isolated in `src/game/enemies/runtime.asm`;
 - `$B446-$B491`: the 17-entry AI and 21-entry object split pointer tables are
-  formula-generated and machine-audited in `src/data/enemies/record_pointers.asm`;
+  formula-generated and machine-audited in `src/data/enemies/tables.asm`;
 - `$B492-$B4B5`: linked enemy slots are retired from both parallel record
-  pools by `DeactivateEnemySlot` in `src/game/enemies/deactivation.asm`;
+  pools by `DeactivateEnemySlot` in `src/game/enemies/runtime.asm`;
 - `$B4B6-$B4C3`: eleven enemy behavior tail-calls retire the dispatcher-
   selected slot through `DeactivateCurrentEnemy`;
 - `$B4C4-$B7FF`: the shared room-configured enemy lifetime transition and the

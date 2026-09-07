@@ -15,7 +15,7 @@ The routine therefore serializes static updates with RAM-buffer producers; it
 does not overwrite a stream still being consumed. Eleven call sites select
 indices spanning the complete `$00-$11` table. The pointer tables and their
 18 target programs occupy USA `$9488-$961A` or Europe `$94A2-$9622`. They are
-source-owned by `src/data/static_ppu_update_streams.asm`: pointer order follows
+source-owned by `src/data/static_layout.asm`: pointer order follows
 the public indices, while stream labels remain in physical ROM order.
 
 `make ppu-update-report` emits the decoded pointers, commands, PPU addresses,

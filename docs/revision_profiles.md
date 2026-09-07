@@ -749,7 +749,7 @@ round trip and traces every effect through the command VM for 180 frames.
 `Play selection` traces the selected descriptor through the reconstructed
 eight-channel sequencer and writes an ignored WAV beside the content ROM.
 Call, jump, return, counted-loop, duration, envelope, control, and primary-over-
-secondary channel behavior follow `src/system/audio_engine.asm`. The renderer
+secondary channel behavior follow `src/audio/engine.asm`. The renderer
 then models both pulse channels, triangle, short/long noise LFSR modes, the NES
 nonlinear pulse/TND mixer, and the two-high-pass/one-low-pass output chain.
 NTSC uses 60.0988 Hz and the 1.789773 MHz CPU clock; PAL uses 50.0070 Hz, the

@@ -64,7 +64,7 @@ class ReconstructionStatusTests(unittest.TestCase):
             "modules": [
                 {
                     "id": "nmi",
-                    "path": "src/system/nmi.asm",
+                    "path": "src/system/boot_and_frame.asm",
                     "segment": "PRG_NMI",
                     "start": "0x8000",
                     "end": "0x8000",
@@ -137,7 +137,7 @@ class ReconstructionStatusTests(unittest.TestCase):
         alternative = root / "src" / "system" / "nmi_europe.asm"
         alternative.write_text("NMI:\n    RTI\n", encoding="utf-8")
         labels = source_labels(root)
-        self.assertEqual(labels["NMI"].path, Path("src/system/nmi.asm"))
+        self.assertEqual(labels["NMI"].path, Path("src/system/boot_and_frame.asm"))
 
     def test_accepts_consistent_module_and_provenance(self) -> None:
         root, manifest, ledger, map_path, labels_path = self.make_fixture()

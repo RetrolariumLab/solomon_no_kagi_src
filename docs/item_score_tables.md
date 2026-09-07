@@ -1,6 +1,6 @@
 # Item score lookup tables
 
-`src/data/item_scores.asm` owns CPU `$C710-$C717` as two adjacent tables used
+`src/data/static_layout.asm` owns CPU `$C710-$C717` as two adjacent tables used
 by the collectible-item score path at `$C480-$C497`:
 
 | Address | Label | Values | Role |

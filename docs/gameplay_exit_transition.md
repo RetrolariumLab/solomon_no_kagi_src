@@ -1,6 +1,6 @@
 # Gameplay-exit transition
 
-`src/game/flow/exit_transition.asm` owns CPU `$C78A-$C980`. Four scheduler
+`src/game/flow/runtime.asm` owns CPU `$C78A-$C980`. Four scheduler
 entries enter different stages of the same cooperative exit pipeline:
 
 | Code | Entry | Role |
@@ -11,7 +11,7 @@ entries enter different stages of the same cooperative exit pipeline:
 | `$16` | `PreparePostGameResult` | calculate and display `YOUR GDV` |
 
 The scheduler stores each entry address minus one because `StartThread`
-constructs an RTS frame. `src/system/scheduler.asm` now expresses all four
+constructs an RTS frame. `src/system/thread_runtime.asm` now expresses all four
 entries with symbols while preserving the original words.
 
 ## TIME OVER and Dana death

@@ -2,7 +2,7 @@
 
 ## Owned range and contexts
 
-`src/system/scheduler.asm` owns CPU `$8D5F-$8E46` (232 bytes). It implements
+`src/system/thread_runtime.asm` owns CPU `$8D5F-$8E46` (232 bytes). It implements
 eight cooperative contexts over the 6502 hardware stack page. The saved SP for
 each context lives in `ThreadStackPointers`, and `ThreadIndex` selects the
 current slot.

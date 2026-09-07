@@ -1,6 +1,6 @@
 # Timer item effects
 
-`src/game/timer/item_effects.asm` owns CPU `$C628-$C697`. The four public item
+`src/game/timer/runtime.asm` owns CPU `$C628-$C697`. The four public item
 handlers are entries in the still-unreconstructed item dispatch data; Bisqwit's
 map identifies them as the double-time, fivefold-time, `10000`, and `05000`
 effects.

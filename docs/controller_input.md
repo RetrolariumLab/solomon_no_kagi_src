@@ -1,6 +1,6 @@
 # Controller input
 
-`src/system/controller_input.asm` owns CPU `$837D-$83C1`. `ReadJoyPads` is
+`src/system/boot_and_frame.asm` owns CPU `$837D-$83C1`. `ReadJoyPads` is
 called once on the active NMI service path after the frame counter and
 `RenderGameplayObjectsToOam` have run.
 

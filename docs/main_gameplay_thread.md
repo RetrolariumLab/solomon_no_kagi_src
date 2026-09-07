@@ -1,6 +1,6 @@
 # Main gameplay thread
 
-`src/game/flow/main_thread.asm` owns CPU `$A000-$A04B`. Scheduler code `$30`
+`src/game/flow/runtime.asm` owns CPU `$A000-$A04B`. Scheduler code `$30`
 selects context 3, selector 0. Its table slot contains `$9FFF`; because the
 scheduler enters the context with `RTS`, this proves `$A000` is the entry point.
 

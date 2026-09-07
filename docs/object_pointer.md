@@ -1,6 +1,6 @@
 # Non-Dana object pointer helper
 
-`src/game/objects/pointer.asm` owns CPU `$CA4F-$CA59`. Bisqwit's map identifies
+`src/game/objects/update_pipeline.asm` owns CPU `$CA4F-$CA59`. Bisqwit's map identifies
 the entry as `LoadObjectPointer`. It resolves a zero-based index in `X` through
 the split pointer planes at `$B469` and `$B47E` and writes the selected address
 to `TempPointer00`.

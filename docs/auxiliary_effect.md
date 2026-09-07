@@ -1,6 +1,6 @@
 # Auxiliary effect object
 
-`src/game/auxiliary_effect.asm` owns CPU `$C718-$C73A`. It initializes the
+`src/game/scoring.asm` owns CPU `$C718-$C73A`. It initializes the
 shared object record at `AuxiliaryObject` (`$05BB`) through two entry points:
 
 - `SpawnAuxiliaryEffectAtMapCell` converts `MapCellIndex` in `$04` to pixel

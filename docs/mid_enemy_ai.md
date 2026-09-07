@@ -1,6 +1,6 @@
 # Mid-table enemy AI families
 
-`src/game/enemies/ai_mid.asm` owns CPU `$A68C-$A997`. It reconstructs four
+`src/game/enemies/mid_ai.asm` owns CPU `$A68C-$A997`. It reconstructs four
 unique targets used by the 28-word enemy AI handler table while keeping enemy
 names neutral until type-to-creature identities are verified in play.
 

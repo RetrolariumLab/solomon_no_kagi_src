@@ -11,7 +11,7 @@ frame services, restores the registers, and returns with `RTI`. The foreground
 game code is not a single once-per-frame update loop.
 
 The statically confirmed `$8000-$80FE` range is isolated in
-`src/system/nmi.asm`. It disables NMI/rendering bits through the PPU shadow
+`src/system/boot_and_frame.asm`. It disables NMI/rendering bits through the PPU shadow
 registers, commits OAM page `$02`, selects one of four CNROM CHR banks through
 `ChrBankSelectValues`, and finishes by restoring the PPU control shadow and
 CPU registers. `WritePpuScroll` resets the PPU write latch by reading
