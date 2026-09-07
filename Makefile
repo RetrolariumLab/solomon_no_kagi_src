@@ -170,9 +170,11 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	reconstruction-status reconstruction-audit \
 	prg-layout-report prg-layout-audit format-coverage-audit \
 	scheduler-report scheduler-audit enemy-ai-report enemy-ai-audit \
+	enemy-ai-profile-audit enemy-ai-profile-audits \
 	item-handler-report item-handler-audit item-handler-profile-audit \
 	item-handler-profile-audits \
-	enemy-pointer-report enemy-pointer-audit ppu-update-report ppu-update-audit \
+	enemy-pointer-report enemy-pointer-audit enemy-pointer-profile-audit \
+	enemy-pointer-profile-audits ppu-update-report ppu-update-audit \
 	ppu-update-profile-audit ppu-update-profile-audits \
 	object-animation-report object-animation-audit object-animation-profile-audit \
 	object-animation-profile-audits \
@@ -556,6 +558,13 @@ enemy-ai-report: $(ROM)
 enemy-ai-audit: $(ROM)
 	$(PYTHON) scripts/enemy_ai_data.py audit --image "$(ROM)"
 
+enemy-ai-profile-audit: build-revision
+	$(PYTHON) scripts/enemy_ai_data.py audit --image "$(REVISION_ROM)"
+
+enemy-ai-profile-audits:
+	$(MAKE) enemy-ai-profile-audit PROFILE=usa
+	$(MAKE) enemy-ai-profile-audit PROFILE=europe
+
 item-handler-report: $(ROM)
 	$(PYTHON) scripts/item_handler_data.py report --image "$(ROM)"
 
@@ -575,6 +584,14 @@ enemy-pointer-report: $(ROM)
 
 enemy-pointer-audit: $(ROM)
 	$(PYTHON) scripts/enemy_pointer_data.py audit --image "$(ROM)"
+
+enemy-pointer-profile-audit: build-revision
+	$(PYTHON) scripts/enemy_pointer_data.py audit --image "$(REVISION_ROM)" \
+		--profile "$(PROFILE)"
+
+enemy-pointer-profile-audits:
+	$(MAKE) enemy-pointer-profile-audit PROFILE=usa
+	$(MAKE) enemy-pointer-profile-audit PROFILE=europe
 
 ppu-update-report: $(ROM)
 	$(PYTHON) scripts/ppu_update_data.py report --image "$(ROM)"

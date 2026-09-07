@@ -226,6 +226,13 @@ selector-to-map-tile vocabulary while recording distinct physical targets and
 table hashes. `make item-handler-profile-audits` validates every semantic
 entry against both source-built ROMs.
 
+Enemy AI dispatch is a verified shared island: its 28 entries and 14 unique
+code targets stay at identical PRG addresses in both profiles. The adjacent
+runtime record-pointer tables also retain their PRG addresses, but PAL's 17 AI
+records and 21 object records begin one RAM byte higher. The paired
+`enemy-ai-profile-audits` and `enemy-pointer-profile-audits` targets distinguish
+these two cases explicitly.
+
 Run the combined source ownership gate with:
 
 ```console
@@ -688,7 +695,8 @@ patching. The remaining release work is now evidence and authoring depth:
 
 1. make the remaining structured-data audits profile-aware where PAL differs
    (object motion, object animation, static PPU streams, and title/demo data
-   and item-handler dispatch are complete);
+   item-handler dispatch, enemy AI dispatch, and runtime record pointers are
+   complete);
 2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
 3. expand the focused PAL baseline and existing USA matrix when a remaining

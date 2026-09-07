@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "profile": "europe",
+  "tables": [
+    {
+      "id": "enemy_ai",
+      "low_address": "0xb446",
+      "high_address": "0xb457",
+      "base_address": "0x04f8",
+      "stride": 8,
+      "count": 17
+    },
+    {
+      "id": "objects",
+      "low_address": "0xb468",
+      "high_address": "0xb47d",
+      "base_address": "0x0580",
+      "stride": 20,
+      "count": 21
+    }
+  ]
+}

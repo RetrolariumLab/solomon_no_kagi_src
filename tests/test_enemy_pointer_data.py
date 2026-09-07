@@ -1,11 +1,35 @@
 from __future__ import annotations
 
+from pathlib import Path
 import unittest
 
-from scripts.enemy_pointer_data import decode_split_pointer_table, validate_report
+from scripts.enemy_pointer_data import (
+    decode_split_pointer_table,
+    load_manifest,
+    validate_manifest_profile,
+    validate_report,
+)
 
 
 class EnemyPointerDataTests(unittest.TestCase):
+    def test_committed_profiles_record_one_byte_shifted_ram_pools(self) -> None:
+        root = Path(__file__).resolve().parent.parent
+        usa = load_manifest(root / "config" / "enemy_record_pointers.json")
+        europe = load_manifest(
+            root / "config" / "enemy_record_pointers_europe.json"
+        )
+        validate_manifest_profile(usa, "usa")
+        validate_manifest_profile(europe, "europe")
+        self.assertEqual(
+            [table["low_address"] for table in usa["tables"]],
+            [table["low_address"] for table in europe["tables"]],
+        )
+        for usa_table, europe_table in zip(usa["tables"], europe["tables"]):
+            self.assertEqual(
+                int(europe_table["base_address"], 0),
+                int(usa_table["base_address"], 0) + 1,
+            )
+
     def test_decodes_split_pointer_table(self) -> None:
         prg = bytearray(32_768)
         prg[0x3446:0x3449] = bytes((0xF7, 0xFF, 0x07))

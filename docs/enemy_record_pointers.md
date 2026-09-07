@@ -5,8 +5,8 @@ region contains four split pointer tables:
 
 | Table | Entries | Address sequence |
 | --- | ---: | --- |
-| enemy AI low/high | 17 | `$04F7 + index * 8` |
-| all object low/high | 21 | `$057F + index * $14` |
+| enemy AI low/high | 17 | USA `$04F7`, PAL `$04F8` + `index * 8` |
+| all object low/high | 21 | USA `$057F`, PAL `$0580` + `index * $14` |
 
 The first four object entries address Dana (`$057F`), the magic spark
 (`$0593`), the fireball (`$05A7`), and an auxiliary record (`$05BB`). The
@@ -26,3 +26,9 @@ layout while making the pool relationship reviewable.
 `config/enemy_record_pointers.json`; the audit is part of `make release-check`.
 Bisqwit's map independently classifies the same ranges as the enemy AI and
 object pointer tables.
+
+PAL keeps all four byte planes at the same PRG addresses but moves both RAM
+pools one byte higher. `config/enemy_record_pointers_europe.json` therefore
+records native bases `$04F8` and `$0580`; the strides and counts remain shared.
+`make enemy-pointer-profile-audits` validates all 38 reconstructed pointers
+against both regional source builds.

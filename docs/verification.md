@@ -43,6 +43,8 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `validate-runtime` | revalidate existing generated runtime traces without launching FCEUX |
 | `scheduler-audit` | check stacks, static/reviewed dynamic entries, and call counts |
 | `enemy-ai-audit` | check all 28 inline enemy-AI handler pointers |
+| `enemy-ai-profile-audits` | prove the complete enemy-AI handler appendix is shared by USA and PAL |
+| `enemy-pointer-profile-audits` | validate identical PRG tables against one-byte-shifted PAL runtime pools |
 | `item-handler-audit` | check all 29 item selectors, pointers, names, and table hash |
 | `item-handler-profile-audits` | validate all semantic item selectors against native USA/PAL handler addresses |
 | `ppu-update-audit` | check 18 static stream pointers, coverage, hashes, and byte round trips |

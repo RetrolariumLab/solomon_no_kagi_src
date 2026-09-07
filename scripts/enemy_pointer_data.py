@@ -16,6 +16,10 @@ except ImportError:
 
 
 PRG_BASE = 0x8000
+ENEMY_POINTER_MANIFESTS = {
+    "usa": "enemy_record_pointers.json",
+    "europe": "enemy_record_pointers_europe.json",
+}
 
 
 def parse_number(value: object, field: str) -> int:
@@ -60,6 +64,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
     if not isinstance(tables, list) or not tables:
         raise RoomDataError("enemy pointer manifest tables must be a non-empty list")
     return value
+
+
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"enemy pointer profile mismatch: expected={profile}, manifest={actual}"
+        )
 
 
 def collect_report(prg: bytes, manifest: dict[str, Any]) -> dict[str, object]:
@@ -122,11 +134,17 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(ENEMY_POINTER_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "enemy_record_pointers.json"
+    manifest_path = args.manifest or (
+        root / "config" / ENEMY_POINTER_MANIFESTS[args.profile]
+    )
     try:
         manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
         report = collect_report(extract_prg(args.image.read_bytes()), manifest)
         if args.command == "report":
             print(json.dumps(report, indent=2, sort_keys=True))
