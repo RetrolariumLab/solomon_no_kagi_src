@@ -401,6 +401,23 @@ class AudioPreviewTests(unittest.TestCase):
         self.assertEqual(sound_studio.EFFECT_CONTEXTS[21], "Collect key")
         self.assertIn("PAL resume", sound_studio.EFFECT_CONTEXTS[11])
 
+    def test_program_library_categorizes_every_descriptor_once(self) -> None:
+        categorized = [
+            effect
+            for _name, effects in sound_studio.PROGRAM_GROUPS[:-1]
+            for effect in effects
+        ]
+        self.assertEqual(sorted(categorized), list(range(1, 27)))
+        self.assertEqual(len(set(categorized)), 26)
+        self.assertEqual(
+            sound_studio.program_numbers("All programs"), tuple(range(1, 27))
+        )
+        self.assertEqual(
+            sound_studio.program_label(1),
+            "01 - Room audio A / warning return A",
+        )
+        self.assertIn(16, sound_studio.program_numbers("Music loops"))
+
 
 if __name__ == "__main__":
     unittest.main()

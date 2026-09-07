@@ -70,6 +70,26 @@ EFFECT_CONTEXTS = (
 )
 VOICE_NAMES = ("Pulse 1", "Pulse 2", "Triangle", "Noise")
 VOICE_COLORS = ("#56b4e9", "#e69f00", "#009e73", "#cc79a7")
+PROGRAM_GROUPS = (
+    ("Music loops", (1, 2, 4, 16, 19)),
+    ("Musical cues", (5, 6, 15, 20, 22)),
+    ("Sound effects", (7, 8, 9, 10, 11, 13, 17, 18, 21, 23, 25, 26)),
+    ("Engine controls", (3, 12, 14, 24)),
+    ("All programs", tuple(range(1, 27))),
+)
+
+
+def program_numbers(group: str) -> tuple[int, ...]:
+    for name, numbers in PROGRAM_GROUPS:
+        if name == group:
+            return numbers
+    raise audio_editor.AudioEditorError(f"unknown audio program group: {group}")
+
+
+def program_label(effect_number: int) -> str:
+    if not 1 <= effect_number <= len(EFFECT_CONTEXTS):
+        raise audio_editor.AudioEditorError("audio program number must be 1..26")
+    return f"{effect_number:02d} - {EFFECT_CONTEXTS[effect_number - 1]}"
 
 
 def parse_integer(text: str, field: str, maximum: int = 0xFF) -> int:
@@ -248,11 +268,19 @@ class SoundStudioDocument:
         return write_if_changed(self.output, self.rebuilt_image())
 
     def preview(
-        self, effect_number: int, seconds: float
+        self,
+        effect_number: int,
+        seconds: float,
+        enabled_voices: set[int] | None = None,
     ) -> tuple[Path, audio_preview.PreviewTrace]:
         path = self.output.with_name(f"effect{effect_number:02d}-preview.wav")
         trace = audio_preview.write_preview(
-            self.document, self.profile, effect_number, path, seconds
+            self.document,
+            self.profile,
+            effect_number,
+            path,
+            seconds,
+            enabled_voices=enabled_voices,
         )
         return path, trace
 
@@ -278,16 +306,20 @@ class SoundStudio(tk.Tk):
         self.command_kind = tk.StringVar()
         self.command_value = tk.StringVar()
         self.effect_number = tk.IntVar(value=1)
+        self.program_group = tk.StringVar(value=PROGRAM_GROUPS[0][0])
+        self.program_name = tk.StringVar(value=program_label(1))
         self.effect_context = tk.StringVar()
         self.effect_channel = tk.StringVar(value=CHANNEL_NAMES[0])
         self.effect_stream = tk.StringVar(value="stream_000")
         self.preview_seconds = tk.StringVar(value="12")
+        self.loop_preview = tk.BooleanVar(value=False)
+        self.voice_enabled = [tk.BooleanVar(value=True) for _name in VOICE_NAMES]
         self.envelope_number = tk.IntVar(value=0)
         self.envelope_duration = tk.StringVar()
         self.envelope_volume = tk.StringVar()
         self.timing_value = tk.StringVar()
         self.title(f"Solomon's Key Sound Studio [{model.profile['id']}]")
-        self.geometry("1180x760")
+        self.geometry("1320x790")
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.build_ui()
         self.refresh_all()
@@ -305,16 +337,17 @@ class SoundStudio(tk.Tk):
             ("Build ROM", self.build_rom),
         ):
             ttk.Button(toolbar, text=label, command=command).pack(side="left", padx=4)
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill="both", expand=True, padx=7)
-        streams = ttk.Frame(notebook, padding=7)
-        effects = ttk.Frame(notebook, padding=7)
-        envelopes = ttk.Frame(notebook, padding=7)
-        timing = ttk.Frame(notebook, padding=7)
-        notebook.add(streams, text="Streams")
-        notebook.add(effects, text="Effects")
-        notebook.add(envelopes, text="Envelopes")
-        notebook.add(timing, text="Timing")
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill="both", expand=True, padx=7)
+        streams = ttk.Frame(self.notebook, padding=7)
+        effects = ttk.Frame(self.notebook, padding=7)
+        envelopes = ttk.Frame(self.notebook, padding=7)
+        timing = ttk.Frame(self.notebook, padding=7)
+        self.streams_tab = streams
+        self.notebook.add(effects, text="Music player")
+        self.notebook.add(streams, text="Streams")
+        self.notebook.add(envelopes, text="Envelopes")
+        self.notebook.add(timing, text="Timing")
         self.build_streams(streams)
         self.build_effects(effects)
         self.build_envelopes(envelopes)
@@ -393,25 +426,53 @@ class SoundStudio(tk.Tk):
     def build_effects(self, parent: ttk.Frame) -> None:
         row = ttk.Frame(parent)
         row.pack(fill="x", pady=(0, 6))
-        ttk.Label(row, text="Effect").pack(side="left")
-        box = ttk.Combobox(
+        ttk.Label(row, text="Library").pack(side="left")
+        group_box = ttk.Combobox(
             row,
             state="readonly",
-            width=14,
-            textvariable=self.effect_number,
-            values=list(range(1, 27)),
+            width=17,
+            textvariable=self.program_group,
+            values=[name for name, _numbers in PROGRAM_GROUPS],
         )
-        box.pack(side="left", padx=6)
-        box.bind("<<ComboboxSelected>>", lambda _event: self.refresh_effect())
-        ttk.Label(row, textvariable=self.effect_context).pack(side="left", padx=8)
+        group_box.pack(side="left", padx=6)
+        group_box.bind("<<ComboboxSelected>>", lambda _event: self.refresh_programs())
+        ttk.Label(row, text="Selection").pack(side="left")
+        self.program_box = ttk.Combobox(
+            row,
+            state="readonly",
+            width=46,
+            textvariable=self.program_name,
+        )
+        self.program_box.pack(side="left", padx=6)
+        self.program_box.bind("<<ComboboxSelected>>", lambda _event: self.select_program())
         ttk.Label(row, text="Preview seconds").pack(side="left", padx=(16, 0))
         ttk.Entry(row, width=7, textvariable=self.preview_seconds).pack(
             side="left", padx=6
         )
-        ttk.Button(row, text="Preview effect", command=self.preview_effect).pack(
+        ttk.Button(row, text="Play selection", command=self.preview_effect).pack(
             side="left", padx=4
         )
-        roll_frame = ttk.LabelFrame(parent, text="APU piano roll (first 10 seconds)")
+        ttk.Button(row, text="Stop", command=self.stop_preview).pack(side="left", padx=4)
+
+        mixer = ttk.LabelFrame(parent, text="Preview mixer", padding=5)
+        mixer.pack(fill="x", pady=(0, 7))
+        for voice, name in enumerate(VOICE_NAMES):
+            ttk.Checkbutton(
+                mixer,
+                text=name,
+                variable=self.voice_enabled[voice],
+                command=lambda: self.draw_effect_roll(self.effect_number.get()),
+            ).pack(side="left", padx=10)
+        ttk.Checkbutton(
+            mixer,
+            text="Loop generated WAV until Stop",
+            variable=self.loop_preview,
+        ).pack(side="left", padx=(24, 10))
+        ttk.Label(mixer, textvariable=self.effect_context).pack(side="left", padx=10)
+
+        roll_frame = ttk.LabelFrame(
+            parent, text="APU piano roll (first 10 seconds; editable descriptor below)"
+        )
         roll_frame.pack(fill="x", pady=(0, 7))
         self.effect_roll = tk.Canvas(roll_frame, height=210, bg="#111824")
         self.effect_roll.pack(fill="x", expand=True)
@@ -454,6 +515,9 @@ class SoundStudio(tk.Tk):
         ttk.Button(editor, text="Apply channel", command=self.apply_effect).grid(
             row=2, column=0, columnspan=2, sticky="ew", pady=6
         )
+        ttk.Button(
+            editor, text="Open starting stream", command=self.open_effect_stream
+        ).grid(row=3, column=0, columnspan=2, sticky="ew", pady=6)
 
     def build_envelopes(self, parent: ttk.Frame) -> None:
         row = ttk.Frame(parent)
@@ -525,7 +589,13 @@ class SoundStudio(tk.Tk):
     def guarded(self, action: Callable[[], Any]) -> Any:
         try:
             return action()
-        except (audio_editor.AudioEditorError, OSError, KeyError, IndexError) as exc:
+        except (
+            audio_editor.AudioEditorError,
+            audio_preview.AudioPreviewError,
+            OSError,
+            KeyError,
+            IndexError,
+        ) as exc:
             messagebox.showerror("Sound Studio", str(exc), parent=self)
             return None
 
@@ -535,7 +605,7 @@ class SoundStudio(tk.Tk):
 
     def refresh_all(self) -> None:
         self.refresh_stream()
-        self.refresh_effect()
+        self.refresh_programs()
         self.refresh_envelope()
         self.refresh_timing()
         state = "modified" if self.model.dirty else "saved"
@@ -584,6 +654,26 @@ class SoundStudio(tk.Tk):
             self.refresh_all()
             self.command_tree.selection_set(str(index))
 
+    def refresh_programs(self) -> None:
+        numbers = program_numbers(self.program_group.get())
+        self.program_box.configure(
+            values=[program_label(number) for number in numbers]
+        )
+        effect_number = self.effect_number.get()
+        if effect_number not in numbers:
+            effect_number = numbers[0]
+            self.effect_number.set(effect_number)
+        self.program_name.set(program_label(effect_number))
+        self.refresh_effect()
+
+    def select_program(self) -> None:
+        numbers = program_numbers(self.program_group.get())
+        selected = self.program_box.current()
+        if not 0 <= selected < len(numbers):
+            return
+        self.effect_number.set(numbers[selected])
+        self.refresh_effect()
+
     def refresh_effect(self) -> None:
         self.effect_tree.delete(*self.effect_tree.get_children())
         effect_number = self.effect_number.get()
@@ -617,10 +707,17 @@ class SoundStudio(tk.Tk):
         plot_left, plot_right = 75, width - 10
         for voice, name in enumerate(VOICE_NAMES):
             top = 8 + voice * 49
-            canvas.create_text(7, top + 20, text=name, fill="#d8e2f0", anchor="w")
+            enabled = self.voice_enabled[voice].get()
+            label = name if enabled else f"{name} (muted)"
+            color = "#d8e2f0" if enabled else "#697484"
+            canvas.create_text(7, top + 20, text=label, fill=color, anchor="w")
             canvas.create_line(plot_left, top + 42, plot_right, top + 42, fill="#344052")
         for segment in segments:
-            if segment.frame.volume == 0 or segment.frame.source is None:
+            if (
+                not self.voice_enabled[segment.voice].get()
+                or segment.frame.volume == 0
+                or segment.frame.source is None
+            ):
                 continue
             x1 = plot_left + segment.start * (plot_right - plot_left) / len(trace.frames)
             x2 = plot_left + segment.end * (plot_right - plot_left) / len(trace.frames)
@@ -672,6 +769,17 @@ class SoundStudio(tk.Tk):
         ) is not None:
             self.refresh_all()
             self.effect_tree.selection_set(str(index))
+
+    def open_effect_stream(self) -> None:
+        index = self.selected_index(self.effect_tree)
+        if index is None:
+            return
+        channel = self.model.document["effects"][self.effect_number.get() - 1][
+            "channels"
+        ][index]
+        self.stream.set(channel["stream"])
+        self.refresh_stream()
+        self.notebook.select(self.streams_tab)
 
     def refresh_envelope(self) -> None:
         self.envelope_tree.delete(*self.envelope_tree.get_children())
@@ -779,8 +887,15 @@ class SoundStudio(tk.Tk):
                 "Sound Studio", "Preview seconds is not a number", parent=self
             )
             return
+        enabled_voices = {
+            voice
+            for voice, enabled in enumerate(self.voice_enabled)
+            if enabled.get()
+        }
         result = self.guarded(
-            lambda: self.model.preview(self.effect_number.get(), seconds)
+            lambda: self.model.preview(
+                self.effect_number.get(), seconds, enabled_voices
+            )
         )
         if result is None:
             return
@@ -788,22 +903,40 @@ class SoundStudio(tk.Tk):
         try:
             import winsound
 
-            winsound.PlaySound(
-                str(path), winsound.SND_FILENAME | winsound.SND_ASYNC
-            )
+            flags = winsound.SND_FILENAME | winsound.SND_ASYNC
+            if self.loop_preview.get():
+                flags |= winsound.SND_LOOP
+            winsound.PlaySound(str(path), flags)
             action = "playing"
         except (ImportError, RuntimeError):
             action = "wrote"
         self.status.set(
-            f"{action} effect {self.effect_number.get():02d}: "
-            f"{len(trace.frames)} frames, {trace.note_events} notes — {path}"
+            f"{action} {program_label(self.effect_number.get())}: "
+            f"{len(trace.frames)} frames, {trace.note_events} notes - {path}"
         )
+
+    def stop_preview(self) -> None:
+        try:
+            import winsound
+
+            winsound.PlaySound(None, 0)
+            self.status.set("Preview stopped")
+        except (ImportError, RuntimeError):
+            self.status.set(
+                "Playback control is available on Windows; WAV output is preserved"
+            )
 
     def close(self) -> None:
         if self.model.dirty and not messagebox.askyesno(
             "Sound Studio", "Discard unsaved audio changes?", parent=self
         ):
             return
+        try:
+            import winsound
+
+            winsound.PlaySound(None, 0)
+        except (ImportError, RuntimeError):
+            pass
         self.destroy()
 
 
@@ -830,6 +963,15 @@ def check_profile(profile: dict[str, Any], reference: Path) -> str:
         not audio_preview.trace_segments(trace) for trace in traces
     ):
         raise audio_preview.AudioPreviewError("incomplete effect catalog projection")
+    categorized = [
+        effect
+        for _name, effects in PROGRAM_GROUPS[:-1]
+        for effect in effects
+    ]
+    if sorted(categorized) != list(range(1, 27)) or len(set(categorized)) != 26:
+        raise audio_preview.AudioPreviewError("invalid audio program categories")
+    if PROGRAM_GROUPS[-1][1] != tuple(range(1, 27)):
+        raise audio_preview.AudioPreviewError("incomplete all-programs catalog")
     return f"{audio_editor.document_summary(model.document)}, 26 traced effects"
 
 
