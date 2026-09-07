@@ -363,6 +363,8 @@ passes on the reviewed `main` commit.
 - `make verify-revision` checks one complete source-built profile and
   `make verify-revisions` proves both required USA and Europe images without
   importing assumptions between profiles;
+- profile-aware debugger export validates the same 26 execute breakpoints and
+  27 watch ranges against each build, with explicit PAL relocation overrides;
 - the level authoring document and editor described in
   `docs/revision_profiles.md` are the first content-tooling deliverable. The
   document importer, validator, ROM builder, capacity checks, and byte-exact

@@ -1,14 +1,31 @@
 # Debugger workflow
 
-Use the exact image produced by `make verify`; a different regional revision
-invalidates the addresses in this document.
+Use the exact image and generated labels for the selected profile. The base
+`make symbols` command remains the frozen USA Source 1.0 path. Source 2.0 binds
+the same semantic breakpoint/watch inventory to profile-specific linker output:
+
+```console
+make validate-revision-symbols PROFILE=usa
+make validate-revision-symbols PROFILE=europe
+make validate-revision-symbol-profiles
+```
+
+Each entry retains its USA preservation address and records an explicit Europe
+override where code relocation or the PAL gameplay-RAM insertion changes it.
+The exporter rejects an override that disagrees with the selected `.dbg` and
+VICE label files, then writes FCEUX `.nl` files beside that profile's ROM under
+`build/revisions/PROFILE/`. A symbol file from another regional build is not
+valid evidence.
 
 ## Mesen 2 setup
 
-1. Run `make verify` and `make symbols`, then open
-   `build/native/solomons_key.nes`.
-2. Open the debugger and import `build/native/solomons_key.lbl` if Mesen does
-   not discover it automatically.
+1. For USA 1.0, run `make verify` and `make symbols`, then open
+   `build/native/solomons_key.nes`. For a 2.0 profile, run the matching
+   `validate-revision-symbols` command and open
+   `build/revisions/PROFILE/solomons_key.nes`.
+2. Open the debugger and import the `.lbl` beside the selected ROM if Mesen
+   does not discover it automatically (`build/native/solomons_key.lbl` for the
+   1.0 path or `build/revisions/PROFILE/solomons_key.lbl` for Source 2.0).
    FCEUX automatically finds the generated `.nl` files next to the ROM in
    `build/native/`.
 3. Add the starting watches from `config/debugger_watches.json`. Every entry

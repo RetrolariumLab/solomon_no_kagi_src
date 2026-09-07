@@ -93,8 +93,18 @@ def load_config(path: Path, group: str) -> list[dict[str, object]]:
     return entries
 
 
-def parse_config_address(entry: dict[str, object], path: Path) -> int:
+def parse_config_address(
+    entry: dict[str, object], path: Path, profile: str | None = None
+) -> int:
     value = entry.get("address")
+    profile_addresses = entry.get("profile_addresses", {})
+    if not isinstance(profile_addresses, dict) or not all(
+        isinstance(name, str) and isinstance(address, (int, str))
+        for name, address in profile_addresses.items()
+    ):
+        raise SymbolError(f"invalid profile_addresses in {path}: {profile_addresses!r}")
+    if profile is not None and profile in profile_addresses:
+        value = profile_addresses[profile]
     try:
         return int(value, 0) if isinstance(value, str) else int(value)
     except (TypeError, ValueError) as exc:
@@ -106,6 +116,7 @@ def resolve_config(
     group: str,
     symbols: dict[str, int],
     vice_labels: dict[str, int],
+    profile: str | None = None,
 ) -> list[dict[str, object]]:
     """Bind debugger config entries to current linker-produced addresses."""
 
@@ -123,7 +134,7 @@ def resolve_config(
             raise SymbolError(f"invalid confidence for {symbol} in {path}")
         if symbol not in symbols:
             raise SymbolError(f"unknown debug symbol {symbol} in {path}")
-        address = parse_config_address(entry, path)
+        address = parse_config_address(entry, path, profile)
         if symbols[symbol] != address:
             raise SymbolError(
                 f"stale address for {symbol}: config ${address:04X}, "
@@ -231,9 +242,11 @@ def expected_summary(args: argparse.Namespace) -> dict[str, object]:
         args.debug, args.map, args.labels
     )
     breakpoints = resolve_config(
-        args.breakpoints, "breakpoints", debug_symbols, vice_labels
+        args.breakpoints, "breakpoints", debug_symbols, vice_labels, args.profile
     )
-    watches = resolve_config(args.watches, "watches", debug_symbols, vice_labels)
+    watches = resolve_config(
+        args.watches, "watches", debug_symbols, vice_labels, args.profile
+    )
     rom_labels, ram_labels = write_fceux_labels(
         args.output_dir,
         args.rom_name,
@@ -264,6 +277,10 @@ def main() -> int:
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--rom-name", required=True)
     parser.add_argument("--summary", required=True, type=Path)
+    parser.add_argument(
+        "--profile",
+        help="select optional per-profile addresses while retaining base defaults",
+    )
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     try:

@@ -28,6 +28,10 @@ AUDIO_PREVIEW ?= build/content/$(PROFILE)/effect$(AUDIO_EFFECT)-preview.wav
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
+REVISION_LABELS = $(REVISION_BUILD_DIR)/solomons_key.lbl
+REVISION_MAP = $(REVISION_BUILD_DIR)/solomons_key.map
+REVISION_DEBUG = $(REVISION_BUILD_DIR)/solomons_key.dbg
+REVISION_SYMBOL_SUMMARY = $(REVISION_BUILD_DIR)/debug_symbols.json
 REVISION_DEFINE_usa = 0
 REVISION_DEFINE_europe = 1
 REVISION_DEFINE = $(REVISION_DEFINE_$(PROFILE))
@@ -178,7 +182,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	roundtrip-audio-profiles audio-summary preview-audio sound-studio \
 	check-sound-studio \
 	build-revision verify-revision-source verify-revision-sources \
-	verify-revision verify-revisions
+	verify-revision verify-revisions revision-symbols validate-revision-symbols \
+	validate-revision-symbol-profiles
 
 all: verify
 
@@ -397,6 +402,28 @@ verify-revision: build-revision
 verify-revisions:
 	$(MAKE) verify-revision PROFILE=usa
 	$(MAKE) verify-revision PROFILE=europe
+
+revision-symbols: build-revision
+	$(PYTHON) scripts/debug_symbols.py --debug "$(REVISION_DEBUG)" \
+		--map "$(REVISION_MAP)" --labels "$(REVISION_LABELS)" \
+		--breakpoints config/debugger_breakpoints.json \
+		--watches config/debugger_watches.json --profile "$(PROFILE)" \
+		--output-dir "$(REVISION_BUILD_DIR)" \
+		--rom-name "$(notdir $(REVISION_ROM))" \
+		--summary "$(REVISION_SYMBOL_SUMMARY)"
+
+validate-revision-symbols: revision-symbols
+	$(PYTHON) scripts/debug_symbols.py --debug "$(REVISION_DEBUG)" \
+		--map "$(REVISION_MAP)" --labels "$(REVISION_LABELS)" \
+		--breakpoints config/debugger_breakpoints.json \
+		--watches config/debugger_watches.json --profile "$(PROFILE)" \
+		--output-dir "$(REVISION_BUILD_DIR)" \
+		--rom-name "$(notdir $(REVISION_ROM))" \
+		--summary "$(REVISION_SYMBOL_SUMMARY)" --check
+
+validate-revision-symbol-profiles:
+	$(MAKE) validate-revision-symbols PROFILE=usa
+	$(MAKE) validate-revision-symbols PROFILE=europe
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

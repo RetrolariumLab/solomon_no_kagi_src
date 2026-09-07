@@ -44,6 +44,62 @@ class RecordTests(unittest.TestCase):
 
 
 class ConfigTests(unittest.TestCase):
+    def test_profile_address_overrides_the_preservation_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "breakpoints.json"
+            write_json(
+                path,
+                {
+                    "schema_version": 1,
+                    "breakpoints": [
+                        {
+                            "address": "0x8000",
+                            "profile_addresses": {"europe": "0x8010"},
+                            "symbol": "NMI",
+                            "name": "NMI",
+                            "kind": "execute",
+                            "confidence": "confirmed",
+                        }
+                    ],
+                },
+            )
+            resolved = debug_symbols.resolve_config(
+                path,
+                "breakpoints",
+                {"NMI": 0x8010},
+                {"NMI": 0x8010},
+                "europe",
+            )
+            self.assertEqual(resolved[0]["address"], 0x8010)
+            with self.assertRaisesRegex(debug_symbols.SymbolError, "stale address"):
+                debug_symbols.resolve_config(
+                    path, "breakpoints", {"NMI": 0x8010}, {"NMI": 0x8010}
+                )
+
+    def test_rejects_malformed_profile_address_map(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "watches.json"
+            write_json(
+                path,
+                {
+                    "schema_version": 1,
+                    "watches": [
+                        {
+                            "address": "0x0008",
+                            "profile_addresses": ["0x0009"],
+                            "symbol": "Pointer",
+                            "name": "Pointer",
+                            "size": 2,
+                            "confidence": "confirmed",
+                        }
+                    ],
+                },
+            )
+            with self.assertRaisesRegex(debug_symbols.SymbolError, "profile_addresses"):
+                debug_symbols.resolve_config(
+                    path, "watches", {"Pointer": 0x0008}, {}
+                )
+
     def test_resolves_breakpoint_against_both_symbol_sets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "breakpoints.json"

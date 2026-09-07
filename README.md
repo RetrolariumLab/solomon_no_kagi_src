@@ -199,9 +199,10 @@ make revision-room-audit
 make compare-revision-rooms LEFT_PROFILE=usa RIGHT_PROFILE=europe
 ```
 
-Europe is currently a verified reference and room-data profile, not yet a
-source-complete build. See `docs/revision_profiles.md` for identities, exact
-room-family differences, the binary/source boundary, and the remaining work.
+Europe is a complete source-built profile: its PRG and full iNES image reproduce
+the private PAL reference byte for byte. See `docs/revision_profiles.md` for
+identities, exact room-family differences, the binary/source boundary, and the
+remaining runtime and authoring work.
 
 ## Useful targets
 
@@ -237,6 +238,8 @@ make verify-revision-source PROFILE=europe # verify the complete source-owned PA
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
 make verify-revision PROFILE=europe # verify one complete regional ROM image
 make verify-revisions # verify complete USA and Europe source-built ROMs
+make validate-revision-symbols PROFILE=europe # export and verify PAL debugger labels
+make validate-revision-symbol-profiles # verify USA and Europe debugger contracts
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs

@@ -217,6 +217,13 @@ Both required 65,552-byte images are byte-identical. No European executable,
 structured data, padding, or graphics difference is supplied through an
 opaque PRG asset.
 
+Debugger exports use that same source-built profile rather than reusing USA
+addresses. `make validate-revision-symbols PROFILE=europe` resolves all 26
+reviewed execute breakpoints and 27 watch ranges against the PAL linker files,
+including fourteen relocated routines and the one-byte-shifted gameplay/audio
+RAM tail. `make validate-revision-symbol-profiles` applies this contract to
+both required builds and leaves FCEUX `.nl` files beside each exact ROM.
+
 ## Level editor boundary
 
 The level editor is the first authoring deliverable. Its canonical document
@@ -636,7 +643,8 @@ milestone: semantic symbols align the profiles, every PRG difference is
 classified and source-owned, and both images reproduce without post-link
 patching. The remaining release work is now evidence and authoring depth:
 
-1. add Europe-specific debugger symbols and deterministic PAL runtime traces;
+1. capture deterministic PAL runtime traces using the completed Europe-specific
+   debugger-symbol export;
 2. make the remaining structured-data audits profile-aware where PAL differs;
 3. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
