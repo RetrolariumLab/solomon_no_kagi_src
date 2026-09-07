@@ -387,9 +387,16 @@ independent, matching the engine's separate indices. The fixed-cell tab edits
 the eight room-bound Seal positions and twelve Princess-room cells, while the
 bitplane tab toggles every logical cell in the room-20 bat-symbol and room-30
 blue-opal planes. All operations share the studio's bounded undo history and
-the same profile-selected encoder used by `Build ROM`. Cyan `S`, `B`, `O`, `H`,
-and `R` overlays project this otherwise invisible scripted content onto the
-rooms that consume it.
+the same profile-selected encoder used by `Build ROM`.
+
+Room 51 additionally previews the procedural bonus layer on the main canvas.
+`Layout 00-31` selects the masked output consumed by the original backward,
+wrapping 16-item placement loop. `Source quartet` reproduces the palette group
+selected from the saved ordinary-room index, and the optional ghost overlay
+marks all 32 candidate cells without changing encoded room data. The selected
+16 items use their native art, hidden/embedded translucency, and hexadecimal
+type markers. Cyan `S`, `B`, `O`, and `H` overlays continue to project the other
+otherwise invisible scripted content onto the rooms that consume it.
 
 ### Visual Level Studio
 

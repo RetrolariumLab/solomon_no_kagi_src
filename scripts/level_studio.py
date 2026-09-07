@@ -36,11 +36,13 @@ from level_editor import (
     validate_rebuilt_document,
 )
 from level_preview import (
+    BONUS_ROOM_INDEX,
     METATILE_SIZE,
     ROOM_MAP_EMPTY,
     LevelPreviewError,
     LevelPreviewRenderer,
     PreviewLayers,
+    bonus_room_item_placements,
     classify_pattern,
     constellation_command,
     constellation_pattern,
@@ -2354,6 +2356,9 @@ class LevelStudio(tk.Tk):
         self.show_items = tk.BooleanVar(value=True)
         self.show_enemies = tk.BooleanVar(value=True)
         self.show_special = tk.BooleanVar(value=True)
+        self.bonus_layout_choice = tk.StringVar(value="00")
+        self.bonus_quartet_choice = tk.StringVar(value="01 (rooms 01-04)")
+        self.show_all_bonus_positions = tk.BooleanVar(value=False)
         self.enemy_type = tk.StringVar(value=ENEMY_TYPE_CHOICES[0x71 - 0x18])
         self.item_type = tk.StringVar(
             value=type_choice(0x18, item_type_name(0x18))
@@ -2499,6 +2504,40 @@ class LevelStudio(tk.Tk):
             text="Apply properties",
             command=self.apply_properties,
         ).grid(row=len(rows) + 1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+
+        bonus_view = ttk.LabelFrame(side, text="Bonus room 51 preview", padding=7)
+        bonus_view.pack(fill="x", pady=(8, 0))
+        ttk.Label(bonus_view, text="Layout").grid(row=0, column=0, sticky="w")
+        layout_box = ttk.Combobox(
+            bonus_view,
+            textvariable=self.bonus_layout_choice,
+            values=[f"{index:02d}" for index in range(32)],
+            state="readonly",
+            width=4,
+        )
+        layout_box.grid(row=0, column=1, sticky="w", padx=(7, 12))
+        layout_box.bind("<<ComboboxSelected>>", lambda _event: self.redraw())
+        ttk.Label(bonus_view, text="Source quartet").grid(
+            row=0, column=2, sticky="w"
+        )
+        quartet_box = ttk.Combobox(
+            bonus_view,
+            textvariable=self.bonus_quartet_choice,
+            values=[
+                f"{group + 1:02d} (rooms {group * 4 + 1:02d}-{group * 4 + 4:02d})"
+                for group in range(12)
+            ],
+            state="readonly",
+            width=18,
+        )
+        quartet_box.grid(row=0, column=3, sticky="w", padx=(7, 0))
+        quartet_box.bind("<<ComboboxSelected>>", lambda _event: self.redraw())
+        ttk.Checkbutton(
+            bonus_view,
+            text="Ghost all 32 possible positions",
+            variable=self.show_all_bonus_positions,
+            command=self.redraw,
+        ).grid(row=1, column=0, columnspan=4, sticky="w", pady=(5, 0))
 
         room_actions = ttk.LabelFrame(side, text="Whole-room actions", padding=7)
         room_actions.pack(fill="x", pady=(8, 0))
@@ -3207,18 +3246,27 @@ class LevelStudio(tk.Tk):
             anchor="nw",
         )
 
+    def bonus_preview_options(self) -> tuple[int, int]:
+        layout = int(self.bonus_layout_choice.get())
+        palette_group = int(self.bonus_quartet_choice.get().split()[0]) - 1
+        return layout, palette_group
+
     def redraw(self) -> None:
         self.canvas.delete("all")
         room = self.current_room()
         self.preview_renderer.document = self.model.document
+        bonus_layout, bonus_palette_group = self.bonus_preview_options()
+        layers = PreviewLayers(
+            metadata=self.show_metadata.get(),
+            items=self.show_items.get(),
+            enemies=self.show_enemies.get(),
+            special=self.show_special.get(),
+            bonus_layout_index=bonus_layout,
+            bonus_palette_group=bonus_palette_group,
+        )
         preview = self.preview_renderer.render(
             self.room_index.get(),
-            PreviewLayers(
-                metadata=self.show_metadata.get(),
-                items=self.show_items.get(),
-                enemies=self.show_enemies.get(),
-                special=self.show_special.get(),
-            ),
+            layers,
         )
         base = tk.PhotoImage(data=preview.ppm(), format="PPM")
         self.preview_image = base.zoom(PIXEL_SCALE, PIXEL_SCALE)
@@ -3262,17 +3310,13 @@ class LevelStudio(tk.Tk):
                     self.draw_label(position, f"{enemy['type']:02X}", "white")
                 else:
                     self.draw_type_marker(position, enemy["type"])
-        if self.show_items.get():
-            for item in self.model.item_placements(self.room_index.get()):
-                x, y = item.position["x"], item.position["y"]
-                if y < 0 or y >= ROOM_HEIGHT:
-                    continue
-                self.draw_type_marker(item.position, item.item_type)
         if self.show_special.get():
             for overlay in special_room_overlays(
                 self.model.document["special_room_data"], self.room_index.get() + 1
             ):
                 if overlay.label in {"S", "B", "O"}:
+                    continue
+                if overlay.label == "R" and not self.show_all_bonus_positions.get():
                     continue
                 if not 0 <= overlay.y < ROOM_HEIGHT:
                     continue
@@ -3284,17 +3328,38 @@ class LevelStudio(tk.Tk):
                     outline="#55ffff",
                     width=2,
                     dash=(3, 2),
+                    fill="#123c46" if overlay.label == "R" else "",
+                    stipple="gray25" if overlay.label == "R" else "",
                 )
-                self.draw_label(
-                    {"x": overlay.x, "y": overlay.y}, overlay.label, "#55ffff"
-                )
+                if overlay.label != "R":
+                    self.draw_label(
+                        {"x": overlay.x, "y": overlay.y}, overlay.label, "#55ffff"
+                    )
+        if self.show_items.get():
+            for item in self.model.item_placements(self.room_index.get()):
+                x, y = item.position["x"], item.position["y"]
+                if y < 0 or y >= ROOM_HEIGHT:
+                    continue
+                self.draw_type_marker(item.position, item.item_type)
+            if self.show_special.get() and self.room_index.get() == BONUS_ROOM_INDEX:
+                for item_type, position in bonus_room_item_placements(
+                    self.model.document, self.room_index.get(), bonus_layout
+                ):
+                    self.draw_type_marker(position, item_type)
         self.refresh_record_table()
         self.refresh_allocation()
+        bonus_status = (
+            f" + 16 generated, bonus layout {bonus_layout:02d}, "
+            f"quartet {bonus_palette_group + 1:02d}"
+            if self.room_index.get() == BONUS_ROOM_INDEX
+            else ""
+        )
         self.set_status(
             f"Room {self.room_index.get() + 1:02d}: "
             f"CHR {preview.chr_bank}, "
             f"{len(room['enemies']['placements'])} enemies, "
             f"{len(self.model.item_placements(self.room_index.get()))} items"
+            f"{bonus_status}"
         )
 
     def validate_and_build(self) -> bytes:
