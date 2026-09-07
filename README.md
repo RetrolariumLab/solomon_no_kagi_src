@@ -15,6 +15,10 @@ subsystems.
 - **Source Reconstruction 1.0 is tag-ready for the fixed USA profile.** Its
   stable contract and tag procedure are in
   [`docs/source_reconstruction_1_0.md`](docs/source_reconstruction_1_0.md).
+- **Source Reconstruction 2.0 is in active development.** USA and Europe are
+  complete byte-identical source profiles with direct runtime evidence and
+  profile-aware level/audio authoring; the additive release boundary and gates
+  are in [`docs/source_reconstruction_2_0.md`](docs/source_reconstruction_2_0.md).
 - The complete 65,552-byte iNES image assembles byte-for-byte.
 - `make verify` checks the header, PRG, CHR, complete payload, and complete file.
 - The complete PRG is assembled from registered semantic and classified-data
@@ -201,8 +205,8 @@ make compare-revision-rooms LEFT_PROFILE=usa RIGHT_PROFILE=europe
 
 Europe is a complete source-built profile: its PRG and full iNES image reproduce
 the private PAL reference byte for byte. See `docs/revision_profiles.md` for
-identities, exact room-family differences, the binary/source boundary, and the
-remaining runtime and authoring work.
+identities and authoring details, and `docs/source_reconstruction_2_0.md` for
+the accepted scope, exclusions, and release-gate procedure.
 
 ## Useful targets
 

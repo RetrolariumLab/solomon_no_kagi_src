@@ -6,6 +6,8 @@ EUROPE_REFERENCE_ROM ?= Solomon's Key (E) [!].nes
 MANIFEST := assets/manifest.json
 VERIFY_ROM := scripts/verify_rom.py
 TOOLCHAIN_MANIFEST := config/toolchain.json
+SOURCE_2_RELEASE_MANIFEST := config/source_reconstruction_2_0.json
+SOURCE_2_RELEASE_TOOL := scripts/source_2_release.py
 REVISION_MANIFEST := config/revision_profiles.json
 REVISION_TOOL := scripts/revision_profiles.py
 LEVEL_EDITOR := scripts/level_editor.py
@@ -166,6 +168,9 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	format format-check lint lint-asm \
 	lint-source lint-project test quality-check check release-audit pre-tag-audit \
 	release-static-check release-check source-1-audit source-1-post-tag-audit rooms \
+	source-1-regression-check source-2-profile-audits \
+	source-2-release-audit source-2-static-check source-2-regression-check \
+	source-2-pre-tag-audit source-2-post-tag-audit source-2-check \
 	validate-rooms room-data-audit chr-bank-report chr-bank-audit roundtrip-formats \
 	reconstruction-status reconstruction-audit \
 	prg-layout-report prg-layout-audit format-coverage-audit \
@@ -673,6 +678,26 @@ audio-profile-audits:
 	$(MAKE) audio-profile-audit PROFILE=usa
 	$(MAKE) audio-profile-audit PROFILE=europe
 
+source-2-profile-audits:
+	$(MAKE) revision-room-audit
+	$(MAKE) scheduler-profile-audits enemy-ai-profile-audits \
+		enemy-pointer-profile-audits item-handler-profile-audits
+	$(MAKE) ppu-update-profile-audits object-animation-profile-audits \
+		object-motion-profile-audits title-data-profile-audits \
+		audio-profile-audits
+
+source-2-release-audit:
+	$(PYTHON) "$(SOURCE_2_RELEASE_TOOL)" audit \
+		--release "$(SOURCE_2_RELEASE_MANIFEST)"
+
+source-2-pre-tag-audit:
+	$(PYTHON) "$(SOURCE_2_RELEASE_TOOL)" pre-tag-audit \
+		--release "$(SOURCE_2_RELEASE_MANIFEST)"
+
+source-2-post-tag-audit:
+	$(PYTHON) "$(SOURCE_2_RELEASE_TOOL)" post-tag-audit \
+		--release "$(SOURCE_2_RELEASE_MANIFEST)"
+
 quality-check: lint test
 
 release-static-check: quality-check verify validate-rooms roundtrip-formats \
@@ -680,7 +705,7 @@ release-static-check: quality-check verify validate-rooms roundtrip-formats \
 	enemy-ai-audit enemy-pointer-audit chr-bank-audit \
 	item-handler-audit release-audit
 
-release-check:
+source-1-regression-check:
 	$(MAKE) clean
 	$(MAKE) verify-toolchain verify-reference
 	$(MAKE) lint
@@ -690,9 +715,30 @@ release-check:
 		item-handler-audit
 	$(MAKE) validate-symbols trace-runtime
 	$(MAKE) release-audit
+
+release-check:
+	$(MAKE) source-1-regression-check
 	$(MAKE) pre-tag-audit
 
 source-1-audit: release-check
+
+source-2-static-check:
+	$(MAKE) verify-revision-references verify-revision-sources verify-revisions
+	$(MAKE) source-2-profile-audits roundtrip-level-profiles \
+		roundtrip-audio-profiles
+	$(MAKE) check-level-studio check-sound-studio \
+		validate-revision-symbol-profiles
+	$(MAKE) source-2-release-audit
+
+source-2-regression-check:
+	$(MAKE) source-1-regression-check
+	$(MAKE) source-2-static-check
+	$(MAKE) trace-revision-runtimes smoke-level-playtests
+	$(MAKE) source-2-release-audit
+
+source-2-check:
+	$(MAKE) source-2-regression-check
+	$(MAKE) source-2-pre-tag-audit
 
 check: release-static-check
 

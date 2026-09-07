@@ -14,6 +14,7 @@ from scripts.reconstruction_status import (
     validate,
     validate_release,
 )
+from scripts.source_2_release import validate_source_2_release
 
 
 class ReconstructionStatusTests(unittest.TestCase):
@@ -28,6 +29,15 @@ class ReconstructionStatusTests(unittest.TestCase):
         )
         metrics = deepcopy(release["reconstruction_metrics"])
         return root, deepcopy(release), metrics
+
+    def make_source_2_release_fixture(self) -> tuple[Path, dict[str, object]]:
+        root = Path(__file__).resolve().parent.parent
+        release = json.loads(
+            (root / "config" / "source_reconstruction_2_0.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        return root, deepcopy(release)
 
     def make_fixture(self) -> tuple[Path, dict[str, object], dict[str, object], Path, Path]:
         temporary = tempfile.TemporaryDirectory()
@@ -171,6 +181,75 @@ class ReconstructionStatusTests(unittest.TestCase):
         errors = validate_release(root, release, metrics)
         self.assertTrue(any("release path is missing" in error for error in errors))
         self.assertTrue(any("Make target is missing" in error for error in errors))
+
+    def test_source_2_contract_accepts_current_development_scope(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        self.assertEqual(validate_source_2_release(root, release), [])
+
+    def test_source_2_contract_pins_the_published_predecessor(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        release["predecessor"]["commit"] = "0" * 40
+        errors = validate_source_2_release(root, release)
+        self.assertIn(
+            "predecessor commit differs from the peeled Source 1.0 tag",
+            errors,
+        )
+
+    def test_source_2_contract_rejects_regional_identity_drift(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        europe = next(
+            artifact
+            for artifact in release["artifacts"]
+            if artifact["id"] == "europe_nes_rom"
+        )
+        europe["sha256"] = "0" * 64
+        errors = validate_source_2_release(root, release)
+        self.assertIn(
+            "artifact europe_nes_rom sha256 differs from revision profile",
+            errors,
+        )
+
+    def test_source_2_contract_rejects_runtime_scenario_drift(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        europe = next(
+            coverage
+            for coverage in release["runtime_coverage"]
+            if coverage["profile_id"] == "europe"
+        )
+        europe["scenarios"] = list(reversed(europe["scenarios"]))
+        errors = validate_source_2_release(root, release)
+        self.assertIn("runtime scenario order differs for europe", errors)
+
+    def test_source_2_contract_requires_complete_authoring_roles(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        levels = next(
+            authoring
+            for authoring in release["authoring"]
+            if authoring["id"] == "levels"
+        )
+        del levels["targets"]["roundtrip"]
+        errors = validate_source_2_release(root, release)
+        self.assertIn("authoring levels target roles differ", errors)
+
+    def test_source_2_contract_requires_profile_owned_capacities(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        audio = next(
+            authoring
+            for authoring in release["authoring"]
+            if authoring["id"] == "audio"
+        )
+        audio["capacity_contract"]["owner"] = "gui"
+        errors = validate_source_2_release(root, release)
+        self.assertIn("authoring audio capacities are not profile-owned", errors)
+
+    def test_source_2_contract_requires_stable_aggregate_gates(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        release["aggregate_gates"]["pre_tag"] = ["make check"]
+        errors = validate_source_2_release(root, release)
+        self.assertIn(
+            "aggregate_gates differ from the Source 2.0 interface",
+            errors,
+        )
 
 
 if __name__ == "__main__":
