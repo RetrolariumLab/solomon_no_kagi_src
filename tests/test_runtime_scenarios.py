@@ -78,6 +78,24 @@ def trace_rows() -> list[dict[str, str]]:
 
 
 class ScenarioTests(unittest.TestCase):
+    def test_binds_legacy_and_explicit_regional_manifests(self) -> None:
+        document = scenario_document()
+        runtime_scenarios.validate_manifest_profile(document, "usa")
+        with self.assertRaisesRegex(runtime_scenarios.RuntimeError, "profile mismatch"):
+            runtime_scenarios.validate_manifest_profile(document, "europe")
+        document["profile"] = "europe"
+        runtime_scenarios.validate_manifest_profile(document, "europe")
+
+    def test_committed_pal_manifest_has_complete_expectations(self) -> None:
+        document = runtime_scenarios.load_scenarios(
+            ROOT / "scenarios" / "runtime_scenarios_europe.json"
+        )
+        self.assertEqual(document["profile"], "europe")
+        self.assertEqual(len(document["scenarios"]), 4)
+        for scenario in document["scenarios"]:
+            self.assertTrue(scenario["expected_events"])
+            self.assertTrue(scenario["expected_final"])
+
     def test_loads_and_encodes_inputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "scenarios.json"

@@ -224,6 +224,14 @@ including fourteen relocated routines and the one-byte-shifted gameplay/audio
 RAM tail. `make validate-revision-symbol-profiles` applies this contract to
 both required builds and leaves FCEUX `.nl` files beside each exact ROM.
 
+The first PAL runtime matrix consumes those labels in four deterministic FCEUX
+scenarios: cold boot, natural Room 1 entry, pause/resume, and overlapping audio
+priority. It records distinct PAL scheduler/timer totals and relocated audio
+stream starts while retaining the same controller and virtual-channel behavior.
+`make trace-revision-runtime PROFILE=europe` captures and immediately validates
+the European evidence; `make trace-revision-runtimes` repeats both regional
+matrices from their respective source-built images.
+
 ## Level editor boundary
 
 The level editor is the first authoring deliverable. Its canonical document
@@ -643,11 +651,11 @@ milestone: semantic symbols align the profiles, every PRG difference is
 classified and source-owned, and both images reproduce without post-link
 patching. The remaining release work is now evidence and authoring depth:
 
-1. capture deterministic PAL runtime traces using the completed Europe-specific
-   debugger-symbol export;
-2. make the remaining structured-data audits profile-aware where PAL differs;
-3. add higher-level composition naming and final emulator audition to Sound
+1. make the remaining structured-data audits profile-aware where PAL differs;
+2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
+3. expand the focused PAL baseline and existing USA matrix when a remaining
+   semantic claim needs new runtime evidence;
 4. create the Source Reconstruction 2.0 manifest and aggregate release gate;
 5. keep Japanese reconstruction as a later, explicitly scoped profile.
 

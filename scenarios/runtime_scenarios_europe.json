@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "profile": "europe",
+  "rom_sha1": "89ab8f53154c9dcddafe46c16b31df7e00fe2538",
+  "scenarios": [
+    {
+      "id": "cold-boot-idle",
+      "method": "PAL cold boot with no controller input",
+      "max_frames": 180,
+      "inputs": [],
+      "patches": [],
+      "expected_events": {
+        "first_nmi": 6,
+        "first_joypad_read": 6,
+        "first_thread_switch": 7
+      },
+      "forbidden_events": [
+        "room_load",
+        "gameplay_start"
+      ],
+      "expected_final": {
+        "frame": "180",
+        "thread": "01",
+        "room": "00",
+        "timer": "00000000",
+        "active_enemies": "00"
+      }
+    },
+    {
+      "id": "start-room-1",
+      "method": "PAL cold boot with a deterministic Start pulse",
+      "max_frames": 1000,
+      "inputs": [
+        {"start_frame": 300, "end_frame": 301, "buttons": ["start"]}
+      ],
+      "patches": [],
+      "expected_events": {
+        "first_nmi": 6,
+        "first_joypad_read": 6,
+        "first_thread_switch": 7,
+        "start_input_seen": 301,
+        "room_load": 303,
+        "room_intro": 308,
+        "gameplay_start": 610,
+        "first_timer_tick": 610,
+        "enemy_ai": 610,
+        "dana_control": 611,
+        "object_motion": 611,
+        "object_collision": 611
+      },
+      "expected_event_details": {
+        "scheduler_window": "0=834;1=834;2=834;3=834;4=834;5=834;6=834;7=834",
+        "timer_window": "calls=204;frames=60;updates=59;skips=0;ticks=143;initial=86;steady=57;queued=2;max=1"
+      },
+      "expected_event_series": {
+        "scheduler_switch": [
+          "610:03", "610:04", "610:05", "610:06",
+          "610:07", "610:00", "610:01", "610:02",
+          "610:03", "610:04", "610:05", "610:06",
+          "610:07", "610:00", "610:01", "610:02",
+          "610:03", "610:04", "610:05", "610:06",
+          "610:07", "610:00", "610:01", "610:02"
+        ]
+      },
+      "expected_final": {
+        "frame": "1000",
+        "thread": "03",
+        "room": "00",
+        "timer": "06020900",
+        "dana_y": "90",
+        "dana_x": "28",
+        "active_enemies": "01",
+        "remaining_lives": "03"
+      }
+    },
+    {
+      "id": "room-1-pause-resume",
+      "method": "PAL Room 1 entry followed by separate pause and resume Start pulses",
+      "max_frames": 950,
+      "inputs": [
+        {"start_frame": 300, "end_frame": 301, "buttons": ["start"]},
+        {"start_frame": 720, "end_frame": 721, "buttons": ["start"]},
+        {"start_frame": 800, "end_frame": 801, "buttons": ["start"]}
+      ],
+      "patches": [],
+      "expected_events": {
+        "first_nmi": 6,
+        "first_joypad_read": 6,
+        "first_thread_switch": 7,
+        "start_input_seen": 301,
+        "room_load": 303,
+        "room_intro": 308,
+        "gameplay_start": 610,
+        "first_timer_tick": 610,
+        "pause_thread": 722,
+        "pause_active": 762,
+        "pause_cleared": 803,
+        "gameplay_resumed": 804
+      },
+      "expected_event_details": {
+        "pause_thread": "PauseGameThread",
+        "pause_active": "0078=07",
+        "pause_cleared": "0078=01",
+        "gameplay_resumed": "UpdateDanaControlState",
+        "scheduler_window": "0=834;1=834;2=834;3=834;4=834;5=834;6=834;7=834",
+        "timer_window": "calls=204;frames=60;updates=59;skips=0;ticks=143;initial=86;steady=57;queued=2;max=1"
+      },
+      "forbidden_events": [
+        "gameplay_during_pause"
+      ],
+      "expected_final": {
+        "frame": "950",
+        "thread": "03",
+        "room": "00",
+        "timer": "07040900",
+        "dana_y": "90",
+        "dana_x": "28",
+        "active_enemies": "01",
+        "remaining_lives": "03"
+      }
+    },
+    {
+      "id": "audio-channel-priority",
+      "method": "PAL Room 1 music with controlled overlapping audio commands",
+      "max_frames": 900,
+      "inputs": [
+        {"start_frame": 300, "end_frame": 301, "buttons": ["start"]}
+      ],
+      "patches": [
+        {
+          "frame": 720,
+          "symbol": "SoundEffectQueue",
+          "offset": 2,
+          "value": "0x07",
+          "reason": "queue_virtual_4_first",
+          "expected_detail": "0425:00>07:queue_virtual_4_first"
+        },
+        {
+          "frame": 720,
+          "symbol": "SoundEffectQueue",
+          "offset": 0,
+          "value": "0x0a",
+          "reason": "queue_virtual_4_last",
+          "expected_detail": "0423:00>0A:queue_virtual_4_last"
+        },
+        {
+          "frame": 760,
+          "symbol": "SoundEffectQueue",
+          "offset": 2,
+          "value": "0x08",
+          "reason": "queue_virtual_6_override",
+          "expected_detail": "0425:00>08:queue_virtual_6_override"
+        }
+      ],
+      "expected_events": {
+        "first_nmi": 6,
+        "first_joypad_read": 6,
+        "first_thread_switch": 7,
+        "start_input_seen": 301,
+        "room_load": 303,
+        "room_intro": 308,
+        "gameplay_start": 610,
+        "first_timer_tick": 610,
+        "audio_command_start": 721,
+        "audio_virtual_start": 721,
+        "audio_route": 700,
+        "scheduler_window": 900,
+        "timer_window": 900
+      },
+      "expected_event_details": {
+        "scheduler_window": "0=834;1=834;2=834;3=834;4=834;5=834;6=834;7=834",
+        "timer_window": "calls=204;frames=60;updates=59;skips=0;ticks=143;initial=86;steady=57;queued=2;max=1"
+      },
+      "expected_event_series": {
+        "audio_command_start": [
+          "721:slot=2;command=07",
+          "721:slot=0;command=0A",
+          "761:slot=2;command=08"
+        ],
+        "audio_virtual_start": [
+          "721:command=07;virtual=4;stream=FB03",
+          "721:command=0A;virtual=4;stream=FB57",
+          "761:command=08;virtual=6;stream=FB15"
+        ],
+        "audio_route": [
+          "700:apu=0;virtual=1;mask=8A",
+          "700:apu=1;virtual=3;mask=8A",
+          "700:apu=2;virtual=5;mask=8A",
+          "700:apu=3;virtual=7;mask=8A",
+          "721:apu=2;virtual=4;mask=9A",
+          "737:apu=2;virtual=5;mask=8A",
+          "761:apu=3;virtual=6;mask=CA",
+          "780:apu=3;virtual=7;mask=8A"
+        ]
+      },
+      "expected_final": {
+        "frame": "900",
+        "thread": "03",
+        "room": "00",
+        "timer": "01040900",
+        "dana_y": "90",
+        "dana_x": "28",
+        "active_enemies": "01",
+        "remaining_lives": "03"
+      }
+    }
+  ]
+}

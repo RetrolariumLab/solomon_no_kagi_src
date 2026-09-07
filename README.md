@@ -240,6 +240,8 @@ make verify-revision PROFILE=europe # verify one complete regional ROM image
 make verify-revisions # verify complete USA and Europe source-built ROMs
 make validate-revision-symbols PROFILE=europe # export and verify PAL debugger labels
 make validate-revision-symbol-profiles # verify USA and Europe debugger contracts
+make trace-revision-runtime PROFILE=europe # freshly capture and validate PAL traces
+make trace-revision-runtimes # capture the complete USA and focused PAL matrices
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs

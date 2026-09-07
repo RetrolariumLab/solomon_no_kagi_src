@@ -33,6 +33,9 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `validate-symbols` | bind configured breakpoints and watch ranges to current linker symbols |
 | `validate-revision-symbols` | export and validate the same semantic debugger inventory for one source-built profile |
 | `validate-revision-symbol-profiles` | validate profile-selected symbols for required USA and Europe builds |
+| `trace-revision-runtime` | freshly capture and validate one profile's ROM- and symbol-bound runtime contract |
+| `validate-revision-runtime` | revalidate generated traces against the selected regional manifest |
+| `trace-revision-runtimes` | capture the frozen USA and focused European PAL runtime matrices |
 | `prg-layout-audit` | classify all 32 KiB as code, data, stream, padding, or vectors |
 | `format-coverage-audit` | require one codec owner for every stream-classified segment |
 | `trace-runtime` | capture and validate deterministic cold-boot and Room 1 FCEUX traces |

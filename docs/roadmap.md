@@ -365,6 +365,8 @@ passes on the reviewed `main` commit.
   importing assumptions between profiles;
 - profile-aware debugger export validates the same 26 execute breakpoints and
   27 watch ranges against each build, with explicit PAL relocation overrides;
+- four ROM- and symbol-bound PAL traces cover boot, Room 1 entry, pause/resume,
+  scheduler/timer cadence, and relocated audio-stream priority behavior;
 - the level authoring document and editor described in
   `docs/revision_profiles.md` are the first content-tooling deliverable. The
   document importer, validator, ROM builder, capacity checks, and byte-exact

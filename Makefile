@@ -53,6 +53,10 @@ FCEUX ?= ../fceux_automation/vc/x64/Release/fceux64.exe
 RUNTIME_SCENARIOS := scenarios/runtime_scenarios.json
 RUNTIME_LUA := scripts/capture_runtime_scenario.lua
 RUNTIME_TRACE_DIR := $(BUILD_DIR)/runtime
+REVISION_RUNTIME_SCENARIOS_usa = scenarios/runtime_scenarios.json
+REVISION_RUNTIME_SCENARIOS_europe = scenarios/runtime_scenarios_europe.json
+REVISION_RUNTIME_SCENARIOS = $(REVISION_RUNTIME_SCENARIOS_$(PROFILE))
+REVISION_RUNTIME_TRACE_DIR = $(REVISION_BUILD_DIR)/runtime
 DEBUG_SYMBOLS := $(PYTHON) scripts/debug_symbols.py --debug "$(DEBUG)" --map "$(MAP)" \
 	--labels "$(LABELS)" --breakpoints config/debugger_breakpoints.json \
 	--watches config/debugger_watches.json --output-dir "$(SYMBOL_DIR)" \
@@ -183,7 +187,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	check-sound-studio \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions revision-symbols validate-revision-symbols \
-	validate-revision-symbol-profiles
+	validate-revision-symbol-profiles trace-revision-runtime \
+	validate-revision-runtime trace-revision-runtimes
 
 all: verify
 
@@ -424,6 +429,22 @@ validate-revision-symbols: revision-symbols
 validate-revision-symbol-profiles:
 	$(MAKE) validate-revision-symbols PROFILE=usa
 	$(MAKE) validate-revision-symbols PROFILE=europe
+
+trace-revision-runtime: verify-runtime-toolchain validate-revision-symbols
+	$(PYTHON) scripts/runtime_scenarios.py trace --fceux "$(FCEUX)" \
+		--rom "$(REVISION_ROM)" --lua "$(RUNTIME_LUA)" \
+		--scenarios "$(REVISION_RUNTIME_SCENARIOS)" \
+		--output-dir "$(REVISION_RUNTIME_TRACE_DIR)" --profile "$(PROFILE)"
+	$(MAKE) validate-revision-runtime PROFILE=$(PROFILE)
+
+validate-revision-runtime:
+	$(PYTHON) scripts/runtime_scenarios.py validate \
+		--scenarios "$(REVISION_RUNTIME_SCENARIOS)" \
+		--trace-dir "$(REVISION_RUNTIME_TRACE_DIR)" --profile "$(PROFILE)"
+
+trace-revision-runtimes:
+	$(MAKE) trace-revision-runtime PROFILE=usa
+	$(MAKE) trace-revision-runtime PROFILE=europe
 
 rom-info-reference:
 	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"

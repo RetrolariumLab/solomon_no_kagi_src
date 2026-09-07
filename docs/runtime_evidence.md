@@ -96,3 +96,34 @@ life-loss/reload, and scheduler-timing baseline.
 Later subsystem traces should add focused, explicitly declared state setup
 where reaching rare mechanics through input alone would make the evidence
 prohibitively slow.
+
+## European PAL baseline
+
+Source Reconstruction 2.0 keeps a separate committed contract in
+`scenarios/runtime_scenarios_europe.json`. It is bound to the complete European
+ROM SHA-1 and to profile-selected linker symbols rather than copied USA
+addresses. Capture or revalidate it with:
+
+```console
+make trace-revision-runtime PROFILE=europe
+make validate-revision-runtime PROFILE=europe
+```
+
+The four-scenario baseline covers cold boot, natural Room 1 entry, pause and
+resume, and overlapping audio-channel priority. It resolves execute hooks in
+relocated PAL code and reads the shifted timer, audio-state, enemy, Dana, and
+fireball RAM symbols live. The first gameplay frame remains 610 for this input,
+but the first 60-frame window records 834 switches per scheduler context and
+204 timer calls, versus 829 and 203 in the USA contract. The final Room 1 timer
+at frame 1000 is `06020900` rather than `09030900`.
+
+The audio scenario also proves that commands 7, 10, and 8 route through the
+same virtual channels and APU priority order while resolving their PAL stream
+starts at `$FB03`, `$FB57`, and `$FB15`. Its three controlled mailbox writes
+are declared in the manifest and no code, channel state, or stream pointer is
+patched. Generated CSV files remain under `build/revisions/europe/runtime/`.
+
+`make trace-revision-runtimes` freshly captures the frozen ten-scenario USA
+matrix and this focused PAL matrix together. The regional runner checks the
+manifest profile in addition to ROM identity, so a USA contract cannot be
+silently validated as European evidence.

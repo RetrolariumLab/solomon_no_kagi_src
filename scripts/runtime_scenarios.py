@@ -47,6 +47,9 @@ def load_scenarios(path: Path) -> dict[str, object]:
         raise RuntimeError(f"cannot read {path}: {exc}") from exc
     if not isinstance(document, dict) or document.get("schema_version") != 1:
         raise RuntimeError(f"unsupported runtime scenario schema: {path}")
+    profile = document.get("profile")
+    if profile is not None and (not isinstance(profile, str) or not profile):
+        raise RuntimeError(f"invalid runtime profile in {path}: {profile!r}")
     scenarios = document.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios:
         raise RuntimeError("runtime scenarios must be a non-empty list")
@@ -64,6 +67,20 @@ def load_scenarios(path: Path) -> dict[str, object]:
         validate_inputs(scenario)
         validate_patches(scenario)
     return document
+
+
+def validate_manifest_profile(
+    document: dict[str, object], expected_profile: str | None
+) -> None:
+    """Bind regional traces explicitly while preserving the legacy USA manifest."""
+    if expected_profile is None:
+        return
+    actual_profile = document.get("profile", "usa")
+    if actual_profile != expected_profile:
+        raise RuntimeError(
+            f"runtime profile mismatch: expected={expected_profile}, "
+            f"manifest={actual_profile}"
+        )
 
 
 def validate_inputs(scenario: dict[str, object]) -> None:
@@ -320,9 +337,11 @@ def build_parser() -> argparse.ArgumentParser:
     trace.add_argument("--lua", required=True, type=Path)
     trace.add_argument("--scenarios", required=True, type=Path)
     trace.add_argument("--output-dir", required=True, type=Path)
+    trace.add_argument("--profile")
     validate = subparsers.add_parser("validate")
     validate.add_argument("--scenarios", required=True, type=Path)
     validate.add_argument("--trace-dir", required=True, type=Path)
+    validate.add_argument("--profile")
     return parser
 
 
@@ -331,6 +350,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         document = load_scenarios(args.scenarios)
+        validate_manifest_profile(document, args.profile)
         if args.command == "trace":
             command_trace(args, document)
         else:
