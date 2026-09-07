@@ -42,7 +42,14 @@ again as soon as the corresponding primary stops.
 
 ## Stream interpreter
 
-Ordinary bytes encode notes. `$80-$EF` select a duration through the table at
+Ordinary bytes encode notes. Virtual channels 0-5, which feed both pulse
+voices and triangle, split each note into a low-nibble index in the twelve-word
+period table and a high-nibble octave shift. Only virtual channels 6-7, which
+feed noise, treat an ordinary byte as a direct noise-register value. Keeping
+that boundary at six is essential for auditioning: treating pulse 2 or
+triangle notes as raw timers turns normal music into ultrasonic beeps.
+
+`$80-$EF` select a duration through the table at
 `$F380`; `$F0-$F9` dispatch through the ten-entry handler table at `$F246`:
 
 | Opcode | Observed operation |

@@ -29,6 +29,7 @@ PULSE_DUTIES = (0.125, 0.25, 0.5, 0.75)
 MAX_COMMANDS_PER_NOTE = 10_000
 MAX_STACK_DEPTH = 8
 VOICE_NAMES = ("pulse1", "pulse2", "triangle", "noise")
+PITCHED_VIRTUAL_CHANNEL_LIMIT = 6
 
 
 class AudioPreviewError(ValueError):
@@ -127,7 +128,7 @@ class EffectSequencer:
     def decode_note(self, channel: VirtualChannel, token: int) -> None:
         channel.pc += 1
         channel.muted = False
-        if channel.number < 2:
+        if channel.number < PITCHED_VIRTUAL_CHANNEL_LIMIT:
             pitch = token & 0x0F
             if pitch == 0x0C:
                 channel.muted = True

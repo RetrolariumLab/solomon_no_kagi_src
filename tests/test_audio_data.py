@@ -321,6 +321,20 @@ class SoundStudioTests(unittest.TestCase):
 
 
 class AudioPreviewTests(unittest.TestCase):
+    def test_pitched_notes_cover_both_pulses_and_triangle(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        room_music = audio_preview.trace_effect(document, 1, 1).frames[0]
+        full_score = audio_preview.trace_effect(document, 5, 1).frames[0]
+        periods = document["periods"]
+        self.assertEqual(room_music[0].period, periods[3] >> 1)
+        self.assertEqual(room_music[1].period, periods[0] >> 2)
+        self.assertEqual(full_score[1].period, periods[0] >> 3)
+        self.assertEqual(full_score[2].period, periods[5] >> 1)
+        self.assertEqual(full_score[3].period, 1)
+
     def test_traces_every_effect_for_both_console_timings(self) -> None:
         for profile_id in ("usa", "europe"):
             profile, reference = audio_case(profile_id)
