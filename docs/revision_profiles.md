@@ -205,6 +205,14 @@ independent hashes, while their raw frame records have a deliberately shared
 hash. `make object-animation-profile-audits` proves exact 2,283-byte
 decode/encode identity for both source-built images.
 
+Static PPU programs also have independent contracts. Their regional layout is
+not a uniform relocation: USA occupies `$9488-$961A`, while Europe occupies
+`$94A2-$9622`. The PAL source contains the same 18 public stream indices but
+uses 25 commands and 349 encoded bytes instead of USA's 26 commands and 367
+bytes because its final license message is shorter. Two other text streams
+select a regional tile value. `make ppu-update-profile-audits` validates the
+split pointer tables, exact coverage, hashes, and lossless encoding for both.
+
 Run the combined source ownership gate with:
 
 ```console
@@ -666,7 +674,7 @@ classified and source-owned, and both images reproduce without post-link
 patching. The remaining release work is now evidence and authoring depth:
 
 1. make the remaining structured-data audits profile-aware where PAL differs
-   (object motion and object animation are complete);
+   (object motion, object animation, and static PPU streams are complete);
 2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
 3. expand the focused PAL baseline and existing USA matrix when a remaining

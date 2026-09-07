@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 import unittest
 
 from scripts.ppu_update_data import (
@@ -9,11 +10,35 @@ from scripts.ppu_update_data import (
     decode_stream,
     encode_command,
     encode_stream,
+    load_manifest,
+    validate_manifest_profile,
     validate_report,
 )
 
 
 class PpuUpdateDataTests(unittest.TestCase):
+    def test_committed_profiles_record_distinct_localized_stream_layouts(
+        self,
+    ) -> None:
+        root = Path(__file__).resolve().parent.parent
+        usa = load_manifest(root / "config" / "ppu_update_streams.json")
+        europe = load_manifest(root / "config" / "ppu_update_streams_europe.json")
+        validate_manifest_profile(usa, "usa")
+        validate_manifest_profile(europe, "europe")
+        self.assertNotEqual(usa["pointer_sha1"], europe["pointer_sha1"])
+        self.assertNotEqual(usa["data_sha1"], europe["data_sha1"])
+        self.assertEqual(
+            len(usa["stream_addresses"]), len(europe["stream_addresses"])
+        )
+        self.assertEqual(
+            int(usa["data_end"], 0) - int(usa["data_start"], 0) + 1,
+            367,
+        )
+        self.assertEqual(
+            int(europe["data_end"], 0) - int(europe["data_start"], 0) + 1,
+            349,
+        )
+
     def test_decodes_repeat_and_literal_commands(self) -> None:
         prg = bytes((0x20, 0x40, 0x02, 0x24, 0x21, 0x00, 0xC1, 0xAA, 0xBB, 0x00))
         stream = decode_stream(prg + bytes(32_768 - len(prg)), 0x8000)

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "profile": "europe",
+  "pointer_low_address": "0x94a2",
+  "pointer_high_address": "0x94b4",
+  "data_start": "0x94c6",
+  "data_end": "0x9622",
+  "pointer_sha1": "842f74e35e1729513bc697d0b364d8db70322359",
+  "data_sha1": "678d3d6164a06c0239e62ed7a0967363f0f4caeb",
+  "stream_addresses": [
+    "0x94c6",
+    "0x94eb",
+    "0x94ff",
+    "0x9511",
+    "0x952b",
+    "0x95fb",
+    "0x953c",
+    "0x9549",
+    "0x954e",
+    "0x9563",
+    "0x9580",
+    "0x9595",
+    "0x95a9",
+    "0x960f",
+    "0x95ae",
+    "0x95b3",
+    "0x95c7",
+    "0x95e3"
+  ]
+}

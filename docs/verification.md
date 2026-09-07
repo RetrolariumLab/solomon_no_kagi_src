@@ -45,6 +45,7 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `enemy-ai-audit` | check all 28 inline enemy-AI handler pointers |
 | `item-handler-audit` | check all 29 item selectors, pointers, names, and table hash |
 | `ppu-update-audit` | check 18 static stream pointers, coverage, hashes, and byte round trips |
+| `ppu-update-profile-audits` | independently round-trip all USA/PAL static PPU programs and localized payloads |
 | `object-animation-audit` | round-trip 2,283 bytes of pointers, descriptors, selectors, and frames |
 | `object-animation-profile-audits` | independently round-trip relocated USA and PAL animation layouts and prove their shared frame payload |
 | `object-motion-audit` | round-trip 524 bytes of pointers, selectors, and vectors |
@@ -78,6 +79,8 @@ semantic names, target addresses, and the exact 58-byte appendix hash to
 `make ppu-update-audit` decodes the split pointer table and every command in
 the adjacent static PPU stream range. It requires exact reviewed hashes,
 single coverage of every payload byte, and lossless re-encoding.
+`make ppu-update-profile-audits` applies that proof to the independently
+addressed and hashed USA and European source builds.
 
 ## Failure diagnostics
 

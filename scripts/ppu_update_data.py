@@ -20,6 +20,11 @@ except ImportError:
 
 PRG_BASE = 0x8000
 
+PPU_UPDATE_MANIFESTS = {
+    "usa": "ppu_update_streams.json",
+    "europe": "ppu_update_streams_europe.json",
+}
+
 
 @dataclass(frozen=True)
 class PpuUpdateCommand:
@@ -147,6 +152,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
     return value
 
 
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"PPU update profile mismatch: expected={profile}, manifest={actual}"
+        )
+
+
 def stream_report(stream: PpuUpdateStream) -> dict[str, object]:
     return {
         "address": stream.cpu_address,
@@ -243,11 +256,17 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(PPU_UPDATE_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "ppu_update_streams.json"
+    manifest_path = args.manifest or (
+        root / "config" / PPU_UPDATE_MANIFESTS[args.profile]
+    )
     try:
         manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
         report = collect_report(extract_prg(args.image.read_bytes()), manifest)
         if args.command == "report":
             print(json.dumps(report, indent=2, sort_keys=True))

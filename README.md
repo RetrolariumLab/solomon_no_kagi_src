@@ -238,6 +238,7 @@ make verify-revision-source PROFILE=europe # verify the complete source-owned PA
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
 make verify-revision PROFILE=europe # verify one complete regional ROM image
 make verify-revisions # verify complete USA and Europe source-built ROMs
+make ppu-update-profile-audits # round-trip localized USA/PAL PPU streams
 make object-animation-profile-audits # round-trip all USA/PAL animation tables
 make object-motion-profile-audits # round-trip all USA/PAL motion tables
 make validate-revision-symbols PROFILE=europe # export and verify PAL debugger labels
@@ -326,6 +327,7 @@ config/scheduler_entries.json reviewed scheduler-entry inventory
 config/enemy_ai_handlers.json reviewed enemy AI handler pointer inventory
 config/enemy_record_pointers.json reviewed record-pool pointer layouts
 config/ppu_update_streams.json reviewed static PPU stream inventory
+config/ppu_update_streams_europe.json reviewed PAL static PPU stream inventory
 docs/                      architecture and reverse-engineering notes
 docs/special_room_scripts.md context-six room dispatch and trigger evidence
 docs/ending_sequence.md      room-index 49 ending choreography
