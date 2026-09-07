@@ -405,9 +405,10 @@ room as its native 16 by 12 logical grid. The background is rendered from the
 selected room's original 8 KiB CHR bank, the `$1000` background pattern table,
 the source-owned four-tile RoomMap records, and the palette produced by the
 room loader. Brown and white blocks, doors, keys, Demon Mirrors, exposed and
-embedded items, and the six-cell constellation layouts therefore use their
-game art rather than editor-only colored boxes. Grid labels and outlines stay
-above that image so overlapping enemy, item, and anchor records remain easy to
+flagged items, and the six-cell constellation layouts therefore use their game
+art rather than editor-only colored boxes. Enemy and item type bytes appear in
+the common unframed top-left style, so the number does not cover the native
+art. Grid labels stay above that image so overlapping records remain easy to
 select.
 
 Five view toggles independently show the grid, metadata, items, enemies, and
@@ -424,14 +425,27 @@ bank. The European animation table is independently located at `$D068`
 instead of inheriting the USA `$D0E8` address; both values live in the
 validated revision manifest. A type outside the decoded engine range remains
 visible as an explicit editor marker rather than being assigned invented art.
+The lateral ground-enemy families `$50-$7F` receive the editor's horizontal
+orientation correction; flying families retain the direct native projection.
+The player start uses Dana's Type 00 walking descriptor and faces toward the
+center of the room, matching the room loader's initial action selection rather
+than showing a `P` placeholder.
+
+Item flag `$80` keeps the brown-block base and overlays the collectible art at
+half opacity, representing an item embedded in a wall. Flag `$40` keeps the
+empty or constellation background and uses the same translucent overlay for
+an item revealed after creating and breaking a block. Hidden and embedded keys
+follow the corresponding rule. This is a preview-only composition: the stored
+item byte and both original block planes remain unchanged.
 
 The toolbar can place brown, white, or combined brown-and-white blocks, erase a
 complete cell, move the player start, key, door, and either Demon Mirror, and
 add typed enemies or items. The combined mode sets both original bitplanes;
-the preview marks it `B+W` because the native loader's white-second precedence
-otherwise makes it look identical to a white block. Existing direct, repeated,
-and constellation item records are all visible; erasing one repeated placement
-shrinks the command and removes it when its last position disappears.
+the preview draws the resulting gray block at half opacity instead of adding a
+`B+W` outline or label, distinguishing this breakable combination from an
+ordinary solid gray block. Existing direct, repeated, and constellation item
+records are all visible; erasing one repeated placement shrinks the command
+and removes it when its last position disappears.
 
 Block and erase tools support continuous mouse strokes. The editor fills every
 logical cell on a Bresenham path between motion events, so fast diagonal or

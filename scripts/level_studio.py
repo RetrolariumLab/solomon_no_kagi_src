@@ -2606,10 +2606,10 @@ class LevelStudio(tk.Tk):
             justify="left",
             text=(
                 "Brown / white / B+W: block planes\n"
-                "P player, K key, D door\n"
+                "Dana sprite, K key, D door\n"
                 "M1/M2 Demon Mirrors\n"
-                "Red circles: enemies\n"
-                "Gold diamonds: items\n"
+                "Hex at top-left: enemy/item type\n"
+                "Translucent art: hidden item or breakable gray block\n"
                 "Cyan S/B/O/H/R: scripted special data\n\n"
                 "Left click applies selected tool.\n"
                 "Drag continuously paints blocks or erases.\n"
@@ -3197,6 +3197,16 @@ class LevelStudio(tk.Tk):
             font=("Consolas", 10, "bold"),
         )
 
+    def draw_type_marker(self, position: dict[str, int], value: int) -> None:
+        self.canvas.create_text(
+            position["x"] * CELL + 3,
+            position["y"] * CELL + 3,
+            text=f"{value:02X}",
+            fill="white",
+            font=("Consolas", 8, "bold"),
+            anchor="nw",
+        )
+
     def redraw(self) -> None:
         self.canvas.delete("all")
         room = self.current_room()
@@ -3221,25 +3231,17 @@ class LevelStudio(tk.Tk):
                 self.canvas.create_line(
                     0, y * CELL, CANVAS_WIDTH, y * CELL, fill="#405060"
                 )
-        for x, y in sorted(combined_block_positions(room["blocks"])):
-            self.canvas.create_text(
-                (x + 1) * CELL - 2,
-                y * CELL + 2,
-                text="B+W",
-                fill="#ffcc66",
-                font=("Consolas", 7, "bold"),
-                anchor="ne",
-            )
         if self.show_metadata.get():
             metadata = room["items"]["metadata"]
             for field, text, color in (
-                ("player_start", "P", "#66ddff"),
                 ("key", "K", "#ffff55"),
                 ("door", "D", "#66ff77"),
                 ("mirror_1", "M1", "#dd88ff"),
                 ("mirror_2", "M2", "#bb66ff"),
             ):
                 self.draw_label(metadata[field], text, color)
+            if not preview.rendered_player:
+                self.draw_label(metadata["player_start"], "P", "#66ddff")
         rendered_enemies = set(preview.rendered_enemy_indices)
         if self.show_enemies.get():
             for enemy_index, enemy in enumerate(room["enemies"]["placements"]):
@@ -3258,32 +3260,13 @@ class LevelStudio(tk.Tk):
                     )
                     self.draw_label(position, f"{enemy['type']:02X}", "white")
                 else:
-                    self.canvas.create_text(
-                        x * CELL + 3,
-                        y * CELL + 3,
-                        text=f"{enemy['type']:02X}",
-                        fill="white",
-                        font=("Consolas", 8, "bold"),
-                        anchor="nw",
-                    )
+                    self.draw_type_marker(position, enemy["type"])
         if self.show_items.get():
             for item in self.model.item_placements(self.room_index.get()):
                 x, y = item.position["x"], item.position["y"]
                 if y < 0 or y >= ROOM_HEIGHT:
                     continue
-                self.canvas.create_polygon(
-                    x * CELL + CELL // 2,
-                    y * CELL + 4,
-                    (x + 1) * CELL - 4,
-                    y * CELL + CELL // 2,
-                    x * CELL + CELL // 2,
-                    (y + 1) * CELL - 4,
-                    x * CELL + 4,
-                    y * CELL + CELL // 2,
-                    fill="#d6a900",
-                    outline="#fff099",
-                )
-                self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
+                self.draw_type_marker(item.position, item.item_type)
         if self.show_special.get():
             for overlay in special_room_overlays(
                 self.model.document["special_room_data"], self.room_index.get() + 1
