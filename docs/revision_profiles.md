@@ -355,6 +355,15 @@ one room normally requires removing or compressing data elsewhere. An overflow
 is highlighted immediately and may remain in the undoable workspace, but Save,
 Build ROM, and validation continue to reject it before any image is written.
 
+The same panel distinguishes storage capacity from runtime capacity. The room
+loader allocates from the 17-entry enemy pool and does not branch around a
+failed eighteenth allocation, so both the document codec and the visual
+editor reject more than 17 initially placed enemies. The panel also reports
+how many slots remain for Demon Mirror and linked-enemy activity. A missing
+white block in column 15 is shown as a right-wall wrap risk rather than being
+silently repaired: all stock rooms seal that column, but an author may choose
+the original engine's wraparound behavior deliberately.
+
 Enemy and item controls pair every stored byte with a readable name while
 keeping the hexadecimal prefix editable. The enemy catalog covers the complete
 `$18-$83` configuration-table range and decodes family, direction, speed,

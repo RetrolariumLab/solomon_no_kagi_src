@@ -307,6 +307,27 @@ class EntityEditingTests(unittest.TestCase):
         with self.assertRaisesRegex(level_studio.LevelEditorError, "enemy type"):
             model.add_enemy(0, 0, 4, 5)
 
+    def test_rejects_enemy_after_all_runtime_slots_are_filled(self) -> None:
+        document = studio_document()
+        document["rooms"][0]["enemies"]["placements"] = [
+            {"type": 0x71, "position": {"x": index % 16, "y": index % 12}}
+            for index in range(level_studio.ROOM_ENEMY_SLOT_COUNT)
+        ]
+        model = level_studio.StudioDocument(document)
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "17 runtime"):
+            model.add_enemy(0, 0x42, 4, 5)
+
+    def test_runtime_diagnostics_expose_slots_and_right_wall_gaps(self) -> None:
+        document = studio_document()
+        room = document["rooms"][0]
+        room["blocks"]["white"] = [
+            {"x": 15, "y": y} for y in range(12) if y not in {3, 8}
+        ]
+        diagnostics = level_studio.room_runtime_diagnostics(room)
+        self.assertEqual(diagnostics.placed_enemies, 1)
+        self.assertEqual(diagnostics.free_enemy_slots, 16)
+        self.assertEqual(diagnostics.missing_right_wall_rows, (3, 8))
+
     def test_inserts_item_before_terminating_command(self) -> None:
         document = studio_document()
         document["rooms"][0]["items"]["commands"] = [

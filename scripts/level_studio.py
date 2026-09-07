@@ -19,6 +19,7 @@ from level_editor import (
     KEY_STATUS_BITS,
     POSITION_FIELDS,
     ROOM_COUNT,
+    ROOM_ENEMY_SLOT_COUNT,
     ROOM_HEIGHT,
     ROOM_WIDTH,
     LevelEditorError,
@@ -28,6 +29,7 @@ from level_editor import (
     encode_level_document,
     export_document,
     load_document,
+    room_runtime_diagnostics,
     save_document,
     validate_rebuilt_document,
 )
@@ -753,9 +755,14 @@ class StudioDocument:
     ) -> bool:
         if not ENEMY_TYPE_MINIMUM <= enemy_type <= ENEMY_TYPE_MAXIMUM:
             raise LevelEditorError("enemy type must be $18..$83")
+        placements = self.room(room_index)["enemies"]["placements"]
+        if len(placements) >= ROOM_ENEMY_SLOT_COUNT:
+            raise LevelEditorError(
+                f"room already fills all {ROOM_ENEMY_SLOT_COUNT} runtime enemy slots"
+            )
 
         def apply() -> bool:
-            self.room(room_index)["enemies"]["placements"].append(
+            placements.append(
                 {"type": enemy_type, "position": {"x": x, "y": y}}
             )
             return True
@@ -1782,10 +1789,19 @@ class LevelStudio(tk.Tk):
             enemy_used, enemy_capacity = encoded.usage["room_enemies"]
             item_used, item_capacity = encoded.usage["room_items"]
             mirror_used, mirror_capacity = encoded.usage["mirror_enemy_sets"]
+            diagnostics = room_runtime_diagnostics(self.current_room())
+            if diagnostics.missing_right_wall_rows:
+                rows = ", ".join(map(str, diagnostics.missing_right_wall_rows))
+                boundary = f"Right-wall wrap risk at y={rows}"
+            else:
+                boundary = "Right wall sealed"
             self.allocation_text.set(
                 f"Room {room_index + 1:02d}: "
                 f"enemy {encoded.room_enemy_sizes[room_index]} B, "
                 f"items {encoded.room_item_sizes[room_index]} B\n"
+                f"Enemy slots {diagnostics.placed_enemies}/"
+                f"{ROOM_ENEMY_SLOT_COUNT} "
+                f"({diagnostics.free_enemy_slots} free); {boundary}\n"
                 + self.allocation_fragment("Enemy pool", enemy_used, enemy_capacity)
                 + "\n"
                 + self.allocation_fragment("Item pool", item_used, item_capacity)
@@ -1794,7 +1810,14 @@ class LevelStudio(tk.Tk):
             )
             overflow = any(used > capacity for used, capacity in encoded.usage.values())
             self.allocation_label.configure(
-                foreground="#b00020" if overflow else ""
+                foreground=(
+                    "#b00020"
+                    if overflow
+                    else "#9a5a00"
+                    if diagnostics.missing_right_wall_rows
+                    or diagnostics.free_enemy_slots == 0
+                    else ""
+                )
             )
         except (LevelEditorError, RoomDataError) as exc:
             self.allocation_text.set(f"Allocation unavailable: {exc}")
@@ -2363,6 +2386,9 @@ def main() -> int:
         )
         if args.check:
             previews = [preview_renderer.render(index) for index in range(ROOM_COUNT)]
+            diagnostics = [
+                room_runtime_diagnostics(room) for room in document["rooms"]
+            ]
             combined_blocks = sum(
                 len(combined_block_positions(room["blocks"]))
                 for room in document["rooms"]
@@ -2379,7 +2405,11 @@ def main() -> int:
                 f"{sum(used for used, _ in usage.values())} encoded bytes, "
                 f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes, "
                 f"{combined_blocks} combined block cells, "
-                f"{native_enemies}/{placed_enemies} native enemy sprites"
+                f"{native_enemies}/{placed_enemies} native enemy sprites, "
+                f"max {max(value.placed_enemies for value in diagnostics)}/"
+                f"{ROOM_ENEMY_SLOT_COUNT} enemy slots, "
+                f"{sum(bool(value.missing_right_wall_rows) for value in diagnostics)} "
+                "rooms with right-wall gaps"
             )
             return 0
         if args.check_playtest:

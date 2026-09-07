@@ -50,6 +50,7 @@ DOCUMENT_SCHEMA = 1
 DOCUMENT_GAME = "solomons-key-nes"
 POSITION_FIELDS = ("door", "key", "player_start", "mirror_1", "mirror_2")
 KEY_STATUS_BITS = {"normal": 0x00, "in_block": 0x40, "hidden": 0x80}
+ROOM_ENEMY_SLOT_COUNT = 17
 
 
 class LevelEditorError(ValueError):
@@ -252,6 +253,12 @@ def encode_room_enemies(value: object) -> bytes:
     placements = value.get("placements")
     if not isinstance(placements, list):
         raise LevelEditorError("room enemy placements are missing")
+    if len(placements) > ROOM_ENEMY_SLOT_COUNT:
+        raise LevelEditorError(
+            "room has "
+            f"{len(placements)} placed enemies but the runtime pool has only "
+            f"{ROOM_ENEMY_SLOT_COUNT} slots"
+        )
     stream = {
         "spawn_lifetime_encoded": encoded_lifetime(value.get("spawn_lifetime")),
         "enemies": [
@@ -265,6 +272,41 @@ def encode_room_enemies(value: object) -> bytes:
         ],
     }
     return encode_enemies(stream)
+
+
+@dataclass(frozen=True)
+class RoomRuntimeDiagnostics:
+    room_number: int
+    placed_enemies: int
+    free_enemy_slots: int
+    missing_right_wall_rows: tuple[int, ...]
+
+
+def room_runtime_diagnostics(room: dict[str, Any]) -> RoomRuntimeDiagnostics:
+    """Report constraints imposed by the loader rather than the stream format."""
+    number = room.get("number")
+    enemies = room.get("enemies")
+    blocks = room.get("blocks")
+    if (
+        not isinstance(number, int)
+        or not isinstance(enemies, dict)
+        or not isinstance(enemies.get("placements"), list)
+        or not isinstance(blocks, dict)
+        or not isinstance(blocks.get("white"), list)
+    ):
+        raise LevelEditorError("room is incomplete for runtime diagnostics")
+    white = {
+        (position.get("x"), position.get("y"))
+        for position in blocks["white"]
+        if isinstance(position, dict)
+    }
+    placed = len(enemies["placements"])
+    return RoomRuntimeDiagnostics(
+        number,
+        placed,
+        ROOM_ENEMY_SLOT_COUNT - placed,
+        tuple(y for y in range(ROOM_HEIGHT) if (ROOM_WIDTH - 1, y) not in white),
+    )
 
 
 def encode_room_items(value: object) -> bytes:

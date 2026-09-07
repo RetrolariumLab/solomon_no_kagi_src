@@ -834,10 +834,11 @@ class LevelPackingTests(unittest.TestCase):
 
     def test_enemy_budget_overflow_is_rejected(self) -> None:
         document, image, profile = empty_level_fixture()
-        document["rooms"][0]["enemies"]["placements"] = [
-            {"type": 0x18, "position": {"x": index % 16, "y": index % 12}}
-            for index in range(400)
-        ]
+        for room in document["rooms"]:
+            room["enemies"]["placements"] = [
+                {"type": 0x18, "position": {"x": index % 16, "y": index % 12}}
+                for index in range(level_editor.ROOM_ENEMY_SLOT_COUNT)
+            ]
         encoded = level_editor.encode_level_document(document, profile)
         self.assertGreater(
             encoded.usage["room_enemies"][0],

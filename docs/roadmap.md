@@ -386,7 +386,9 @@ passes on the reviewed `main` commit.
   initial-room references without hiding transition-only patterns. The
   room-terminator editor also exposes all four CHR banks and safe conversion
   between normal and positioned zodiac endings without pretending their shared
-  opcode fields are independent.
+  opcode fields are independent. Runtime diagnostics enforce the source-proven
+  17-slot placed-enemy ceiling and expose free dynamic slots plus intentional
+  right-wall wrap risks without rewriting authored geometry.
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;
 - the disassembly author's independently produced level-block spreadsheet
