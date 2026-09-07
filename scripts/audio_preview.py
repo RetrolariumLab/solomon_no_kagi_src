@@ -19,13 +19,19 @@ from room_data import RoomDataError
 
 
 SAMPLE_RATE = 44_100
+SYNTHESIS_OVERSAMPLE = 4
 FRAME_RATES = {"ntsc": 60.0988, "pal": 50.0070}
 CPU_CLOCKS = {"ntsc": 1_789_773.0, "pal": 1_662_607.0}
 NOISE_PERIODS = {
     "ntsc": (4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068),
     "pal": (4, 8, 14, 30, 60, 88, 118, 148, 188, 236, 354, 472, 708, 944, 1890, 3778),
 }
-PULSE_DUTIES = (0.125, 0.25, 0.5, 0.75)
+PULSE_DUTY_SEQUENCES = (
+    (0, 1, 0, 0, 0, 0, 0, 0),
+    (0, 1, 1, 0, 0, 0, 0, 0),
+    (0, 1, 1, 1, 1, 0, 0, 0),
+    (1, 0, 0, 1, 1, 1, 1, 1),
+)
 MAX_COMMANDS_PER_NOTE = 10_000
 MAX_STACK_DEPTH = 8
 VOICE_NAMES = ("pulse1", "pulse2", "triangle", "noise")
@@ -57,6 +63,7 @@ class VirtualChannel:
     period: int = 0
     muted: bool = False
     sweep: int = 0
+    period_dirty: bool = False
     call_stack: list[int] = field(default_factory=list)
     loop_stack: list[LoopFrame] = field(default_factory=list)
 
@@ -68,6 +75,7 @@ class HardwareFrame:
     volume: int
     duty: int
     noise_mode: int
+    period_reload: bool = False
 
 
 @dataclass(frozen=True)
@@ -136,10 +144,12 @@ class EffectSequencer:
                 raise AudioPreviewError(f"pitched note uses period index {pitch}")
             else:
                 channel.period = int(self.document["periods"][pitch]) >> (token >> 4)
+                channel.period_dirty = True
         elif token == 0x10:
             channel.muted = True
         else:
             channel.period = token
+            channel.period_dirty = True
         channel.duration_counter = channel.duration_reload
         channel.envelope_counter = 1
         channel.envelope_index = 0
@@ -236,6 +246,7 @@ class EffectSequencer:
             volume,
             (channel.control >> 6) & 3,
             (channel.period >> 7) & 1,
+            channel.period_dirty,
         )
 
     def step(self) -> tuple[HardwareFrame, ...]:
@@ -249,6 +260,8 @@ class EffectSequencer:
             second = self.channels.get(primary + 1)
             selected = first if first is not None and first.active else second
             outputs.append(self.output(selected))
+            if selected is not None and selected.active:
+                selected.period_dirty = False
         return tuple(outputs)
 
     @property
@@ -333,24 +346,35 @@ class ApuRenderer:
             raise AudioPreviewError(f"unknown console timing {timing!r}")
         self.timing = timing
         self.sample_rate = sample_rate
+        self.synthesis_rate = sample_rate * SYNTHESIS_OVERSAMPLE
         self.clock = CPU_CLOCKS[timing]
         self.phases = [0.0] * 4
         self.noise_clock = 0.0
         self.noise_shift = 1
         self.filter = OutputFilter(sample_rate)
 
-    def pulse(self, index: int, frame: HardwareFrame) -> float:
+    def pulse(
+        self, index: int, frame: HardwareFrame, reload_period: bool = True
+    ) -> float:
+        if reload_period and frame.period_reload:
+            self.phases[index] = 0.0
         if frame.volume == 0 or frame.period < 8:
             return 0.0
         frequency = self.clock / (16.0 * (frame.period + 1))
-        self.phases[index] = (self.phases[index] + frequency / self.sample_rate) % 1.0
-        return float(frame.volume) if self.phases[index] < PULSE_DUTIES[frame.duty] else 0.0
+        sequence_index = int(self.phases[index] * 8.0) & 7
+        value = frame.volume * PULSE_DUTY_SEQUENCES[frame.duty][sequence_index]
+        self.phases[index] = (
+            self.phases[index] + frequency / self.synthesis_rate
+        ) % 1.0
+        return float(value)
 
     def triangle(self, frame: HardwareFrame) -> float:
         if frame.volume == 0:
             return 0.0
         frequency = self.clock / (32.0 * (frame.period + 1))
-        self.phases[2] = (self.phases[2] + frequency / self.sample_rate) % 1.0
+        self.phases[2] = (
+            self.phases[2] + frequency / self.synthesis_rate
+        ) % 1.0
         phase = self.phases[2]
         return 15.0 * (phase * 2.0 if phase < 0.5 else 2.0 - phase * 2.0)
 
@@ -358,7 +382,7 @@ class ApuRenderer:
         if frame.volume == 0:
             return 0.0
         period = NOISE_PERIODS[self.timing][frame.period & 0x0F]
-        self.noise_clock += self.clock / (period * self.sample_rate)
+        self.noise_clock += self.clock / (period * self.synthesis_rate)
         while self.noise_clock >= 1.0:
             tap = 6 if frame.noise_mode else 1
             feedback = (self.noise_shift & 1) ^ ((self.noise_shift >> tap) & 1)
@@ -366,13 +390,28 @@ class ApuRenderer:
             self.noise_clock -= 1.0
         return float(frame.volume) if not self.noise_shift & 1 else 0.0
 
-    def sample(self, frame: tuple[HardwareFrame, ...]) -> int:
-        mixed = apu_mix(
-            self.pulse(0, frame[0]),
-            self.pulse(1, frame[1]),
-            self.triangle(frame[2]),
-            self.noise(frame[3]),
-        )
+    def sample(
+        self,
+        frame: tuple[HardwareFrame, ...],
+        reload_period: bool = False,
+    ) -> int:
+        mixed = 0.0
+        for sub_sample in range(SYNTHESIS_OVERSAMPLE):
+            mixed += apu_mix(
+                self.pulse(
+                    0,
+                    frame[0],
+                    reload_period and sub_sample == 0,
+                ),
+                self.pulse(
+                    1,
+                    frame[1],
+                    reload_period and sub_sample == 0,
+                ),
+                self.triangle(frame[2]),
+                self.noise(frame[3]),
+            )
+        mixed /= SYNTHESIS_OVERSAMPLE
         return max(-32768, min(32767, round(self.filter.process(mixed) * 48_000)))
 
 
@@ -398,8 +437,15 @@ def render_trace(
             for voice, value in enumerate(frame)
         )
         boundary = frame_number * sample_rate / frame_rate
+        first_sample = True
         while emitted < round(boundary):
-            samples.extend(struct.pack("<h", renderer.sample(audible)))
+            samples.extend(
+                struct.pack(
+                    "<h",
+                    renderer.sample(audible, reload_period=first_sample),
+                )
+            )
+            first_sample = False
             emitted += 1
     return bytes(samples)
 

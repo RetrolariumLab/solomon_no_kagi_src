@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
+import struct
 import sys
 import tempfile
 import unittest
@@ -334,6 +335,35 @@ class AudioPreviewTests(unittest.TestCase):
         self.assertEqual(full_score[1].period, periods[0] >> 3)
         self.assertEqual(full_score[2].period, periods[5] >> 1)
         self.assertEqual(full_score[3].period, 1)
+
+    def test_period_publication_resets_the_pulse_duty_sequence(self) -> None:
+        renderer = audio_preview.ApuRenderer("ntsc", 128)
+        renderer.clock = 9216.0
+        renderer.phases[1] = 0.75
+        reload_frame = audio_preview.HardwareFrame(3, 8, 10, 0, 0, True)
+        held_frame = audio_preview.HardwareFrame(3, 8, 10, 0, 0, False)
+        self.assertEqual(renderer.pulse(1, reload_frame), 0.0)
+        self.assertEqual(renderer.pulse(1, held_frame), 10.0)
+        self.assertAlmostEqual(renderer.phases[1], 0.25)
+
+    def test_sequencer_publishes_each_new_period_once(self) -> None:
+        profile, reference = audio_case("usa")
+        document = audio_editor.export_document(
+            parse_ines(reference.read_bytes())["prg"], profile
+        )
+        frames = audio_preview.trace_effect(document, 1, 2).frames
+        self.assertTrue(frames[0][0].period_reload)
+        self.assertTrue(frames[0][1].period_reload)
+        self.assertFalse(frames[1][0].period_reload)
+        self.assertFalse(frames[1][1].period_reload)
+
+    def test_render_consumes_period_reload_only_once_per_video_frame(self) -> None:
+        tone = audio_preview.HardwareFrame(1, 253, 10, 0, 0, True)
+        silent = audio_preview.HardwareFrame(None, 0, 0, 0, 0)
+        trace = audio_preview.PreviewTrace(((tone, silent, silent, silent),), 1, False)
+        pcm = audio_preview.render_trace(trace, "ntsc", sample_rate=8_000)
+        samples = struct.unpack(f"<{len(pcm) // 2}h", pcm)
+        self.assertTrue(any(samples))
 
     def test_traces_every_effect_for_both_console_timings(self) -> None:
         for profile_id in ("usa", "europe"):

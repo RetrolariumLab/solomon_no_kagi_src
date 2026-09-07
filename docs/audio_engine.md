@@ -49,6 +49,17 @@ feed noise, treat an ordinary byte as a direct noise-register value. Keeping
 that boundary at six is essential for auditioning: treating pulse 2 or
 triangle notes as raw timers turns normal music into ultrasonic beeps.
 
+Each non-rest note also marks its period dirty. When the selected virtual
+channel is published, the engine writes the high timer register and clears
+that marker. On the two pulse voices this write restarts the APU's native
+eight-step duty sequencer, giving repeated note attacks a stable phase. The
+preview renderer preserves that one-shot event and uses the four hardware duty
+sequences rather than an arbitrary continuous square-wave phase. It consumes
+the restart only on the first PCM sample of that video frame, then evaluates
+the APU at four times the output rate before downsampling through the analog
+filter approximation. This keeps narrow-duty pulse voices from folding
+inaudible harmonics back into the audible band as rasp.
+
 `$80-$EF` select a duration through the table at
 `$F380`; `$F0-$F9` dispatch through the ten-entry handler table at `$F246`:
 
