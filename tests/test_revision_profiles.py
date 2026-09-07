@@ -53,6 +53,11 @@ def sample_profile(
             "object_animation_pointer_address": "0xd000",
             "enemy_type_configuration_address": "0xa400",
         },
+        "graphics_authoring": None if source_status == "planned" else {
+            "room_palette_template_address": "0x8100",
+            "room_group_colors_address": "0x8200",
+            "ending_palette_values_address": "0x8300",
+        },
         "playtest": None if source_status == "planned" else {
             "room_load_address": "0x9000",
             "gameplay_address": "0xa000",
@@ -137,6 +142,23 @@ class ManifestValidationTests(unittest.TestCase):
         document["profiles"][1]["room_layout"] = "unknown"
         errors = revision_profiles.validate_profiles(document)
         self.assertIn("europe has an unknown room layout", errors)
+
+    def test_rejects_buildable_profile_without_graphics_authoring_contract(self) -> None:
+        document, _ = sample_document()
+        del document["profiles"][0]["graphics_authoring"]
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn("usa has no graphics authoring contract", errors)
+
+    def test_rejects_invalid_graphics_authoring_address(self) -> None:
+        document, _ = sample_document()
+        document["profiles"][0]["graphics_authoring"][
+            "room_palette_template_address"
+        ] = "0xfff0"
+        errors = revision_profiles.validate_profiles(document)
+        self.assertIn(
+            "usa has invalid graphics authoring room_palette_template_address",
+            errors,
+        )
 
     def test_rejects_incomplete_room_fingerprint_inventory(self) -> None:
         document, _ = sample_document()

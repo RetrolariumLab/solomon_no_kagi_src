@@ -199,6 +199,23 @@ def validate_level_preview(profile_id: str, value: object, errors: list[str]) ->
             errors.append(f"{profile_id} has invalid level preview {field}")
 
 
+def validate_graphics_authoring(
+    profile_id: str, value: object, errors: list[str]
+) -> None:
+    if not isinstance(value, dict):
+        errors.append(f"{profile_id} has no graphics authoring contract")
+        return
+    fields = {
+        "room_palette_template_address": 36,
+        "room_group_colors_address": 14,
+        "ending_palette_values_address": 3,
+    }
+    for field, size in fields.items():
+        address = parse_manifest_integer(value.get(field))
+        if address is None or not 0x8000 <= address <= 0x10000 - size:
+            errors.append(f"{profile_id} has invalid graphics authoring {field}")
+
+
 def validate_profiles(document: object) -> list[str]:
     errors: list[str] = []
     if not isinstance(document, dict) or document.get("schema_version") != 1:
@@ -234,6 +251,9 @@ def validate_profiles(document: object) -> list[str]:
             errors.append(f"{profile_id} has no assembly define")
         else:
             validate_level_preview(profile_id, profile.get("level_preview"), errors)
+            validate_graphics_authoring(
+                profile_id, profile.get("graphics_authoring"), errors
+            )
             validate_playtest(profile_id, profile.get("playtest"), errors)
         reference = profile.get("reference_rom")
         if (

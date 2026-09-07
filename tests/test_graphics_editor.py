@@ -19,13 +19,25 @@ def synthetic_image() -> tuple[bytes, dict[str, object]]:
     header = bytearray(b"NES\x1a")
     header.extend((2, 4, 0x30, 0))
     header.extend(b"\x00" * 8)
-    prg = bytes(32768)
+    prg = bytearray(32768)
+    prg[0x100 : 0x100 + 36] = (
+        graphics_editor.ROOM_PALETTE_HEADER
+        + bytes(index % 0x40 for index in range(32))
+        + bytes((0,))
+    )
+    prg[0x200 : 0x200 + 14] = bytes(range(12)) + bytes((0x80, 0x80))
+    prg[0x300 : 0x300 + 3] = bytes((0x2C, 0x1C, 0x0C))
     chr_data = bytes(graphics_editor.CHR_SIZE)
-    image = bytes(header) + prg + chr_data
+    image = bytes(header) + bytes(prg) + chr_data
     profile: dict[str, object] = {
         "id": "test",
         "rom": {"sha256": digest(image, "sha256")},
         "chr": {"sha256": digest(chr_data, "sha256")},
+        "graphics_authoring": {
+            "room_palette_template_address": "0x8100",
+            "room_group_colors_address": "0x8200",
+            "ending_palette_values_address": "0x8300",
+        },
     }
     return image, profile
 
@@ -56,17 +68,16 @@ class TileCodecTests(unittest.TestCase):
 class GraphicsDocumentTests(unittest.TestCase):
     def setUp(self) -> None:
         self.image, self.profile = synthetic_image()
-        self.document = graphics_editor.export_document(
-            bytes(parse_ines(self.image)["chr"]), self.profile
-        )
+        self.document = graphics_editor.export_document(self.image, self.profile)
 
     def test_exports_complete_fixed_chr_layout(self) -> None:
         self.assertEqual(len(self.document["banks"]), 4)
         self.assertEqual(len(self.document["banks"][0]["tiles"]), 512)
         self.assertEqual(
             graphics_editor.document_summary(self.document),
-            "4 CHR banks, 2048 tiles, 131072 pixels",
+            "4 CHR banks, 2048 tiles, 131072 pixels, 8 room palettes",
         )
+        self.assertEqual(len(self.document["palette_data"]["room_palettes"]), 8)
 
     def test_zero_edit_build_reproduces_complete_image(self) -> None:
         rebuilt = graphics_editor.build_graphics_image(
@@ -92,6 +103,44 @@ class GraphicsDocumentTests(unittest.TestCase):
         expected = 16 + 32768 + 2 * 8192 + 7 * 16 + 3
         self.assertEqual(changed, [expected])
         self.assertEqual(rebuilt[expected], 0x20)
+
+    def test_palette_edit_changes_only_the_profile_owned_prg_byte(self) -> None:
+        modified = copy.deepcopy(self.document)
+        modified["palette_data"]["room_palettes"][3][2] = 0x3F
+        rebuilt = graphics_editor.build_graphics_image(
+            modified, self.image, self.profile
+        )
+        graphics_editor.validate_rebuilt_document(modified, rebuilt, self.profile)
+        changed = [
+            index
+            for index, (before, after) in enumerate(zip(self.image, rebuilt))
+            if before != after
+        ]
+        self.assertEqual(changed, [16 + 0x100 + 3 + 3 * 4 + 2])
+
+    def test_rejects_invalid_room_group_palette_marker(self) -> None:
+        modified = copy.deepcopy(self.document)
+        modified["palette_data"]["room_group_colors"][0] = 0x81
+        with self.assertRaisesRegex(
+            graphics_editor.GraphicsEditorError, "special marker"
+        ):
+            graphics_editor.build_graphics_image(
+                modified, self.image, self.profile
+            )
+
+    def test_schema_one_workspace_gains_verified_palette_data(self) -> None:
+        legacy = copy.deepcopy(self.document)
+        legacy["schema_version"] = 1
+        del legacy["palette_data"]
+        legacy["banks"][0]["tiles"][0]["rows"][0] = "10000000"
+        upgraded = graphics_editor.upgrade_document(
+            legacy, self.image, self.profile
+        )
+        self.assertEqual(upgraded["schema_version"], 2)
+        self.assertEqual(upgraded["banks"][0]["tiles"][0]["rows"][0], "10000000")
+        self.assertEqual(
+            upgraded["palette_data"], self.document["palette_data"]
+        )
 
     def test_rejects_non_contiguous_tile_index(self) -> None:
         modified = copy.deepcopy(self.document)
@@ -121,10 +170,7 @@ class RegionalGraphicsTests(unittest.TestCase):
         for profile_id in ("usa", "europe"):
             with self.subTest(profile=profile_id):
                 profile, image = reference_case(profile_id)
-                parsed = parse_ines(image)
-                document = graphics_editor.export_document(
-                    bytes(parsed["chr"]), profile
-                )
+                document = graphics_editor.export_document(image, profile)
                 rebuilt = graphics_editor.build_graphics_image(
                     document, image, profile
                 )
@@ -139,12 +185,8 @@ class RegionalGraphicsTests(unittest.TestCase):
         self.assertEqual(
             parse_ines(usa_image)["chr"], parse_ines(europe_image)["chr"]
         )
-        usa_document = graphics_editor.export_document(
-            bytes(parse_ines(usa_image)["chr"]), usa
-        )
-        europe_document = graphics_editor.export_document(
-            bytes(parse_ines(europe_image)["chr"]), europe
-        )
+        usa_document = graphics_editor.export_document(usa_image, usa)
+        europe_document = graphics_editor.export_document(europe_image, europe)
         self.assertNotEqual(
             usa_document["source_rom_sha256"],
             europe_document["source_rom_sha256"],
@@ -153,14 +195,15 @@ class RegionalGraphicsTests(unittest.TestCase):
             usa_document["source_chr_sha256"],
             europe_document["source_chr_sha256"],
         )
+        self.assertEqual(
+            usa_document["palette_data"], europe_document["palette_data"]
+        )
 
 
 class GraphicsStudioTests(unittest.TestCase):
     def model(self) -> graphics_studio.GraphicsStudioDocument:
         image, profile = synthetic_image()
-        document = graphics_editor.export_document(
-            bytes(parse_ines(image)["chr"]), profile
-        )
+        document = graphics_editor.export_document(image, profile)
         return graphics_studio.GraphicsStudioDocument(
             document,
             profile,

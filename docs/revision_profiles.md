@@ -714,11 +714,14 @@ naming remains later Sound Studio depth.
 
 ## Graphics authoring document
 
-The first graphics-authoring layer is the deterministic CHR codec in
+The graphics-authoring layer is the deterministic schema-2 codec in
 `scripts/graphics_editor.py`. It exports all four 8 KiB CNROM banks as 2,048
 indexed NES tiles. Every tile is represented by eight strings of eight values
 from `0` through `3`; the encoder reconstructs the original pair of bitplanes
-instead of retaining an opaque copy of the tile bytes.
+instead of retaining an opaque copy of the tile bytes. The same document owns
+all eight room/sprite subpalettes, fourteen room-group selectors, and the
+three-step ending fade. Schema-1 CHR-only workspaces migrate by importing these
+small tables from their verified profile image while retaining tile edits.
 
 Create and inspect an ignored, profile-bound document with:
 

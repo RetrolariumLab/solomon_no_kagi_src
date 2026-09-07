@@ -174,10 +174,13 @@ does not weaken the claimed codec round trip.
 
 ## Graphics authoring contract
 
-The graphics workspace uses schema version 1 and covers all 32 KiB of fixed
+The graphics workspace uses schema version 2 and covers all 32 KiB of fixed
 CHR: four CNROM banks, 512 indexed tiles per bank, and both NES bitplanes of
-every 8x8 tile. Pixel values are exposed directly as `0` through `3` without
-committing either the original CHR or exported workspaces.
+every 8x8 tile. It also owns the eight room/sprite subpalettes, fourteen
+room-group color selectors, and three ending-fade colors at profile-specific
+PRG addresses. Pixel and palette values remain typed data without committing
+either the original CHR or exported workspaces. Existing schema-1 CHR
+workspaces are upgraded with palette values from their verified base image.
 
 ```console
 make export-graphics PROFILE=usa

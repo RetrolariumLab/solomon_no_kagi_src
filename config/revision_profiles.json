@@ -15,6 +15,11 @@
         "object_animation_pointer_address": "0xd0e8",
         "enemy_type_configuration_address": "0xa44e"
       },
+      "graphics_authoring": {
+        "room_palette_template_address": "0x8ec0",
+        "room_group_colors_address": "0x9122",
+        "ending_palette_values_address": "0xbd94"
+      },
       "playtest": {
         "room_load_address": "0x9021",
         "gameplay_address": "0xa000",
@@ -86,6 +91,11 @@
       "level_preview": {
         "object_animation_pointer_address": "0xd068",
         "enemy_type_configuration_address": "0xa44e"
+      },
+      "graphics_authoring": {
+        "room_palette_template_address": "0x8ecf",
+        "room_group_colors_address": "0x9131",
+        "ending_palette_values_address": "0xbd94"
       },
       "playtest": {
         "room_load_address": "0x9030",

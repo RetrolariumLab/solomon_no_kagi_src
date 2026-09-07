@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 from pathlib import Path
 import sys
@@ -20,7 +21,7 @@ from revision_profiles import (
 from room_data import RoomDataError
 
 
-DOCUMENT_SCHEMA = 1
+DOCUMENT_SCHEMA = 2
 DOCUMENT_GAME = "solomons-key-nes-graphics"
 CHR_BANK_COUNT = 4
 CHR_BANK_SIZE = 8192
@@ -30,6 +31,13 @@ TILES_PER_BANK = CHR_BANK_SIZE // TILE_SIZE
 TILE_WIDTH = 8
 TILE_HEIGHT = 8
 PIXEL_VALUES = "0123"
+PRG_BASE = 0x8000
+ROOM_PALETTE_HEADER = bytes((0x3F, 0x00, 0x5F))
+ROOM_PALETTE_COUNT = 8
+COLORS_PER_PALETTE = 4
+ROOM_PALETTE_PAYLOAD_SIZE = ROOM_PALETTE_COUNT * COLORS_PER_PALETTE
+ROOM_GROUP_COLOR_COUNT = 14
+ENDING_PALETTE_VALUE_COUNT = 3
 
 
 class GraphicsEditorError(ValueError):
@@ -47,6 +55,71 @@ def indexed_records(
             raise GraphicsEditorError(f"{field}[{index}] has a non-contiguous index")
         records.append(record)
     return records
+
+
+def profile_address(profile: dict[str, Any], field: str) -> int:
+    value = profile.get("graphics_authoring", {}).get(field)
+    try:
+        address = int(value, 0) if isinstance(value, str) else int(value)
+    except (TypeError, ValueError) as exc:
+        raise GraphicsEditorError(f"profile has no valid {field}") from exc
+    if not PRG_BASE <= address < 0x10000:
+        raise GraphicsEditorError(f"profile {field} is outside PRG CPU space")
+    return address
+
+
+def prg_slice(prg: bytes, profile: dict[str, Any], field: str, size: int) -> bytes:
+    offset = profile_address(profile, field) - PRG_BASE
+    payload = prg[offset : offset + size]
+    if len(payload) != size:
+        raise GraphicsEditorError(f"profile {field} extends outside PRG")
+    return payload
+
+
+def validate_palette_value(value: object, field: str) -> int:
+    if not isinstance(value, int) or not 0 <= value <= 0x3F:
+        raise GraphicsEditorError(f"{field} must be a NES palette index 0..63")
+    return value
+
+
+def validate_palette_data(value: object) -> dict[str, list[int]]:
+    if not isinstance(value, dict):
+        raise GraphicsEditorError("palette_data must be an object")
+    palettes = value.get("room_palettes")
+    if not isinstance(palettes, list) or len(palettes) != ROOM_PALETTE_COUNT:
+        raise GraphicsEditorError("room_palettes must contain exactly 8 palettes")
+    flat: list[int] = []
+    for palette_index, palette in enumerate(palettes):
+        if not isinstance(palette, list) or len(palette) != COLORS_PER_PALETTE:
+            raise GraphicsEditorError(
+                f"room_palettes[{palette_index}] must contain exactly 4 colors"
+            )
+        flat.extend(
+            validate_palette_value(color, f"room_palettes[{palette_index}]")
+            for color in palette
+        )
+    groups = value.get("room_group_colors")
+    if not isinstance(groups, list) or len(groups) != ROOM_GROUP_COLOR_COUNT:
+        raise GraphicsEditorError("room_group_colors must contain exactly 14 values")
+    checked_groups: list[int] = []
+    for index, color in enumerate(groups):
+        if not isinstance(color, int) or color not in range(0x40) and color != 0x80:
+            raise GraphicsEditorError(
+                f"room_group_colors[{index}] must be 0..63 or special marker $80"
+            )
+        checked_groups.append(color)
+    ending = value.get("ending_fade")
+    if not isinstance(ending, list) or len(ending) != ENDING_PALETTE_VALUE_COUNT:
+        raise GraphicsEditorError("ending_fade must contain exactly 3 colors")
+    checked_ending = [
+        validate_palette_value(color, f"ending_fade[{index}]")
+        for index, color in enumerate(ending)
+    ]
+    return {
+        "room_palettes": flat,
+        "room_group_colors": checked_groups,
+        "ending_fade": checked_ending,
+    }
 
 
 def decode_tile(data: bytes) -> list[str]:
@@ -96,7 +169,10 @@ def encode_tile(rows: object, field: str = "tile rows") -> bytes:
     return bytes(low + high)
 
 
-def export_document(chr_data: bytes, profile: dict[str, Any]) -> dict[str, Any]:
+def export_document(image: bytes, profile: dict[str, Any]) -> dict[str, Any]:
+    parsed = parse_ines(image)
+    chr_data = bytes(parsed["chr"])
+    prg = bytes(parsed["prg"])
     if len(chr_data) != CHR_SIZE:
         raise GraphicsEditorError(
             f"Solomon's Key CHR must contain {CHR_SIZE} bytes, got {len(chr_data)}"
@@ -114,6 +190,15 @@ def export_document(chr_data: bytes, profile: dict[str, Any]) -> dict[str, Any]:
                 }
             )
         banks.append({"index": bank_index, "tiles": tiles})
+    palette_template = prg_slice(
+        prg, profile, "room_palette_template_address", 36
+    )
+    if (
+        palette_template[:3] != ROOM_PALETTE_HEADER
+        or palette_template[-1] != 0
+    ):
+        raise GraphicsEditorError("room palette template framing differs")
+    palette_bytes = palette_template[3:-1]
     return {
         "schema_version": DOCUMENT_SCHEMA,
         "game": DOCUMENT_GAME,
@@ -127,6 +212,33 @@ def export_document(chr_data: bytes, profile: dict[str, Any]) -> dict[str, Any]:
             "tile_width": TILE_WIDTH,
             "tile_height": TILE_HEIGHT,
             "bits_per_pixel": 2,
+        },
+        "palette_data": {
+            "room_palettes": [
+                list(
+                    palette_bytes[
+                        index * COLORS_PER_PALETTE : (index + 1)
+                        * COLORS_PER_PALETTE
+                    ]
+                )
+                for index in range(ROOM_PALETTE_COUNT)
+            ],
+            "room_group_colors": list(
+                prg_slice(
+                    prg,
+                    profile,
+                    "room_group_colors_address",
+                    ROOM_GROUP_COLOR_COUNT,
+                )
+            ),
+            "ending_fade": list(
+                prg_slice(
+                    prg,
+                    profile,
+                    "ending_palette_values_address",
+                    ENDING_PALETTE_VALUE_COUNT,
+                )
+            ),
         },
         "banks": banks,
     }
@@ -158,6 +270,22 @@ def validate_header(document: object, profile: dict[str, Any]) -> dict[str, Any]
     return document
 
 
+def upgrade_document(
+    document: dict[str, Any], base_image: bytes, profile: dict[str, Any]
+) -> dict[str, Any]:
+    if document.get("schema_version") == DOCUMENT_SCHEMA:
+        return document
+    if document.get("schema_version") != 1:
+        raise GraphicsEditorError("unsupported graphics document schema")
+    upgraded = copy.deepcopy(document)
+    upgraded["schema_version"] = DOCUMENT_SCHEMA
+    upgraded["palette_data"] = export_document(base_image, profile)["palette_data"]
+    validate_header(upgraded, profile)
+    encode_document(upgraded, profile)
+    encode_palette_writes(upgraded, profile)
+    return upgraded
+
+
 def iter_tiles(
     document: object, profile: dict[str, Any]
 ) -> Iterable[tuple[int, int, list[str]]]:
@@ -186,6 +314,32 @@ def encode_document(document: object, profile: dict[str, Any]) -> bytes:
     return bytes(output)
 
 
+def encode_palette_writes(
+    document: object, profile: dict[str, Any]
+) -> list[tuple[int, bytes]]:
+    checked = validate_header(document, profile)
+    palettes = validate_palette_data(checked.get("palette_data"))
+    template = (
+        ROOM_PALETTE_HEADER
+        + bytes(palettes["room_palettes"])
+        + bytes((0,))
+    )
+    return [
+        (
+            profile_address(profile, "room_palette_template_address") - PRG_BASE,
+            template,
+        ),
+        (
+            profile_address(profile, "room_group_colors_address") - PRG_BASE,
+            bytes(palettes["room_group_colors"]),
+        ),
+        (
+            profile_address(profile, "ending_palette_values_address") - PRG_BASE,
+            bytes(palettes["ending_fade"]),
+        ),
+    ]
+
+
 def build_graphics_image(
     document: object,
     base_image: bytes,
@@ -197,7 +351,12 @@ def build_graphics_image(
     chr_data = encode_document(document, profile)
     if len(parsed["chr"]) != len(chr_data):
         raise GraphicsEditorError("base ROM CHR allocation differs from the document")
-    return bytes(parsed["header"]) + bytes(parsed["prg"]) + chr_data
+    prg = bytearray(parsed["prg"])
+    for offset, payload in encode_palette_writes(document, profile):
+        if offset < 0 or offset + len(payload) > len(prg):
+            raise GraphicsEditorError("graphics palette write extends outside PRG")
+        prg[offset : offset + len(payload)] = payload
+    return bytes(parsed["header"]) + bytes(prg) + chr_data
 
 
 def canonical_document(document: dict[str, Any]) -> str:
@@ -209,7 +368,7 @@ def validate_rebuilt_document(
     image: bytes,
     profile: dict[str, Any],
 ) -> None:
-    rebuilt = export_document(bytes(parse_ines(image)["chr"]), profile)
+    rebuilt = export_document(image, profile)
     if canonical_document(rebuilt) != canonical_document(document):
         raise GraphicsEditorError("rebuilt ROM does not decode to the graphics document")
 
@@ -236,14 +395,18 @@ def document_summary(document: dict[str, Any]) -> str:
     tile_count = sum(
         len(bank.get("tiles", [])) for bank in banks if isinstance(bank, dict)
     )
-    return f"{len(banks)} CHR banks, {tile_count} tiles, {tile_count * 64} pixels"
+    palettes = document.get("palette_data", {}).get("room_palettes", [])
+    return (
+        f"{len(banks)} CHR banks, {tile_count} tiles, {tile_count * 64} pixels, "
+        f"{len(palettes)} room palettes"
+    )
 
 
 def command_export(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
     profile = get_profile(profiles, args.profile)
     reference = resolve_reference(profile, args.private_root, args.base_rom)
-    parsed = verify_reference(reference, profile)
-    document = export_document(bytes(parsed["chr"]), profile)
+    verify_reference(reference, profile)
+    document = export_document(reference.read_bytes(), profile)
     save_document(args.output, document)
     print(f"[OK] {profile['id']}: {document_summary(document)}")
 
@@ -253,6 +416,7 @@ def command_validate(args: argparse.Namespace, profiles: dict[str, Any]) -> None
     profile = get_profile(profiles, document.get("source_profile"))
     reference = resolve_reference(profile, args.private_root, args.base_rom)
     verify_reference(reference, profile)
+    document = upgrade_document(document, reference.read_bytes(), profile)
     image = build_graphics_image(document, reference.read_bytes(), profile)
     validate_rebuilt_document(document, image, profile)
     print(f"[OK] valid {profile['id']} graphics: {document_summary(document)}")
@@ -263,6 +427,7 @@ def command_build(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
     profile = get_profile(profiles, document.get("source_profile"))
     reference = resolve_reference(profile, args.private_root, args.base_rom)
     verify_reference(reference, profile)
+    document = upgrade_document(document, reference.read_bytes(), profile)
     image = build_graphics_image(document, reference.read_bytes(), profile)
     validate_rebuilt_document(document, image, profile)
     action = write_if_changed(args.output, image)
@@ -272,8 +437,8 @@ def command_build(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
 def command_roundtrip(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
     profile = get_profile(profiles, args.profile)
     reference = resolve_reference(profile, args.private_root, args.base_rom)
-    parsed = verify_reference(reference, profile)
-    document = export_document(bytes(parsed["chr"]), profile)
+    verify_reference(reference, profile)
+    document = export_document(reference.read_bytes(), profile)
     original = reference.read_bytes()
     rebuilt = build_graphics_image(document, original, profile)
     validate_rebuilt_document(document, rebuilt, profile)

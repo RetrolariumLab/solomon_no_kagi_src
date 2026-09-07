@@ -154,11 +154,14 @@ class GraphicsStudioDocument:
 def load_studio_document(
     profile: dict[str, Any], reference: Path, path: Path, output: Path
 ) -> GraphicsStudioDocument:
-    parsed = verify_reference(reference, profile)
+    verify_reference(reference, profile)
     document = (
         graphics_editor.load_document(path)
         if path.is_file()
-        else graphics_editor.export_document(bytes(parsed["chr"]), profile)
+        else graphics_editor.export_document(reference.read_bytes(), profile)
+    )
+    document = graphics_editor.upgrade_document(
+        document, reference.read_bytes(), profile
     )
     return GraphicsStudioDocument(
         document, profile, reference.read_bytes(), path, output
@@ -468,8 +471,8 @@ class GraphicsStudio(tk.Tk):
 
 
 def check_profile(profile: dict[str, Any], reference: Path) -> str:
-    parsed = verify_reference(reference, profile)
-    document = graphics_editor.export_document(bytes(parsed["chr"]), profile)
+    verify_reference(reference, profile)
+    document = graphics_editor.export_document(reference.read_bytes(), profile)
     model = GraphicsStudioDocument(
         document,
         profile,

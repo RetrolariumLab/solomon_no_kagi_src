@@ -372,7 +372,7 @@ scripts/level_studio.py    visual room editor with build and FCEUX play actions
 scripts/audio_editor.py    deterministic audio document import/build pipeline
 scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
 scripts/sound_studio.py    visual audio-bank editor over the shared codec
-scripts/graphics_editor.py deterministic four-bank CHR document codec
+scripts/graphics_editor.py deterministic CHR and palette document codec
 scripts/graphics_studio.py visual atlas and 8x8 two-bit tile editor
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit

@@ -295,7 +295,7 @@
     },
     {
       "id": "graphics",
-      "schema_version": 1,
+      "schema_version": 2,
       "codec": "scripts/graphics_editor.py",
       "model": "scripts/graphics_studio.py",
       "profiles": ["usa", "europe"],
