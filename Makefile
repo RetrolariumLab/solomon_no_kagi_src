@@ -767,8 +767,8 @@ source-1-audit: release-check
 source-2-static-check:
 	$(MAKE) verify-revision-references verify-revision-sources verify-revisions
 	$(MAKE) source-2-profile-audits roundtrip-level-profiles \
-		roundtrip-audio-profiles
-	$(MAKE) check-level-studio check-sound-studio \
+		roundtrip-audio-profiles roundtrip-graphics-profiles
+	$(MAKE) check-level-studio check-sound-studio check-graphics-studio \
 		validate-revision-symbol-profiles
 	$(MAKE) source-2-release-audit
 

@@ -42,6 +42,7 @@ REQUIRED_REQUIREMENTS = {
     "debugger_profile_matrix",
     "level_authoring",
     "audio_authoring",
+    "graphics_authoring",
     "structured_data_contracts",
     "private_inputs",
     "generated_outputs",
@@ -350,8 +351,10 @@ def validate_authoring(project_root: Path, release: dict[str, Any]) -> list[str]
     targets = parse_make_targets(project_root / "Makefile")
     entries = as_object_list(release.get("authoring"), "authoring", errors)
     authoring = unique_objects(entries, "authoring capability", errors)
-    if set(authoring) != {"levels", "audio"}:
-        errors.append("authoring must declare exactly the accepted level and audio tools")
+    if set(authoring) != {"levels", "audio", "graphics"}:
+        errors.append(
+            "authoring must declare exactly the accepted level, audio, and graphics tools"
+        )
     for identifier, entry in authoring.items():
         if set(entry.get("profiles", [])) != SUPPORTED_PROFILES:
             errors.append(f"authoring {identifier} profile set differs")
@@ -692,7 +695,7 @@ def main() -> int:
         return 1
     print(
         "[OK] Source Reconstruction 2.0 release contract: "
-        "2 source profiles, 2 direct runtime manifests, and 2 authoring models"
+        "2 source profiles, 2 direct runtime manifests, and 3 authoring models"
     )
     return 0
 

@@ -17,7 +17,7 @@ subsystems.
   [`docs/source_reconstruction_1_0.md`](docs/source_reconstruction_1_0.md).
 - **Source Reconstruction 2.0 is in active development.** USA and Europe are
   complete byte-identical source profiles with direct runtime evidence and
-  profile-aware level/audio authoring; the additive release boundary and gates
+  profile-aware level/audio/graphics authoring; the additive release boundary and gates
   are in [`docs/source_reconstruction_2_0.md`](docs/source_reconstruction_2_0.md).
 - The complete 65,552-byte iNES image assembles byte-for-byte.
 - `make verify` checks the header, PRG, CHR, complete payload, and complete file.
@@ -242,6 +242,8 @@ make validate-graphics PROFILE=usa # validate and decode a rebuilt graphics imag
 make build-graphics PROFILE=usa # build a ROM with the workspace's edited CHR
 make roundtrip-graphics-profiles # prove untouched USA and Europe CHR identity
 make graphics-summary PROFILE=usa # summarize banks, tiles, and pixels
+make graphics-studio PROFILE=usa # edit every tile in all four CNROM banks
+make check-graphics-studio # project both regional tile atlases without a GUI
 make build-revision PROFILE=europe # assemble the complete PAL source profile
 make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
@@ -371,6 +373,7 @@ scripts/audio_editor.py    deterministic audio document import/build pipeline
 scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
 scripts/sound_studio.py    visual audio-bank editor over the shared codec
 scripts/graphics_editor.py deterministic four-bank CHR document codec
+scripts/graphics_studio.py visual atlas and 8x8 two-bit tile editor
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit

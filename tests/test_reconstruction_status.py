@@ -253,6 +253,17 @@ class ReconstructionStatusTests(unittest.TestCase):
         errors = validate_source_2_release(root, release)
         self.assertIn("authoring audio capacities are not profile-owned", errors)
 
+    def test_source_2_contract_requires_the_graphics_authoring_model(self) -> None:
+        root, release = self.make_source_2_release_fixture()
+        release["authoring"] = [
+            entry for entry in release["authoring"] if entry["id"] != "graphics"
+        ]
+        errors = validate_source_2_release(root, release)
+        self.assertIn(
+            "authoring must declare exactly the accepted level, audio, and graphics tools",
+            errors,
+        )
+
     def test_source_2_contract_requires_stable_aggregate_gates(self) -> None:
         root, release = self.make_source_2_release_fixture()
         release["aggregate_gates"]["pre_tag"] = ["make check"]

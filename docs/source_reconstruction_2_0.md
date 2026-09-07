@@ -3,8 +3,8 @@
 Source Reconstruction 2.0 is the additive, profile-aware authoring baseline for
 this repository. It inherits the published USA preservation contract without
 changing its entrypoint, hashes, or release manifest, and adds a complete
-European source build, regional runtime evidence, and verified level and audio
-authoring models.
+European source build, regional runtime evidence, and verified level, audio,
+and CHR graphics authoring models.
 
 The machine-readable contract is
 `config/source_reconstruction_2_0.json`. Its current status is `development`:
@@ -171,6 +171,33 @@ the source-built game. Final subjective sound decisions should still be
 auditioned in FCEUX; this limitation is recorded as partial excluded scope and
 does not weaken the claimed codec round trip.
 
+## Graphics authoring contract
+
+The graphics workspace uses schema version 1 and covers all 32 KiB of fixed
+CHR: four CNROM banks, 512 indexed tiles per bank, and both NES bitplanes of
+every 8x8 tile. Pixel values are exposed directly as `0` through `3` without
+committing either the original CHR or exported workspaces.
+
+```console
+make export-graphics PROFILE=usa
+make validate-graphics PROFILE=usa
+make build-graphics PROFILE=usa
+make roundtrip-graphics-profiles
+make check-graphics-studio
+```
+
+Graphics Studio presents a complete per-bank atlas and an enlarged tile editor
+with drag painting, fill, horizontal and vertical reflection, rotation, copy,
+paste, and bounded undo. Save and build actions call the same headless codec;
+the UI has no private serializer. The headless check projects all 131,072
+pixels for each profile, and untouched documents reproduce both complete ROM
+images byte for byte.
+
+USA and Europe currently share their CHR bytes, but documents remain bound to
+the complete selected ROM identity as well as the CHR hash. This prevents a
+workspace exported from one regional base from being silently applied to the
+other while preserving the verified fact that the graphics payload is shared.
+
 ## Runtime and debugger evidence
 
 Both accepted profiles generate labels, maps, debug records, breakpoint files,
@@ -200,7 +227,7 @@ make source-2-static-check
 ```
 
 It verifies both references and source builds, runs all paired format audits,
-proves both editor round trips, checks both headless studios, validates regional
+proves all three editor round trips, checks all three headless studios, validates regional
 symbols, and audits the 2.0 manifest. It does not capture emulator traces.
 
 The reusable full technical gate is:
@@ -239,8 +266,8 @@ reviewed `HEAD`.
 Before changing the status to `tag-ready`:
 
 1. finish the planned authoring review, especially final source-built emulator
-   audition for edited audio and the explicit decision about any additional
-   structured-data studios;
+   audition for edited audio and graphics and the explicit decision about any
+   additional structured-data studios;
 2. review the USA/PAL profile inventory and bounded runtime matrix against the
    final advertised capability list;
 3. update roadmap wording that still describes already completed editor or

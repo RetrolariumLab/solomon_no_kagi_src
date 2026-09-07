@@ -32,7 +32,8 @@
     "regional_runtime_and_debugger_evidence",
     "regional_structured_data_contracts",
     "level_authoring",
-    "audio_authoring"
+    "audio_authoring",
+    "graphics_authoring"
   ],
   "excluded_scope": [
     {
@@ -56,7 +57,7 @@
     {
       "id": "additional_content_studios",
       "status": "planned",
-      "reason": "Regional data families have codecs and audits, but only levels and audio are claimed as complete authoring studios in this release line.",
+      "reason": "Level, audio, and CHR graphics studios are accepted; the remaining regional structured-data families have codecs and audits but no dedicated visual authoring interface.",
       "evidence": ["docs/data_formats.md", "docs/source_reconstruction_2_0.md"]
     },
     {
@@ -98,6 +99,12 @@
       "evidence": ["scripts/audio_editor.py", "scripts/sound_studio.py", "roundtrip-audio-profiles", "check-sound-studio"]
     },
     {
+      "id": "graphics_authoring",
+      "kind": "tooling",
+      "summary": "Provide profile-bound headless and visual editing for all four fixed CNROM banks and every 8x8 two-bit CHR tile.",
+      "evidence": ["scripts/graphics_editor.py", "scripts/graphics_studio.py", "roundtrip-graphics-profiles", "check-graphics-studio"]
+    },
+    {
       "id": "source_2_release_contract",
       "kind": "release",
       "summary": "Define an additive Source 2.0 audit that preserves the published Source 1.0 baseline and checks every newly accepted profile and authoring capability.",
@@ -132,6 +139,10 @@
     "audio_authoring": {
       "status": "satisfied",
       "evidence": {"targets": ["roundtrip-audio-profiles", "check-sound-studio"], "files": ["scripts/audio_editor.py", "scripts/sound_studio.py", "scripts/audio_preview.py"], "scenarios": ["usa:audio-channel-priority", "europe:audio-channel-priority"], "artifacts": []}
+    },
+    "graphics_authoring": {
+      "status": "satisfied",
+      "evidence": {"targets": ["roundtrip-graphics-profiles", "check-graphics-studio"], "files": ["scripts/graphics_editor.py", "scripts/graphics_studio.py"], "scenarios": [], "artifacts": ["usa_nes_rom", "europe_nes_rom"]}
     },
     "structured_data_contracts": {
       "status": "satisfied",
@@ -281,6 +292,18 @@
       "capabilities": ["period_and_duration_tables", "envelopes", "effect_descriptors", "physical_stream_commands", "absolute_control_flow_reflow", "regional_preview_timing"],
       "capacity_contract": {"owner": "profile", "evidence": ["scripts/audio_editor.py", "config/audio_data.json", "config/audio_data_europe.json"]},
       "targets": {"export": "export-audio", "validate": "validate-audio", "build": "build-audio", "roundtrip": "roundtrip-audio-profiles", "headless_check": "check-sound-studio"}
+    },
+    {
+      "id": "graphics",
+      "schema_version": 1,
+      "codec": "scripts/graphics_editor.py",
+      "model": "scripts/graphics_studio.py",
+      "profiles": ["usa", "europe"],
+      "workspace_pattern": "content/workspace/{profile}/graphics.json",
+      "output_pattern": "build/content/{profile}/solomons_key_graphics.nes",
+      "capabilities": ["four_cnrom_banks", "complete_8x8_tile_atlases", "two_bit_pixel_editing", "tile_transformations", "profile_bound_chr_identity"],
+      "capacity_contract": {"owner": "profile", "evidence": ["scripts/graphics_editor.py", "config/revision_profiles.json", "docs/chr_bank_policy.md"]},
+      "targets": {"export": "export-graphics", "validate": "validate-graphics", "build": "build-graphics", "roundtrip": "roundtrip-graphics-profiles", "headless_check": "check-graphics-studio"}
     }
   ],
   "structured_data_contracts": [
@@ -355,6 +378,8 @@
     "scripts/level_studio.py",
     "scripts/audio_editor.py",
     "scripts/sound_studio.py",
+    "scripts/graphics_editor.py",
+    "scripts/graphics_studio.py",
     "src/main.asm",
     "bin/cc65-LICENSE.txt"
   ],
@@ -369,6 +394,8 @@
     "smoke-level-playtests",
     "roundtrip-audio-profiles",
     "check-sound-studio",
+    "roundtrip-graphics-profiles",
+    "check-graphics-studio",
     "validate-revision-symbol-profiles",
     "trace-revision-runtimes",
     "source-2-profile-audits",

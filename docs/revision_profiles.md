@@ -301,12 +301,12 @@ NTSC or PAL defaults without silently copying one region into the other. This
 lets the editor preserve both official profiles while also supporting an
 explicit modified-content build later in the 2.0 line.
 
-The visual studio will be added after the document model and command-line
-round trip are stable. Like the SMB studio, it should support room selection,
+The visual studio is a thin layer over the stable document model and
+command-line round trip. Like the SMB studio, it supports room selection,
 direct grid editing, structured property controls, deterministic save, build,
-and focused emulator playtest. The UI is not allowed to become the only route
-to validate or reproduce edited content; all core operations remain callable
-from Make and unit tests.
+and focused emulator playtest. The UI is not the only route to validate or
+reproduce edited content; all core operations remain callable from Make and
+unit tests.
 
 ### Authoring document workflow
 
@@ -735,9 +735,13 @@ The build replaces only the fixed CHR allocation in a verified private base
 image, then decodes it again and compares the canonical document. Both required
 profiles reproduce their complete 65,552-byte reference images byte for byte.
 Private ROMs, split CHR, editable workspaces, and built content images remain
-ignored. A visual tile studio will sit on this codec; until that interface and
-its headless projection check exist, graphics authoring is deliberately not an
-accepted Source 2.0 release-manifest capability.
+ignored. Open the visual layer with `make graphics-studio PROFILE=usa` (or
+`europe`). It presents one complete 512-tile atlas per bank and an enlarged
+8x8 editor with drag painting, fill, reflections, rotation, copy/paste, and a
+bounded shared undo history. `make check-graphics-studio` projects all 131,072
+pixels for each profile without opening Tk. Save and build still pass through
+the headless encoder and canonical decode check, so the GUI introduces no
+second serialization path.
 
 ## Remaining Source 2.0 work
 
