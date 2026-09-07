@@ -53,6 +53,12 @@ selected entries have also been reconstructed independently. See
 `docs/scheduler_entries.md` for the complete context/selector/return/entry
 table and the important RTS-plus-one convention.
 
+PAL preserves the same eight stack partitions, 23 known entry codes, and
+context roles, but moves `InitialThreadStackPointers` and
+`ThreadEntryTableBases` `$0F` bytes later. Its entry targets then follow their
+own subsystem relocations. `make scheduler-profile-audits` binds both layouts
+to separate reviewed manifests.
+
 ## Context responsibilities
 
 All eight contexts now have a stable role derived from their entry tables and

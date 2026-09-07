@@ -19,6 +19,10 @@ except ImportError:
 INITIAL_STACK_POINTERS = 0x8E01
 THREAD_ENTRY_TABLE_BASES = 0x8E09
 THREAD_COUNT = 8
+SCHEDULER_MANIFESTS = {
+    "usa": "scheduler_entries.json",
+    "europe": "scheduler_entries_europe.json",
+}
 START_CALL_RE = re.compile(r"^\s*(?:JSR|JMP)\s+StartThread\s*$")
 IMMEDIATE_A_RE = re.compile(
     r"^\s*LDA\s+#(?:\$([0-9A-Fa-f]{1,2})|([A-Za-z_][A-Za-z0-9_]*))\s*$"
@@ -42,14 +46,18 @@ def read_word(prg: bytes, cpu_address: int) -> int:
     return prg[offset] | (prg[offset + 1] << 8)
 
 
-def decode_thread_code(prg: bytes, code: int) -> dict[str, int]:
+def decode_thread_code(
+    prg: bytes,
+    code: int,
+    table_bases_address: int = THREAD_ENTRY_TABLE_BASES,
+) -> dict[str, int]:
     if not 0 <= code <= 0xFF:
         raise RoomDataError(f"thread code outside byte range: {code}")
     context = code >> 4
     selector = code & 0x0F
     if context >= THREAD_COUNT:
         raise RoomDataError(f"thread code selects invalid context: ${code:02X}")
-    base = read_word(prg, THREAD_ENTRY_TABLE_BASES + context * 2)
+    base = read_word(prg, table_bases_address + context * 2)
     pointer_address = base + selector * 2
     return_address = read_word(prg, pointer_address)
     return {
@@ -136,17 +144,26 @@ def discover_start_calls(project_root: Path) -> tuple[list[dict[str, object]], l
     return static, dynamic
 
 
-def collect_report(project_root: Path, prg: bytes) -> dict[str, object]:
-    table_offset = prg_offset(INITIAL_STACK_POINTERS)
+def collect_report(
+    project_root: Path,
+    prg: bytes,
+    initial_stack_pointer_address: int = INITIAL_STACK_POINTERS,
+    table_bases_address: int = THREAD_ENTRY_TABLE_BASES,
+) -> dict[str, object]:
+    table_offset = prg_offset(initial_stack_pointer_address)
     stack_pointers = list(prg[table_offset : table_offset + THREAD_COUNT])
     static_calls, dynamic_calls = discover_start_calls(project_root)
     codes = sorted({int(call["code"]) for call in static_calls})
     return {
+        "initial_stack_pointer_address": initial_stack_pointer_address,
+        "thread_entry_table_bases_address": table_bases_address,
         "initial_stack_pointers": stack_pointers,
         "static_call_count": len(static_calls),
         "dynamic_call_count": len(dynamic_calls),
         "static_codes": codes,
-        "entries": [decode_thread_code(prg, code) for code in codes],
+        "entries": [
+            decode_thread_code(prg, code, table_bases_address) for code in codes
+        ],
         "dynamic_calls": dynamic_calls,
     }
 
@@ -156,6 +173,24 @@ def load_manifest(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict) or value.get("schema_version") != 1:
         raise RoomDataError("unsupported scheduler manifest schema")
     return value
+
+
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"scheduler profile mismatch: expected={profile}, manifest={actual}"
+        )
+
+
+def manifest_address(manifest: dict[str, Any], field: str, default: int) -> int:
+    value = manifest.get(field, default)
+    try:
+        address = int(str(value), 0)
+    except (TypeError, ValueError) as exc:
+        raise RoomDataError(f"invalid scheduler {field}: {value!r}") from exc
+    prg_offset(address)
+    return address
 
 
 def compare_entry(
@@ -321,7 +356,12 @@ def validate_report(
                 continue
             reviewed_codes.add(code)
             try:
-                actual = decode_thread_code(prg, code)
+                table_bases_address = int(
+                    report.get(
+                        "thread_entry_table_bases_address", THREAD_ENTRY_TABLE_BASES
+                    )
+                )
+                actual = decode_thread_code(prg, code, table_bases_address)
             except RoomDataError as exc:
                 errors.append(f"cannot decode reviewed dynamic thread code ${code:02X}: {exc}")
                 continue
@@ -336,16 +376,30 @@ def main() -> int:
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parent.parent)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(SCHEDULER_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = args.project_root.resolve()
     try:
+        manifest_path = args.manifest or (
+            root / "config" / SCHEDULER_MANIFESTS[args.profile]
+        )
+        manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
+        initial_stack_pointer_address = manifest_address(
+            manifest, "initial_stack_pointer_address", INITIAL_STACK_POINTERS
+        )
+        table_bases_address = manifest_address(
+            manifest, "thread_entry_table_bases_address", THREAD_ENTRY_TABLE_BASES
+        )
         prg = extract_prg(args.image.read_bytes())
-        report = collect_report(root, prg)
+        report = collect_report(
+            root, prg, initial_stack_pointer_address, table_bases_address
+        )
         if args.command == "report":
             print(json.dumps(report, indent=2, sort_keys=True))
             return 0
-        manifest_path = args.manifest or root / "config" / "scheduler_entries.json"
-        manifest = load_manifest(manifest_path)
         errors = validate_report(report, manifest, prg)
     except (OSError, ValueError, KeyError, json.JSONDecodeError, RoomDataError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)

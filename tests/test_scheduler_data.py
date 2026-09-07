@@ -9,13 +9,32 @@ from scripts.scheduler_data import (
     THREAD_ENTRY_TABLE_BASES,
     decode_thread_code,
     discover_start_calls,
+    load_manifest,
     prg_offset,
     validate_context_roles,
+    validate_manifest_profile,
     validate_report,
 )
 
 
 class SchedulerDataTests(unittest.TestCase):
+    def test_committed_profiles_preserve_codes_at_native_table_addresses(self) -> None:
+        root = Path(__file__).resolve().parent.parent
+        usa = load_manifest(root / "config" / "scheduler_entries.json")
+        europe = load_manifest(root / "config" / "scheduler_entries_europe.json")
+        validate_manifest_profile(usa, "usa")
+        validate_manifest_profile(europe, "europe")
+        self.assertEqual(
+            [entry["code"] for entry in usa["static_entries"]],
+            [entry["code"] for entry in europe["static_entries"]],
+        )
+        self.assertEqual(
+            [entry["code"] for entry in usa["reviewed_dynamic_entries"]],
+            [entry["code"] for entry in europe["reviewed_dynamic_entries"]],
+        )
+        self.assertEqual(europe["initial_stack_pointer_address"], "0x8e10")
+        self.assertEqual(europe["thread_entry_table_bases_address"], "0x8e18")
+
     def test_decodes_packed_thread_code(self) -> None:
         prg = bytearray(32_768)
         base = 0x9000

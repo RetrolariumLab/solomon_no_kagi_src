@@ -233,6 +233,14 @@ records and 21 object records begin one RAM byte higher. The paired
 `enemy-ai-profile-audits` and `enemy-pointer-profile-audits` targets distinguish
 these two cases explicitly.
 
+The cooperative scheduler keeps its eight contexts and 23 known entry codes,
+but PAL moves the initial stack-pointer table from `$8E01` to `$8E10` and the
+context-base table from `$8E09` to `$8E18`. Entry targets relocate according
+to their owning subsystems rather than one global delta. The European manifest
+therefore records every static and reviewed dynamic code explicitly;
+`make scheduler-profile-audits` checks both layouts and the shared source call
+inventory.
+
 Run the combined source ownership gate with:
 
 ```console
@@ -693,15 +701,13 @@ milestone: semantic symbols align the profiles, every PRG difference is
 classified and source-owned, and both images reproduce without post-link
 patching. The remaining release work is now evidence and authoring depth:
 
-1. make the remaining structured-data audits profile-aware where PAL differs
-   (object motion, object animation, static PPU streams, and title/demo data
-   item-handler dispatch, enemy AI dispatch, and runtime record pointers are
-   complete);
+1. consolidate the completed regional room, audio, scheduler, PPU, title,
+   object, and handler contracts into the Source 2.0 release manifest;
 2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
 3. expand the focused PAL baseline and existing USA matrix when a remaining
    semantic claim needs new runtime evidence;
-4. create the Source Reconstruction 2.0 manifest and aggregate release gate;
+4. create the aggregate Source Reconstruction 2.0 release gate and tag audit;
 5. keep Japanese reconstruction as a later, explicitly scoped profile.
 
 Regional work must not weaken the byte-identical USA build or mutate the

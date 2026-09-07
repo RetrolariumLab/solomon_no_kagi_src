@@ -169,7 +169,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	validate-rooms room-data-audit chr-bank-report chr-bank-audit roundtrip-formats \
 	reconstruction-status reconstruction-audit \
 	prg-layout-report prg-layout-audit format-coverage-audit \
-	scheduler-report scheduler-audit enemy-ai-report enemy-ai-audit \
+	scheduler-report scheduler-audit scheduler-profile-audit \
+	scheduler-profile-audits enemy-ai-report enemy-ai-audit \
 	enemy-ai-profile-audit enemy-ai-profile-audits \
 	item-handler-report item-handler-audit item-handler-profile-audit \
 	item-handler-profile-audits \
@@ -551,6 +552,14 @@ scheduler-report: $(ROM)
 
 scheduler-audit: $(ROM)
 	$(PYTHON) scripts/scheduler_data.py audit --image "$(ROM)"
+
+scheduler-profile-audit: build-revision
+	$(PYTHON) scripts/scheduler_data.py audit --image "$(REVISION_ROM)" \
+		--profile "$(PROFILE)"
+
+scheduler-profile-audits:
+	$(MAKE) scheduler-profile-audit PROFILE=usa
+	$(MAKE) scheduler-profile-audit PROFILE=europe
 
 enemy-ai-report: $(ROM)
 	$(PYTHON) scripts/enemy_ai_data.py report --image "$(ROM)"

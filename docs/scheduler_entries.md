@@ -12,7 +12,14 @@ entries independently reviewed behind dynamically selected calls. Any new
 code, changed pointer, stack partition, or static/dynamic call count must be
 reviewed before the manifest is updated.
 
-The currently referenced static entries are:
+The table layout is profile-selected. USA stores the initial stack pointers at
+`$8E01` and context-table bases at `$8E09`; PAL stores them at `$8E10` and
+`$8E18`. `config/scheduler_entries_europe.json` independently records all 16
+static and seven reviewed dynamic codes at their native PAL slots and targets.
+`make scheduler-profile-audits` decodes both source-built ROMs while retaining
+the common context roles and call-site inventory.
+
+The currently referenced USA static entries are:
 
 | Code | Context | Selector | Base | Slot | Stored return | Entry |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -70,8 +77,8 @@ the map-item path uses `JMP StartThread` as a tail call. Dynamic sites are
 recorded as a count because static source inspection cannot prove every
 runtime value.
 
-Seven additional table slots are independently reconstructed even though their
-callers select the code dynamically:
+Seven additional USA table slots are independently reconstructed even though
+their callers select the code dynamically:
 
 | Code | Context | Selector | Base | Slot | Stored return | Entry |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

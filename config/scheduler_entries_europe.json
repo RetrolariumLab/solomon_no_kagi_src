@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "profile": "europe",
+  "initial_stack_pointer_address": "0x8e10",
+  "thread_entry_table_bases_address": "0x8e18",
+  "initial_stack_pointers": [252, 220, 188, 156, 124, 92, 60, 28],
+  "static_call_count": 18,
+  "dynamic_call_count": 4,
+  "reviewed_dynamic_entries": [
+    {"code": "0x11", "context": "0x1", "selector": "0x1", "base": "0x8e26", "pointer_address": "0x8e28", "return_address": "0x9b81", "entry": "0x9b82"},
+    {"code": "0x12", "context": "0x1", "selector": "0x2", "base": "0x8e26", "pointer_address": "0x8e2a", "return_address": "0x9a74", "entry": "0x9a75"},
+    {"code": "0x13", "context": "0x1", "selector": "0x3", "base": "0x8e26", "pointer_address": "0x8e2c", "return_address": "0x9b0c", "entry": "0x9b0d"},
+    {"code": "0x21", "context": "0x2", "selector": "0x1", "base": "0x8e38", "pointer_address": "0x8e3a", "return_address": "0x8e55", "entry": "0x8e56"},
+    {"code": "0x34", "context": "0x3", "selector": "0x4", "base": "0x8e3e", "pointer_address": "0x8e46", "return_address": "0xc1bb", "entry": "0xc1bc"},
+    {"code": "0x40", "context": "0x4", "selector": "0x0", "base": "0x8e4a", "pointer_address": "0x8e4a", "return_address": "0xc314", "entry": "0xc315"},
+    {"code": "0x41", "context": "0x4", "selector": "0x1", "base": "0x8e4a", "pointer_address": "0x8e4c", "return_address": "0xc305", "entry": "0xc306"}
+  ],
+  "context_roles": [
+    {"context": "0x0", "role": "startup pending-request coordinator", "entry_codes": []},
+    {"context": "0x1", "role": "room lifecycle, Dana actions, and attract flow", "entry_codes": ["0x10", "0x11", "0x12", "0x13", "0x14", "0x15", "0x16", "0x17", "0x18"]},
+    {"context": "0x2", "role": "pause and recorded demo input", "entry_codes": ["0x21", "0x22"]},
+    {"context": "0x3", "role": "main gameplay and gameplay-exit transitions", "entry_codes": ["0x30", "0x31", "0x32", "0x33", "0x34", "0x35"]},
+    {"context": "0x4", "role": "item presentation", "entry_codes": ["0x40", "0x41", "0x42", "0x43"]},
+    {"context": "0x5", "role": "defeated-enemy drop conversion", "entry_codes": ["0x50"]},
+    {"context": "0x6", "role": "special-room scripts", "entry_codes": ["0x60"]},
+    {"context": "0x7", "role": "idle-only reserved context", "entry_codes": []}
+  ],
+  "static_entries": [
+    {"code": "0x10", "context": "0x1", "selector": "0x0", "base": "0x8e26", "pointer_address": "0x8e26", "return_address": "0x902c", "entry": "0x902d"},
+    {"code": "0x14", "context": "0x1", "selector": "0x4", "base": "0x8e26", "pointer_address": "0x8e2e", "return_address": "0x8ef2", "entry": "0x8ef3"},
+    {"code": "0x15", "context": "0x1", "selector": "0x5", "base": "0x8e26", "pointer_address": "0x8e30", "return_address": "0x902f", "entry": "0x9030"},
+    {"code": "0x16", "context": "0x1", "selector": "0x6", "base": "0x8e26", "pointer_address": "0x8e32", "return_address": "0xc7d1", "entry": "0xc7d2"},
+    {"code": "0x17", "context": "0x1", "selector": "0x7", "base": "0x8e26", "pointer_address": "0x8e34", "return_address": "0xc9fd", "entry": "0xc9fe"},
+    {"code": "0x18", "context": "0x1", "selector": "0x8", "base": "0x8e26", "pointer_address": "0x8e36", "return_address": "0xca99", "entry": "0xca9a"},
+    {"code": "0x22", "context": "0x2", "selector": "0x2", "base": "0x8e38", "pointer_address": "0x8e3c", "return_address": "0xcaba", "entry": "0xcabb"},
+    {"code": "0x30", "context": "0x3", "selector": "0x0", "base": "0x8e3e", "pointer_address": "0x8e3e", "return_address": "0x9fff", "entry": "0xa000"},
+    {"code": "0x31", "context": "0x3", "selector": "0x1", "base": "0x8e3e", "pointer_address": "0x8e40", "return_address": "0xc766", "entry": "0xc767"},
+    {"code": "0x32", "context": "0x3", "selector": "0x2", "base": "0x8e3e", "pointer_address": "0x8e42", "return_address": "0xc506", "entry": "0xc507"},
+    {"code": "0x33", "context": "0x3", "selector": "0x3", "base": "0x8e3e", "pointer_address": "0x8e44", "return_address": "0xc709", "entry": "0xc70a"},
+    {"code": "0x35", "context": "0x3", "selector": "0x5", "base": "0x8e3e", "pointer_address": "0x8e48", "return_address": "0xc7b1", "entry": "0xc7b2"},
+    {"code": "0x42", "context": "0x4", "selector": "0x2", "base": "0x8e4a", "pointer_address": "0x8e4e", "return_address": "0xc317", "entry": "0xc318"},
+    {"code": "0x43", "context": "0x4", "selector": "0x3", "base": "0x8e4a", "pointer_address": "0x8e50", "return_address": "0xc308", "entry": "0xc309"},
+    {"code": "0x50", "context": "0x5", "selector": "0x0", "base": "0x8e52", "pointer_address": "0x8e52", "return_address": "0xc07f", "entry": "0xc080"},
+    {"code": "0x60", "context": "0x6", "selector": "0x0", "base": "0x8e54", "pointer_address": "0x8e54", "return_address": "0xb7ff", "entry": "0xb800"}
+  ]
+}
