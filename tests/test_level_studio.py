@@ -1009,6 +1009,31 @@ class NativePreviewTests(unittest.TestCase):
         palette = level_preview.room_palette(0)
         self.assertEqual(tuple(preview.rgb[:3]), level_preview.NES_RGB[palette[2]])
 
+    def test_item_catalog_icon_shows_identity_behind_storage_flags(self) -> None:
+        patterns = preview_patterns()
+        for field in ("top_left", "top_right", "bottom_left", "bottom_right"):
+            patterns[8][field] = 8
+        document = {"tile_patterns": patterns, "rooms": [preview_room()]}
+        chr_data = chr_with_uniform_tiles({(1, 8): 2})
+        renderer = level_preview.LevelPreviewRenderer(document, chr_data)
+        plain = renderer.render_item_icon(0, 0x08)
+        embedded = renderer.render_item_icon(0, 0x88)
+        self.assertEqual(plain.rgb, embedded.rgb)
+        self.assertEqual((plain.width, plain.height, plain.chr_bank), (16, 16, 1))
+
+    def test_enemy_catalog_icon_uses_native_initial_frame(self) -> None:
+        prg, chr_data, contract = enemy_preview_data()
+        document = {"tile_patterns": preview_patterns(), "rooms": [preview_room()]}
+        preview = level_preview.LevelPreviewRenderer(
+            document, chr_data, prg, contract
+        ).render_enemy_icon(0, 0x1C)
+        sprite_color = bytes(
+            level_preview.NES_RGB[level_preview.ROOM_SPRITE_PALETTE[1]]
+        )
+        self.assertEqual((preview.width, preview.height, preview.chr_bank), (16, 16, 1))
+        self.assertEqual(preview.rgb[0:3], sprite_color)
+        self.assertEqual(preview.rendered_enemy_indices, (0,))
+
     def test_projects_packed_flags_to_both_oam_attributes(self) -> None:
         self.assertEqual(level_preview.sprite_attributes(0xF0), (0xC3, 0x00))
         self.assertEqual(level_preview.sprite_attributes(0x0F), (0x00, 0xC3))
@@ -1075,6 +1100,32 @@ class NativePreviewTests(unittest.TestCase):
         room["items"]["commands"] = []
         with self.assertRaisesRegex(level_preview.LevelPreviewError, "terminator"):
             level_preview.room_chr_bank(room)
+
+
+class ElementCatalogTests(unittest.TestCase):
+    def test_catalogs_cover_every_encoder_accepted_type(self) -> None:
+        enemies = level_studio.catalog_entries("enemy")
+        items = level_studio.catalog_entries("item")
+        self.assertEqual((len(enemies), enemies[0][0], enemies[-1][0]), (108, 0x18, 0x83))
+        self.assertEqual((len(items), items[0][0], items[-1][0]), (195, 0x01, 0xFF))
+        self.assertNotIn(0xC0, {value for value, _description in items})
+
+    def test_catalog_search_matches_names_and_hex_codes(self) -> None:
+        self.assertTrue(
+            all("Demonhead" in description for _value, description in level_studio.catalog_entries("enemy", "demonhead"))
+        )
+        self.assertEqual(
+            [value for value, _description in level_studio.catalog_entries("enemy", "$71")],
+            [0x71],
+        )
+        self.assertIn(
+            0x48,
+            {value for value, _description in level_studio.catalog_entries("item", "hidden")},
+        )
+
+    def test_catalog_rejects_unknown_family(self) -> None:
+        with self.assertRaisesRegex(level_studio.LevelEditorError, "catalog kind"):
+            level_studio.catalog_entries("metadata")
 
 
 class PointPlaytestTests(unittest.TestCase):

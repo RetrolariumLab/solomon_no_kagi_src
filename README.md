@@ -224,7 +224,7 @@ make validate-levels PROFILE=usa # validate and decode a rebuilt editor image
 make build-levels PROFILE=usa # build a ROM with the workspace's edited levels
 make roundtrip-level-profiles # prove untouched USA and Europe editor identity
 make level-summary PROFILE=usa # summarize blocks, enemies, and item commands
-make level-studio PROFILE=usa # edit rooms, tilesets, RoomMap art, and shared tables
+make level-studio PROFILE=usa # edit rooms, native entity catalogs, art, and tables
 make check-level-studio # render all native room previews and check both codecs
 make check-level-block-reference # compare all 10,176 cells with the external CSV
 make smoke-level-playtests # enter selected USA/PAL rooms through real FCEUX hooks

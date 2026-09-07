@@ -490,6 +490,38 @@ class LevelPreviewRenderer:
             (),
         )
 
+    def render_item_icon(self, room_index: int, item_type: int) -> RoomPreview:
+        """Render the collectible identity behind a possibly flagged item byte."""
+        if not 0 <= item_type <= 0xFF:
+            raise LevelPreviewError("item icon type is outside byte range")
+        identity = item_type & 0x3F
+        patterns = self.document.get("tile_patterns")
+        if not isinstance(patterns, list):
+            raise LevelPreviewError("room tile patterns are unavailable")
+        pattern_index = identity if identity < len(patterns) else ROOM_MAP_EMPTY
+        return self.render_pattern(room_index, pattern_index)
+
+    def render_enemy_icon(self, room_index: int, enemy_type: int) -> RoomPreview:
+        """Render one native initial enemy frame on the selected room's bank."""
+        rooms = self.document.get("rooms")
+        if not isinstance(rooms, list) or not 0 <= room_index < len(rooms):
+            raise LevelPreviewError("room index is outside the level document")
+        if self.enemy_decoder is None:
+            raise LevelPreviewError("enemy icon rendering needs PRG animation data")
+        bank = room_chr_bank(rooms[room_index])
+        palette = room_palette(room_index)
+        background = bytes(NES_RGB[ROOM_SPRITE_PALETTE[0] & 0x3F])
+        rgb = bytearray(background * (METATILE_SIZE * METATILE_SIZE))
+        frame = self.enemy_decoder.frame(enemy_type)
+        if frame is None:
+            return RoomPreview(
+                METATILE_SIZE, METATILE_SIZE, bytes(rgb), bank, palette, ()
+            )
+        self._draw_enemy_sprite(rgb, METATILE_SIZE, 0, 0, bank, frame)
+        return RoomPreview(
+            METATILE_SIZE, METATILE_SIZE, bytes(rgb), bank, palette, (0,)
+        )
+
     def render(
         self, room_index: int, layers: PreviewLayers | None = None
     ) -> RoomPreview:

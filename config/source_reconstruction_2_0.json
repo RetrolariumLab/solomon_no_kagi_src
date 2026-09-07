@@ -288,7 +288,7 @@
       "profiles": ["usa", "europe"],
       "workspace_pattern": "content/workspace/{profile}/levels.json",
       "output_pattern": "build/content/{profile}/solomons_key_levels.nes",
-      "capabilities": ["room_block_bitplanes", "enemy_spawn_streams", "item_and_metadata_streams", "demon_mirror_schedules", "demon_mirror_enemy_sets", "room_map_art", "special_room_tables", "independent_layer_visibility", "whole_room_copy_paste", "safe_room_content_clear"],
+      "capabilities": ["room_block_bitplanes", "enemy_spawn_streams", "item_and_metadata_streams", "demon_mirror_schedules", "demon_mirror_enemy_sets", "room_map_art", "special_room_tables", "independent_layer_visibility", "whole_room_copy_paste", "safe_room_content_clear", "searchable_native_element_catalogs"],
       "capacity_contract": {"owner": "profile", "evidence": ["scripts/room_data.py", "scripts/level_editor.py", "config/revision_profiles.json"]},
       "targets": {"export": "export-levels", "validate": "validate-levels", "build": "build-levels", "roundtrip": "roundtrip-level-profiles", "headless_check": "check-level-studio"}
     },

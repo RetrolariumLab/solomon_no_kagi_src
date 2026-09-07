@@ -135,7 +135,8 @@ the ROM.
 
 Level Studio is a thin interface over this headless model. Undo, whole-room
 copy/paste and safe content clearing, record inspection, room rendering, native
-CHR/palette previews, shared-table dialogs, allocation pressure, and FCEUX room
+CHR/palette previews, searchable native-art catalogs for all 108 enemy and 195
+item encodings, shared-table dialogs, allocation pressure, and FCEUX room
 playtests do not bypass codec validation. The runtime smoke gate enters one
 selected room in each source-built regional image through the game's original
 room loader.

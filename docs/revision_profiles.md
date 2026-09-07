@@ -479,6 +479,19 @@ when the same byte appears as the payload of a repeat command. Names are
 cross-checked against `skchain`, while gameplay-effect wording follows this
 reconstruction's handler analysis in `docs/room_map_tiles.md`.
 
+The `Browse...` controls turn those lists into searchable visual catalogs. All
+108 encoder-accepted enemy values are projected through their native initial
+animation frame, packed sprite flags, current room CHR bank, and NES sprite
+palette. All 195 legal direct-item encodings are shown with their low-six-bit
+collectible identity, so hidden and embedded variants retain readable art while
+their storage flags remain explicit in the description. Searching accepts
+names or `$XX` codes; choosing a row switches directly to the corresponding
+placement tool. `make check-level-studio` renders every catalog entry for both
+profiles and rejects a supported enemy type without a resolvable native frame.
+This workflow was selected after independent UX review of `skchain`; all image
+decoding and type boundaries still come from this project's reconstructed code
+and profile contracts.
+
 `RoomMap art` edits all 58 shared four-tile graphics records used by initial
 room rendering and incremental cell updates. Each record exposes its semantic
 identity, background subpalette, and four NES tile indices. The dialog renders

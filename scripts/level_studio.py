@@ -329,6 +329,39 @@ CONSTELLATION_TYPE_CHOICES = tuple(
 )
 
 
+def catalog_entries(kind: str, query: str = "") -> tuple[tuple[int, str], ...]:
+    """Return searchable semantic choices without changing stored type bytes."""
+    if kind == "enemy":
+        values = range(ENEMY_TYPE_MINIMUM, ENEMY_TYPE_MAXIMUM + 1)
+        describe = enemy_type_name
+    elif kind == "item":
+        values = (*range(1, 0xC0), *range(0xFC, 0x100))
+        describe = item_type_name
+    else:
+        raise LevelEditorError(f"unknown element catalog kind: {kind!r}")
+    needle = query.strip().casefold()
+    result = []
+    for value in values:
+        description = describe(value)
+        searchable = f"{value:02x} ${value:02x} {description}".casefold()
+        if not needle or needle in searchable:
+            result.append((value, description))
+    return tuple(result)
+
+
+def catalog_preview(
+    renderer: LevelPreviewRenderer,
+    room_index: int,
+    kind: str,
+    value: int,
+) -> Any:
+    if kind == "enemy":
+        return renderer.render_enemy_icon(room_index, value)
+    if kind == "item":
+        return renderer.render_item_icon(room_index, value)
+    raise LevelEditorError(f"unknown element catalog kind: {kind!r}")
+
+
 def room_map_pattern_name(value: int) -> str:
     structural_names = {
         0x00: "Brown block / default solid cell",
@@ -2108,6 +2141,124 @@ class SpecialRoomDataDialog(tk.Toplevel):
         self.studio.set_status(message if changed else "No change")
 
 
+class ElementCatalogDialog(tk.Toplevel):
+    """Searchable native-art picker for one room entity family."""
+
+    def __init__(self, studio: "LevelStudio", kind: str) -> None:
+        super().__init__(studio)
+        if kind not in {"enemy", "item"}:
+            raise LevelEditorError(f"unknown element catalog kind: {kind!r}")
+        self.studio = studio
+        self.kind = kind
+        self.search = tk.StringVar()
+        self.summary = tk.StringVar()
+        self.images: dict[str, tk.PhotoImage] = {}
+        self.values: dict[str, int] = {}
+        self.title(f"{kind.title()} catalog - Room {studio.room_index.get() + 1:02d}")
+        self.geometry("690x650")
+        self.minsize(520, 430)
+        self.transient(studio)
+        self._build_ui()
+        self.search.trace_add("write", lambda *_args: self.refresh())
+        self.refresh()
+        self.grab_set()
+
+    def _build_ui(self) -> None:
+        header = ttk.Frame(self, padding=9)
+        header.pack(fill="x")
+        ttk.Label(header, text="Search by name or hexadecimal type:").pack(side="left")
+        entry = ttk.Entry(header, textvariable=self.search)
+        entry.pack(side="left", fill="x", expand=True, padx=(7, 0))
+        entry.focus_set()
+
+        body = ttk.Frame(self, padding=(9, 0, 9, 0))
+        body.pack(fill="both", expand=True)
+        self.tree = ttk.Treeview(
+            body,
+            columns=("code", "description"),
+            show="tree headings",
+            selectmode="browse",
+        )
+        self.tree.heading("#0", text="Native art")
+        self.tree.heading("code", text="Type")
+        self.tree.heading("description", text="Semantic description")
+        self.tree.column("#0", width=80, stretch=False, anchor="center")
+        self.tree.column("code", width=65, stretch=False, anchor="center")
+        self.tree.column("description", width=430)
+        scrollbar = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        self.tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        self.tree.bind("<Double-1>", lambda _event: self.choose())
+        self.tree.bind("<Return>", lambda _event: self.choose())
+
+        footer = ttk.Frame(self, padding=9)
+        footer.pack(fill="x")
+        ttk.Label(footer, textvariable=self.summary).pack(side="left")
+        ttk.Button(footer, text="Cancel", command=self.destroy).pack(side="right")
+        ttk.Button(footer, text="Use selected", command=self.choose).pack(
+            side="right", padx=(0, 7)
+        )
+
+    def current_value(self) -> int:
+        variable = self.studio.enemy_type if self.kind == "enemy" else self.studio.item_type
+        return parse_type_choice(variable.get(), f"{self.kind} type")
+
+    def preview_image(self, value: int) -> tk.PhotoImage:
+        preview = catalog_preview(
+            self.studio.preview_renderer,
+            self.studio.room_index.get(),
+            self.kind,
+            value,
+        )
+        base = tk.PhotoImage(data=preview.ppm(), format="PPM")
+        return base.zoom(2, 2)
+
+    def refresh(self) -> None:
+        selected_value = self.current_value()
+        entries = catalog_entries(self.kind, self.search.get())
+        self.tree.delete(*self.tree.get_children())
+        self.images.clear()
+        self.values.clear()
+        selected_item: str | None = None
+        for value, description in entries:
+            item = f"type-{value:02X}"
+            try:
+                icon = self.preview_image(value)
+            except LevelPreviewError:
+                icon = tk.PhotoImage(width=32, height=32)
+            self.images[item] = icon
+            self.values[item] = value
+            self.tree.insert(
+                "",
+                "end",
+                iid=item,
+                image=icon,
+                values=(f"${value:02X}", description),
+            )
+            if value == selected_value:
+                selected_item = item
+        if selected_item is None and entries:
+            selected_item = f"type-{entries[0][0]:02X}"
+        if selected_item is not None:
+            self.tree.selection_set(selected_item)
+            self.tree.focus(selected_item)
+            self.tree.see(selected_item)
+        noun = "enemy types" if self.kind == "enemy" else "item encodings"
+        self.summary.set(
+            f"{len(entries)} of {len(catalog_entries(self.kind))} {noun}; "
+            f"art uses Room {self.studio.room_index.get() + 1:02d} CHR bank"
+        )
+
+    def choose(self) -> None:
+        selection = self.tree.selection()
+        if not selection:
+            return
+        value = self.values[selection[0]]
+        self.studio.select_catalog_value(self.kind, value)
+        self.destroy()
+
+
 class LevelStudio(tk.Tk):
     def __init__(
         self,
@@ -2232,15 +2383,25 @@ class LevelStudio(tk.Tk):
             type_box,
             textvariable=self.enemy_type,
             values=ENEMY_TYPE_CHOICES,
-            width=39,
+            width=34,
         ).grid(row=0, column=1)
+        ttk.Button(
+            type_box,
+            text="Browse...",
+            command=self.open_enemy_catalog,
+        ).grid(row=0, column=2, padx=(5, 0))
         ttk.Label(type_box, text="Item type").grid(row=1, column=0, sticky="w")
         ttk.Combobox(
             type_box,
             textvariable=self.item_type,
             values=DIRECT_ITEM_TYPE_CHOICES,
-            width=39,
+            width=34,
         ).grid(row=1, column=1)
+        ttk.Button(
+            type_box,
+            text="Browse...",
+            command=self.open_item_catalog,
+        ).grid(row=1, column=2, padx=(5, 0))
 
         properties = ttk.LabelFrame(side, text="Room properties", padding=7)
         properties.pack(fill="x")
@@ -2443,6 +2604,23 @@ class LevelStudio(tk.Tk):
 
     def open_room_terminator(self) -> None:
         RoomTerminatorDialog(self)
+
+    def open_enemy_catalog(self) -> None:
+        ElementCatalogDialog(self, "enemy")
+
+    def open_item_catalog(self) -> None:
+        ElementCatalogDialog(self, "item")
+
+    def select_catalog_value(self, kind: str, value: int) -> None:
+        if kind == "enemy":
+            self.enemy_type.set(type_choice(value, enemy_type_name(value)))
+            self.mode.set("enemy")
+        elif kind == "item":
+            self.item_type.set(type_choice(value, item_type_name(value)))
+            self.mode.set("item")
+        else:
+            raise LevelEditorError(f"unknown element catalog kind: {kind!r}")
+        self.set_status(f"Selected {kind} type ${value:02X}")
 
     def current_room(self) -> dict[str, Any]:
         return self.model.room(self.room_index.get())
@@ -3140,6 +3318,26 @@ def main() -> int:
         )
         if args.check:
             previews = [preview_renderer.render(index) for index in range(ROOM_COUNT)]
+            enemy_icons = [
+                catalog_preview(preview_renderer, 0, "enemy", value)
+                for value, _description in catalog_entries("enemy")
+            ]
+            item_icons = [
+                catalog_preview(preview_renderer, 0, "item", value)
+                for value, _description in catalog_entries("item")
+            ]
+            if any(
+                (icon.width, icon.height, len(icon.rgb)) != (16, 16, 16 * 16 * 3)
+                for icon in enemy_icons + item_icons
+            ):
+                raise LevelEditorError("element catalog produced an invalid native icon")
+            native_catalog_enemies = sum(
+                bool(icon.rendered_enemy_indices) for icon in enemy_icons
+            )
+            if native_catalog_enemies != len(enemy_icons):
+                raise LevelEditorError(
+                    "element catalog cannot resolve every supported enemy frame"
+                )
             diagnostics = [
                 room_runtime_diagnostics(room) for room in document["rooms"]
             ]
@@ -3160,6 +3358,7 @@ def main() -> int:
                 f"{sum(len(preview.rgb) for preview in previews)} preview RGB bytes, "
                 f"{combined_blocks} combined block cells, "
                 f"{native_enemies}/{placed_enemies} native enemy sprites, "
+                f"{len(enemy_icons)} enemy and {len(item_icons)} item catalog icons, "
                 f"max {max(value.placed_enemies for value in diagnostics)}/"
                 f"{ROOM_ENEMY_SLOT_COUNT} enemy slots, "
                 f"{sum(bool(value.missing_right_wall_rows) for value in diagnostics)} "
