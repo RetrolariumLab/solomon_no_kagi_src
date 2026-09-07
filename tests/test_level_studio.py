@@ -991,6 +991,24 @@ class NativePreviewTests(unittest.TestCase):
         self.assertEqual(values[0][1], level_preview.ROOM_MAP_WHITE_BLOCK)
         self.assertEqual(values[0][2], 8)
 
+    def test_bonus_layout_reproduces_backward_wrapping_placement(self) -> None:
+        special = special_room_data()
+        special["random_bonus_room"]["item_types"] = list(range(1, 17))
+        document = {"special_room_data": special}
+        placements = level_preview.bonus_room_item_placements(document, 50, 0)
+        self.assertEqual([item_type for item_type, _position in placements], list(range(16, 0, -1)))
+        self.assertEqual(
+            [position for _item_type, position in placements],
+            [special["random_bonus_room"]["positions"][index] for index in [0, *range(31, 16, -1)]],
+        )
+        self.assertEqual(level_preview.bonus_room_item_placements(document, 49, 0), ())
+
+    def test_normal_room_stream_overwrites_procedural_bonus_item(self) -> None:
+        room = preview_room()
+        procedural = ((0x88, {"x": 2, "y": 0}),)
+        values = level_preview.room_map_values(room, procedural_items=procedural)
+        self.assertEqual(values[0][2], 0x08)
+
     def test_preview_layers_hide_items_and_metadata_without_hiding_blocks(self) -> None:
         room = preview_room()
         metadata = room["items"]["metadata"]
@@ -1080,6 +1098,21 @@ class NativePreviewTests(unittest.TestCase):
         palette = level_preview.room_palette(48)
         self.assertEqual(tuple(palette[index] for index in (1, 5, 9, 13)), (0,) * 4)
         self.assertEqual(palette[10], 0x16)
+
+    def test_bonus_room_palette_can_follow_its_source_quartet(self) -> None:
+        rooms = [copy.deepcopy(preview_room()) for _ in range(51)]
+        document = {
+            "tile_patterns": preview_patterns(),
+            "special_room_data": special_room_data(),
+            "rooms": rooms,
+        }
+        renderer = level_preview.LevelPreviewRenderer(
+            document, chr_with_uniform_tiles({})
+        )
+        preview = renderer.render(
+            50, level_preview.PreviewLayers(bonus_palette_group=3)
+        )
+        self.assertEqual(preview.palette, level_preview.room_palette(50, 3))
 
     def test_special_room_bats_and_seals_use_native_patterns(self) -> None:
         rooms = [copy.deepcopy(preview_room()) for _ in range(20)]

@@ -88,6 +88,9 @@ EMBEDDED_OBJECT_OPACITY = 192
 COMBINED_BLOCK_OPACITY = 128
 GROUND_ENEMY_TYPE_MINIMUM = 0x50
 GROUND_ENEMY_TYPE_LIMIT = 0x80
+BONUS_ROOM_INDEX = 50
+BONUS_POSITION_COUNT = 32
+BONUS_ITEM_COUNT = 16
 
 # Four six-metatile constellation layouts. The decoder selects one layout
 # with opcode bits 0-1 and applies a separate palette value to every record.
@@ -172,6 +175,8 @@ class PreviewLayers:
     items: bool = True
     enemies: bool = True
     special: bool = True
+    bonus_layout_index: int = 0
+    bonus_palette_group: int = 0
 
 
 def manifest_address(value: object, field: str) -> int:
@@ -361,11 +366,16 @@ def room_chr_bank(room: dict[str, Any]) -> int:
     raise LevelPreviewError("room item stream has no CHR-bank terminator")
 
 
-def room_palette(room_index: int) -> tuple[int, ...]:
+def room_palette(
+    room_index: int, room_group_override: int | None = None
+) -> tuple[int, ...]:
     if not 0 <= room_index < 53:
         raise LevelPreviewError("room index is outside 0..52")
+    room_group = room_index // 4 if room_group_override is None else room_group_override
+    if not 0 <= room_group < len(ROOM_GROUP_COLORS):
+        raise LevelPreviewError("room palette group is outside the source table")
     palette = list(ROOM_BACKGROUND_PALETTE)
-    color = ROOM_GROUP_COLORS[room_index // 4]
+    color = ROOM_GROUP_COLORS[room_group]
     if color & 0x80:
         palette[10] = 0x16
         color = 0
@@ -374,8 +384,40 @@ def room_palette(room_index: int) -> tuple[int, ...]:
     return tuple(palette)
 
 
+def bonus_room_item_placements(
+    document: dict[str, Any], room_index: int, layout_index: int
+) -> tuple[tuple[int, dict[str, int]], ...]:
+    """Reproduce the room-$32 backward, wrapping placement loop."""
+    if room_index != BONUS_ROOM_INDEX:
+        return ()
+    if not 0 <= layout_index < BONUS_POSITION_COUNT:
+        raise LevelPreviewError("bonus layout index is outside 0..31")
+    special = document.get("special_room_data")
+    bonus = special.get("random_bonus_room") if isinstance(special, dict) else None
+    if not isinstance(bonus, dict):
+        raise LevelPreviewError("random bonus-room data is missing")
+    positions = bonus.get("positions")
+    item_types = bonus.get("item_types")
+    if not isinstance(positions, list) or len(positions) != BONUS_POSITION_COUNT:
+        raise LevelPreviewError("random bonus room must contain 32 positions")
+    if not isinstance(item_types, list) or len(item_types) != BONUS_ITEM_COUNT:
+        raise LevelPreviewError("random bonus room must contain 16 item types")
+    placements: list[tuple[int, dict[str, int]]] = []
+    position_index = layout_index
+    for item_index in range(BONUS_ITEM_COUNT - 1, -1, -1):
+        position = positions[position_index]
+        item_type = item_types[item_index]
+        if not visible(position) or not isinstance(item_type, int):
+            raise LevelPreviewError("random bonus-room entry is invalid")
+        placements.append((item_type, position))
+        position_index = (position_index - 1) & (BONUS_POSITION_COUNT - 1)
+    return tuple(placements)
+
+
 def room_map_values(
-    room: dict[str, Any], layers: PreviewLayers | None = None
+    room: dict[str, Any],
+    layers: PreviewLayers | None = None,
+    procedural_items: Iterable[tuple[int, dict[str, int]]] = (),
 ) -> tuple[tuple[int, ...], ...]:
     layers = layers or PreviewLayers()
     values = [[ROOM_MAP_EMPTY for _ in range(ROOM_WIDTH)] for _ in range(ROOM_HEIGHT)]
@@ -401,6 +443,8 @@ def room_map_values(
         set_map_cell(values, metadata.get("mirror_1"), ROOM_MAP_DEMON_MIRROR)
         set_map_cell(values, metadata.get("mirror_2"), ROOM_MAP_DEMON_MIRROR)
     if layers.items:
+        for item_type, position in procedural_items:
+            set_map_cell(values, position, item_type)
         for item_type, position in item_placements(items.get("commands", ())):
             set_map_cell(values, position, item_type)
     return tuple(tuple(row) for row in values)
@@ -604,8 +648,22 @@ class LevelPreviewRenderer:
             raise LevelPreviewError("room index is outside the level document")
         room = rooms[room_index]
         bank = room_chr_bank(room)
-        palette = room_palette(room_index)
-        values = room_map_values(room, layers)
+        palette_group = (
+            layers.bonus_palette_group if room_index == BONUS_ROOM_INDEX else None
+        )
+        palette = room_palette(room_index, palette_group)
+        bonus_items = (
+            bonus_room_item_placements(
+                self.document, room_index, layers.bonus_layout_index
+            )
+            if layers.items and layers.special
+            else ()
+        )
+        normal_items = tuple(
+            item_placements(room.get("items", {}).get("commands", ()))
+        )
+        all_items = bonus_items + normal_items
+        values = room_map_values(room, layers, bonus_items)
         constellation = constellation_command(room) if layers.metadata else None
         width = ROOM_WIDTH * METATILE_SIZE
         height = ROOM_HEIGHT * METATILE_SIZE
@@ -624,9 +682,7 @@ class LevelPreviewRenderer:
                     ROOM_MAP_SOLID_BIT | ROOM_MAP_KEY
                 )
         if layers.items:
-            for item_type, position in item_placements(
-                room.get("items", {}).get("commands", ())
-            ):
+            for item_type, position in all_items:
                 if item_type & ROOM_MAP_SOLID_BIT:
                     embedded_values[(position["x"], position["y"])] = item_type
 
@@ -685,9 +741,7 @@ class LevelPreviewRenderer:
 
         if layers.items:
             patterns = self.document.get("tile_patterns", ())
-            for item_type, position in item_placements(
-                room.get("items", {}).get("commands", ())
-            ):
+            for item_type, position in all_items:
                 if not item_type & (ROOM_MAP_DECORATION_BIT | ROOM_MAP_SOLID_BIT):
                     continue
                 if values[position["y"]][position["x"]] != item_type:
