@@ -691,16 +691,29 @@ this keeps an isolated edit within the fixed stream budget while the shared
 codec still performs a complete validation. Note, duration, control, sequence,
 loop, sweep, volume, call, jump, return, and stop records are all editable.
 
-The Effects tab exposes every channel of all 26 descriptors and keeps the
-first-record boundary bit derived rather than asking the author to maintain
-it manually. Its context label comes from static `AddSoundEffect` call sites,
-using deliberately neutral wording where one descriptor serves multiple
-flows. A ten-second piano roll projects the four published APU voices, note
-duration and volume, and outlines even-numbered primary virtual channels over
-their resumable odd-numbered partners. The Envelopes tab edits each
-duration/volume pair and plots the four-bit volume contour. The Timing tab
-edits all period words and regional duration bytes. All mutations share a
-bounded undo history; closing a dirty workspace asks before discarding it.
+The initial Music player tab presents the 26 engine descriptors as an audible
+library instead of requiring authors to start from physical stream numbers.
+It separates persistent music loops, finite musical cues, gameplay effects,
+and engine-control programs, while the All programs view keeps every descriptor
+reachable. These groupings describe observed duration and reviewed
+`AddSoundEffect` call contexts; deliberately neutral names remain where one
+descriptor serves multiple flows.
+
+`Play selection` writes a WAV and starts it asynchronously on Windows. `Stop`
+ends that playback, while `Loop generated WAV` repeats the selected preview for
+long listening sessions. Four mixer switches independently audition Pulse 1,
+Pulse 2, Triangle, and Noise. The same switches dim muted lanes in the
+ten-second piano roll; even-numbered primary virtual channels remain outlined
+over their resumable odd-numbered partners. Selecting a descriptor channel and
+using `Open starting stream` jumps directly to the editable command sequence.
+
+The Music player also exposes every descriptor channel and keeps the
+first-record boundary bit derived rather than asking the author to maintain it
+manually. The Streams tab decodes and edits the selected physical program. The
+Envelopes tab edits each duration/volume pair and plots the four-bit volume
+contour. The Timing tab edits all period words and regional duration bytes. All
+mutations share a bounded undo history; closing a dirty workspace asks before
+discarding it and stops active preview playback.
 
 `Save` first rebuilds and decodes the document before replacing the ignored
 JSON. `Build ROM` writes the same profile-derived content image as
@@ -714,7 +727,7 @@ make check-sound-studio
 This validates all 114 non-empty entry projections after a complete codec
 round trip and traces every effect through the command VM for 180 frames.
 
-`Preview effect` traces the selected descriptor through the reconstructed
+`Play selection` traces the selected descriptor through the reconstructed
 eight-channel sequencer and writes an ignored WAV beside the content ROM.
 Call, jump, return, counted-loop, duration, envelope, control, and primary-over-
 secondary channel behavior follow `src/system/audio_engine.asm`. The renderer
@@ -727,12 +740,18 @@ Render the same preview without opening Tk with:
 
 ```console
 make preview-audio PROFILE=usa AUDIO_EFFECT=5 AUDIO_PREVIEW_SECONDS=12
+make preview-audio PROFILE=usa AUDIO_EFFECT=1 AUDIO_CHANNELS=pulse1,pulse2
 ```
+
+`AUDIO_CHANNELS` accepts any comma-separated subset of `pulse1`, `pulse2`,
+`triangle`, and `noise`; its default is `all`. An empty value deliberately
+renders silence and is useful as a mixer regression reference.
 
 The synthetic preview is intended for fast authoring feedback. The current
 renderer does not emulate the pulse sweep unit cycle for cycle, so final sound
-decisions must still be checked in the built ROM. Higher-level composition
-naming remains later Sound Studio depth.
+decisions must still be checked in the built ROM. The library names describe
+confirmed gameplay contexts rather than claiming an unpublished soundtrack
+track list.
 
 ## Graphics authoring document
 

@@ -235,7 +235,8 @@ make build-audio PROFILE=usa # build a ROM with the workspace's edited audio
 make roundtrip-audio-profiles # prove untouched USA and Europe audio identity
 make audio-summary PROFILE=usa # summarize effects, envelopes, and stream commands
 make preview-audio PROFILE=usa AUDIO_EFFECT=5 # render an APU-like WAV preview
-make sound-studio PROFILE=usa # edit streams, effects, envelopes, and timing
+make preview-audio PROFILE=usa AUDIO_EFFECT=1 AUDIO_CHANNELS=pulse1,pulse2 # isolate voices
+make sound-studio PROFILE=usa # play music and edit streams, envelopes, and timing
 make check-sound-studio # headlessly validate both regional studio projections
 make export-graphics PROFILE=usa # create an ignored editable CHR tile document
 make validate-graphics PROFILE=usa # validate and decode a rebuilt graphics image
