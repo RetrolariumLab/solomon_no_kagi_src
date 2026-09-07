@@ -32,6 +32,22 @@ class RoomDataTests(unittest.TestCase):
             self.assertEqual(getattr(japan, field), getattr(usa, field))
             self.assertEqual(getattr(europe, field), getattr(usa, field) - 0x80)
 
+    def test_special_room_layouts_follow_their_independent_relocations(self) -> None:
+        usa = room_data.USA_ROOM_DATA_LAYOUT
+        japan = room_data.JAPAN_ROOM_DATA_LAYOUT
+        europe = room_data.EUROPE_ROOM_DATA_LAYOUT
+        self.assertEqual(europe.special_room_item_positions, 0x19CA)
+        self.assertEqual(usa.special_room_item_positions, 0x19C2)
+        self.assertEqual(japan.special_room_item_positions, 0x1945)
+        for field in (
+            "solomon_seal_positions",
+            "princess_room_hidden_cells",
+            "room_20_special_bitplane",
+            "room_30_special_bitplane",
+        ):
+            self.assertEqual(getattr(europe, field), getattr(usa, field))
+            self.assertEqual(getattr(japan, field), getattr(usa, field) - 0x430)
+
     def test_block_decoder_uses_selected_regional_layout(self) -> None:
         prg = bytearray(32_768)
         data = bytes([0x80]) + bytes(room_data.BLOCK_BYTES_PER_ROOM - 1)
@@ -121,6 +137,38 @@ class RoomDataTests(unittest.TestCase):
         self.assertIn("RoomBlockData:", source)
         self.assertIn(".byte $80, $01", source)
         self.assertIn("RoomBlockDataRoom53:", source)
+
+    def test_special_room_tables_round_trip_without_losing_semantics(self) -> None:
+        layout = room_data.USA_ROOM_DATA_LAYOUT
+        prg = bytearray(32_768)
+        positions = bytes(0x10 | index for index in range(16)) * 2
+        item_types = bytes(0x80 | index for index in range(1, 17))
+        seals = bytes((0x21, 0x32, 0x43, 0x54, 0x65, 0x76, 0x87, 0x98))
+        princess = bytes((0x11, 0x22, 0x33, 0x44, 0x55, 0x66) * 2)
+        room_20 = bytes((0x80, 0x01)) + bytes(room_data.BITPLANE_SIZE - 2)
+        room_30 = bytes((0x40, 0x02)) + bytes(room_data.BITPLANE_SIZE - 2)
+        segments = (
+            (layout.special_room_item_positions, positions),
+            (layout.special_room_item_types, item_types),
+            (layout.solomon_seal_positions, seals),
+            (layout.princess_room_hidden_cells, princess),
+            (layout.room_20_special_bitplane, room_20),
+            (layout.room_30_special_bitplane, room_30),
+        )
+        for offset, payload in segments:
+            prg[offset : offset + len(payload)] = payload
+        decoded = room_data.decode_special_room_data(bytes(prg), layout)
+        encoded = room_data.encode_special_room_data(decoded)
+        self.assertEqual(encoded["random_bonus_room_positions"], positions)
+        self.assertEqual(encoded["random_bonus_room_item_types"], item_types)
+        self.assertEqual(encoded["solomon_seal_positions"], seals)
+        self.assertEqual(encoded["princess_room_hidden_cells"], princess)
+        self.assertEqual(encoded["room_20_bat_symbols"], room_20)
+        self.assertEqual(encoded["room_30_blue_opals"], room_30)
+        self.assertEqual(
+            [record["room"] for record in decoded["solomon_seals"]],
+            list(room_data.SOLOMON_SEAL_ROOMS),
+        )
 
     def test_enemy_stream_round_trip(self) -> None:
         prg = bytearray(32_768)

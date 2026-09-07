@@ -76,6 +76,14 @@ at cells `$37` and `$A7`. Their shared trigger watches Dana's map position and
 the last block-cast target, then changes either cell `$C7` or the three cells
 `$46-$48`.
 
+The table-backed part of this behavior is now the seventh canonical room-data
+family. Its lossless codec owns 116 bytes: 32 random bonus-room positions, 16
+corresponding item types, eight Seal positions, twelve Princess-room cells,
+and the two 24-byte room 20/30 bitplanes. USA and Europe encode identical
+semantics at different early-table addresses. Japan relocates the later tables
+by `$430` and changes bonus position index 2 from `$B2` to `$D2`; this
+single-byte content difference is fingerprinted rather than normalized away.
+
 The room-index 49 offset selects `RunEndingRoomScript` at `$BA34`. That complete
 ending handler is source-owned through `$BD93`. Its supporting waits, Solomon's
 Seal reveal state, object-position table, text streams, and two special-room

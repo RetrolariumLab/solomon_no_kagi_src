@@ -18,6 +18,7 @@ from room_data import (
     decode_mirror_schedules,
     decode_room,
     decode_room_tile_patterns,
+    decode_special_room_data,
     extract_prg,
     roundtrip_rooms,
 )
@@ -35,6 +36,7 @@ ROOM_FAMILIES = (
     "room_blocks",
     "room_enemies",
     "room_items",
+    "special_room_data",
 )
 
 
@@ -541,6 +543,7 @@ def room_document(parsed: dict[str, Any], profile: dict[str, Any]) -> dict[str, 
             "room_blocks": [room["blocks"] for room in rooms],
             "room_enemies": [room["enemy_stream"] for room in rooms],
             "room_items": [room["item_stream"] for room in rooms],
+            "special_room_data": decode_special_room_data(prg, layout),
         }
     )
 

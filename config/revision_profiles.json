@@ -50,7 +50,8 @@
         "mirror_enemy_sets": "3650e4a7b4cd7d202e4215dc091ecc69543e9796ae83d231038371e70771d38a",
         "room_blocks": "28a2cb6a8c706e936a2f9b9aaf14f5dc9a98f19397efc99861333d344ebfc10e",
         "room_enemies": "7ad1675ca580c15f970d89dbc0fa999ac1e1c555f8944a9d8bd753ac50c90602",
-        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
+        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343",
+        "special_room_data": "6383ed4a4f6585b3355886847eeb6d368b59a888bd6c14a62a8cbb2295157d24"
       },
       "verified_source_ranges": [
         {
@@ -121,7 +122,8 @@
         "mirror_enemy_sets": "3650e4a7b4cd7d202e4215dc091ecc69543e9796ae83d231038371e70771d38a",
         "room_blocks": "28a2cb6a8c706e936a2f9b9aaf14f5dc9a98f19397efc99861333d344ebfc10e",
         "room_enemies": "94febd22d889658f8c50fc723f3b0d363ee7b22883ae64c8af603d7f070ad35f",
-        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
+        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343",
+        "special_room_data": "6383ed4a4f6585b3355886847eeb6d368b59a888bd6c14a62a8cbb2295157d24"
       },
       "verified_source_ranges": [
         {
@@ -181,7 +183,8 @@
         "mirror_enemy_sets": "3650e4a7b4cd7d202e4215dc091ecc69543e9796ae83d231038371e70771d38a",
         "room_blocks": "28a2cb6a8c706e936a2f9b9aaf14f5dc9a98f19397efc99861333d344ebfc10e",
         "room_enemies": "7ad1675ca580c15f970d89dbc0fa999ac1e1c555f8944a9d8bd753ac50c90602",
-        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343"
+        "room_items": "f8ab58a9c219c45fa2136f8737048cedf15718242bd1e2cb3cb8094327f1a343",
+        "special_room_data": "910bce2cf2d6eb59112cc375f6220c7dfc9549999134842a67d370e57d30af70"
       },
       "verified_source_ranges": [],
       "extracted_assets": [

@@ -348,8 +348,9 @@ passes on the reviewed `main` commit.
 - `config/revision_profiles.json` now records independently verified USA,
   Europe, and Japan identities; `make verify-revision-references` covers the
   required USA/Europe scope and profile-aware split output remains private;
-- all six decoded room families round-trip in both required profiles. Shared
-  geometry, items, tile patterns, and mirror enemy sets are fingerprinted;
+- all seven decoded room families round-trip in both required profiles. Shared
+  geometry, items, tile patterns, mirror enemy sets, and the 116 bytes of
+  table-backed special-room content are fingerprinted;
   European mirror schedules and enemy spawn lifetimes are explicitly distinct;
 - the European ca65 profile now selects the PAL bootstrap, RAM layout,
   gameplay flow, level timing, object motion, relocated calls, and regional

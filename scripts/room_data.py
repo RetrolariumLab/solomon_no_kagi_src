@@ -35,6 +35,8 @@ EXPECTED_ROOM_CHR_BANK_COUNTS = (17, 21, 15, 0)
 class RoomDataLayout:
     name: str
     room_tile_pattern_data: int
+    special_room_item_positions: int
+    special_room_item_types: int
     mirror_schedule_table: int
     mirror_enemy_set_table: int
     mirror_schedule_data: int
@@ -43,11 +45,17 @@ class RoomDataLayout:
     item_pointer_table: int
     item_data_end: int
     audio_engine: int
+    solomon_seal_positions: int
+    princess_room_hidden_cells: int
+    room_20_special_bitplane: int
+    room_30_special_bitplane: int
 
 
 USA_ROOM_DATA_LAYOUT = RoomDataLayout(
     name="usa",
     room_tile_pattern_data=0x5000,
+    special_room_item_positions=0x19C2,
+    special_room_item_types=0x19E2,
     mirror_schedule_table=0x5C00,
     mirror_enemy_set_table=0x5C20,
     mirror_schedule_data=0x5C42,
@@ -56,10 +64,16 @@ USA_ROOM_DATA_LAYOUT = RoomDataLayout(
     item_pointer_table=0x6A1C,
     item_data_end=0x6FC4,
     audio_engine=0x7000,
+    solomon_seal_positions=0x3FC6,
+    princess_room_hidden_cells=0x3FD6,
+    room_20_special_bitplane=0x3FE2,
+    room_30_special_bitplane=0x3FFA,
 )
 JAPAN_ROOM_DATA_LAYOUT = RoomDataLayout(
     name="japan",
     room_tile_pattern_data=0x5000,
+    special_room_item_positions=0x1945,
+    special_room_item_types=0x1965,
     mirror_schedule_table=0x5C00,
     mirror_enemy_set_table=0x5C20,
     mirror_schedule_data=0x5C42,
@@ -68,10 +82,16 @@ JAPAN_ROOM_DATA_LAYOUT = RoomDataLayout(
     item_pointer_table=0x6A1C,
     item_data_end=0x6FC4,
     audio_engine=0x7000,
+    solomon_seal_positions=0x3B96,
+    princess_room_hidden_cells=0x3BA6,
+    room_20_special_bitplane=0x3BB2,
+    room_30_special_bitplane=0x3BCA,
 )
 EUROPE_ROOM_DATA_LAYOUT = RoomDataLayout(
     name="europe",
     room_tile_pattern_data=0x4F80,
+    special_room_item_positions=0x19CA,
+    special_room_item_types=0x19EA,
     mirror_schedule_table=0x5B80,
     mirror_enemy_set_table=0x5BA0,
     mirror_schedule_data=0x5BC2,
@@ -80,6 +100,10 @@ EUROPE_ROOM_DATA_LAYOUT = RoomDataLayout(
     item_pointer_table=0x699C,
     item_data_end=0x6F44,
     audio_engine=0x6F80,
+    solomon_seal_positions=0x3FC6,
+    princess_room_hidden_cells=0x3FD6,
+    room_20_special_bitplane=0x3FE2,
+    room_30_special_bitplane=0x3FFA,
 )
 ROOM_DATA_LAYOUTS = {
     layout.name: layout
@@ -93,6 +117,10 @@ ROOM_DATA_LAYOUTS = {
 # Compatibility names for source-generation tools and callers that target the
 # reconstructed USA image.
 ROOM_TILE_PATTERN_DATA = USA_ROOM_DATA_LAYOUT.room_tile_pattern_data
+SPECIAL_ROOM_RANDOM_POSITION_COUNT = 32
+SPECIAL_ROOM_RANDOM_ITEM_COUNT = 16
+SOLOMON_SEAL_ROOMS = (9, 13, 17, 19, 21, 29, 46, 47)
+PRINCESS_ROOM_HIDDEN_CELL_COUNT = 12
 MIRROR_SCHEDULE_TABLE = USA_ROOM_DATA_LAYOUT.mirror_schedule_table
 MIRROR_ENEMY_SET_TABLE = USA_ROOM_DATA_LAYOUT.mirror_enemy_set_table
 MIRROR_SCHEDULE_DATA = USA_ROOM_DATA_LAYOUT.mirror_schedule_data
@@ -584,6 +612,116 @@ def encode_blocks(blocks: dict[str, object]) -> bytes:
     return encode_bitplane(brown) + encode_bitplane(white)
 
 
+def decode_special_room_data(
+    prg: bytes,
+    layout: RoomDataLayout = USA_ROOM_DATA_LAYOUT,
+) -> dict[str, object]:
+    """Decode fixed tables consumed by room-specific scripts and loaders."""
+    position_start = layout.special_room_item_positions
+    type_start = layout.special_room_item_types
+    seal_start = layout.solomon_seal_positions
+    princess_start = layout.princess_room_hidden_cells
+    room_20_start = layout.room_20_special_bitplane
+    room_30_start = layout.room_30_special_bitplane
+    return {
+        "random_bonus_room": {
+            "positions": [
+                position(value)
+                for value in prg[
+                    position_start : position_start
+                    + SPECIAL_ROOM_RANDOM_POSITION_COUNT
+                ]
+            ],
+            "item_types": list(
+                prg[type_start : type_start + SPECIAL_ROOM_RANDOM_ITEM_COUNT]
+            ),
+        },
+        "solomon_seals": [
+            {"room": room, "position": position(prg[seal_start + index])}
+            for index, room in enumerate(SOLOMON_SEAL_ROOMS)
+        ],
+        "princess_room_hidden_cells": [
+            position(value)
+            for value in prg[
+                princess_start : princess_start + PRINCESS_ROOM_HIDDEN_CELL_COUNT
+            ]
+        ],
+        "room_20_bat_symbols": true_positions(
+            decode_bitplane(prg[room_20_start : room_20_start + BITPLANE_SIZE])
+        ),
+        "room_30_blue_opals": true_positions(
+            decode_bitplane(prg[room_30_start : room_30_start + BITPLANE_SIZE])
+        ),
+    }
+
+
+def encode_special_room_data(value: object) -> dict[str, bytes]:
+    if not isinstance(value, dict):
+        raise RoomDataError("special-room data is missing")
+    bonus = value.get("random_bonus_room")
+    seals = value.get("solomon_seals")
+    princess = value.get("princess_room_hidden_cells")
+    room_20 = value.get("room_20_bat_symbols")
+    room_30 = value.get("room_30_blue_opals")
+    if not isinstance(bonus, dict):
+        raise RoomDataError("random bonus-room data is missing")
+    positions = bonus.get("positions")
+    item_types = bonus.get("item_types")
+    if (
+        not isinstance(positions, list)
+        or len(positions) != SPECIAL_ROOM_RANDOM_POSITION_COUNT
+        or any(not isinstance(position_value, dict) for position_value in positions)
+    ):
+        raise RoomDataError(
+            f"random bonus room must contain {SPECIAL_ROOM_RANDOM_POSITION_COUNT} positions"
+        )
+    if (
+        not isinstance(item_types, list)
+        or len(item_types) != SPECIAL_ROOM_RANDOM_ITEM_COUNT
+        or any(
+            not isinstance(item, int) or not 1 <= item < 0xC0
+            for item in item_types
+        )
+    ):
+        raise RoomDataError(
+            f"random bonus room must contain {SPECIAL_ROOM_RANDOM_ITEM_COUNT} item types"
+        )
+    if not isinstance(seals, list) or len(seals) != len(SOLOMON_SEAL_ROOMS):
+        raise RoomDataError("Solomon Seal table must contain eight room positions")
+    seal_positions: list[dict[str, int]] = []
+    for expected_room, record in zip(SOLOMON_SEAL_ROOMS, seals):
+        if not isinstance(record, dict) or record.get("room") != expected_room:
+            raise RoomDataError("Solomon Seal room identities are not canonical")
+        position_value = record.get("position")
+        if not isinstance(position_value, dict):
+            raise RoomDataError("Solomon Seal position is missing")
+        seal_positions.append(position_value)
+    if (
+        not isinstance(princess, list)
+        or len(princess) != PRINCESS_ROOM_HIDDEN_CELL_COUNT
+        or any(not isinstance(position_value, dict) for position_value in princess)
+    ):
+        raise RoomDataError(
+            f"Princess room must contain {PRINCESS_ROOM_HIDDEN_CELL_COUNT} hidden cells"
+        )
+    if not isinstance(room_20, list) or not isinstance(room_30, list):
+        raise RoomDataError("special room bitplanes are missing")
+    return {
+        "random_bonus_room_positions": bytes(
+            encode_position(position_value) for position_value in positions
+        ),
+        "random_bonus_room_item_types": bytes(item_types),
+        "solomon_seal_positions": bytes(
+            encode_position(position_value) for position_value in seal_positions
+        ),
+        "princess_room_hidden_cells": bytes(
+            encode_position(position_value) for position_value in princess
+        ),
+        "room_20_bat_symbols": encode_bitplane(room_20),
+        "room_30_blue_opals": encode_bitplane(room_30),
+    }
+
+
 def decode_room(
     prg: bytes,
     room_index: int,
@@ -958,7 +1096,28 @@ def roundtrip_rooms(
         raise RoomDataError("RoomMap tile pattern round trip differs")
     checked_bytes += len(encoded_tile_patterns)
 
-    return {"rooms": len(rooms), "format_families": 6, "checked_bytes": checked_bytes}
+    special_data = encode_special_room_data(decode_special_room_data(prg, layout))
+    special_segments = (
+        (
+            "random_bonus_room_positions",
+            layout.special_room_item_positions,
+        ),
+        (
+            "random_bonus_room_item_types",
+            layout.special_room_item_types,
+        ),
+        ("solomon_seal_positions", layout.solomon_seal_positions),
+        ("princess_room_hidden_cells", layout.princess_room_hidden_cells),
+        ("room_20_bat_symbols", layout.room_20_special_bitplane),
+        ("room_30_blue_opals", layout.room_30_special_bitplane),
+    )
+    for name, offset in special_segments:
+        encoded = special_data[name]
+        if encoded != prg[offset : offset + len(encoded)]:
+            raise RoomDataError(f"{name} round trip differs")
+        checked_bytes += len(encoded)
+
+    return {"rooms": len(rooms), "format_families": 7, "checked_bytes": checked_bytes}
 
 
 def group_room_chr_banks(room_banks: Iterable[int]) -> dict[int, list[int]]:

@@ -88,7 +88,7 @@ It does not guess from the filename, region byte, title text, or partial hash.
 
 The existing room codec now serves as the first cross-profile semantic probe.
 It decodes every selected reference using its own known PRG layout, re-encodes
-all six format families, and hashes canonical values after removing only
+all seven format families, and hashes canonical values after removing only
 layout-dependent PRG offsets.
 
 Run the required profile audit with:
@@ -119,14 +119,18 @@ The first USA/Europe comparison establishes the following boundaries:
 | Item streams and room metadata | Identical | Shared items, doors, keys, starts, and mirrors |
 | Demon Mirror schedules | Different | PAL-specific timing values |
 | Enemy streams | Different | Enemy placements match, but spawn lifetimes include PAL-specific timing changes |
+| Special-room tables | Identical | Shared bonus-room positions/types, Seal positions, Princess cells, and room 20/30 bitplanes |
 
 The canonical fingerprints are manifest data rather than a prose-only claim.
 A decoder regression, unnoticed local ROM replacement, incorrect regional
 offset, or semantic profile change therefore fails `revision-room-audit`.
 
-USA and Japan currently match across all six canonical room families. That is
-useful evidence for later Japanese support, but it does not imply that their
-program code, presentation, audio, or graphics are shared.
+USA and Japan match across the original six canonical room families. Their
+new special-room family differs at random bonus-room position index 2: Japan
+stores `$D2` where USA and Europe store `$B2`; the other 115 bytes in the
+family match semantically. This is useful evidence for later Japanese support,
+but it does not imply that their program code, presentation, audio, or graphics
+are shared.
 
 ## Source and binary boundaries
 
