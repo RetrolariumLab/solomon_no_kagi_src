@@ -533,6 +533,46 @@ class StudioDocument:
             raise LevelEditorError(f"room index outside 0..{ROOM_COUNT - 1}")
         return self.document["rooms"][room_index]
 
+    def replace_room(self, room_index: int, source: dict[str, Any]) -> bool:
+        required = {"number", "blocks", "enemies", "items"}
+        if not isinstance(source, dict) or set(source) != required:
+            raise LevelEditorError("room clipboard has an invalid document shape")
+
+        def apply() -> bool:
+            current = self.room(room_index)
+            replacement = copy.deepcopy(source)
+            replacement["number"] = current["number"]
+            if replacement == current:
+                return False
+            self.document["rooms"][room_index] = replacement
+            return True
+
+        return self.mutate(apply)
+
+    def clear_room_contents(self, room_index: int) -> bool:
+        room = self.room(room_index)
+        commands = room["items"]["commands"]
+        if not commands or commands[-1].get("kind") not in {"end", "constellation"}:
+            raise LevelEditorError("room item stream has no terminating command")
+
+        def apply() -> bool:
+            current = self.room(room_index)
+            terminal = copy.deepcopy(current["items"]["commands"][-1])
+            changed = bool(
+                current["blocks"]["brown"]
+                or current["blocks"]["white"]
+                or current["enemies"]["placements"]
+                or len(current["items"]["commands"]) > 1
+            )
+            if not changed:
+                return False
+            current["blocks"] = {"brown": [], "white": []}
+            current["enemies"]["placements"] = []
+            current["items"]["commands"] = [terminal]
+            return True
+
+        return self.mutate(apply)
+
     def mutate(self, callback: Callable[[], bool]) -> bool:
         before = copy.deepcopy(self.document)
         changed = callback()
@@ -2115,6 +2155,7 @@ class LevelStudio(tk.Tk):
         self.selected_type = tk.StringVar(value="")
         self.selected_x = tk.IntVar(value=0)
         self.selected_y = tk.IntVar(value=0)
+        self.room_clipboard: dict[str, Any] | None = None
         self.property_vars = {
             "spawn_lifetime": tk.IntVar(),
             "time_decrease_rate": tk.IntVar(),
@@ -2233,6 +2274,20 @@ class LevelStudio(tk.Tk):
             text="Apply properties",
             command=self.apply_properties,
         ).grid(row=len(rows) + 1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+
+        room_actions = ttk.LabelFrame(side, text="Whole-room actions", padding=7)
+        room_actions.pack(fill="x", pady=(8, 0))
+        for column, (label, command) in enumerate(
+            (
+                ("Copy", self.copy_room),
+                ("Paste", self.paste_room),
+                ("Clear contents", self.clear_room),
+            )
+        ):
+            ttk.Button(room_actions, text=label, command=command).grid(
+                row=0, column=column, sticky="ew", padx=3
+            )
+            room_actions.columnconfigure(column, weight=1)
 
         allocation = ttk.LabelFrame(side, text="ROM allocation", padding=7)
         allocation.pack(fill="x", pady=(8, 0))
@@ -2391,6 +2446,44 @@ class LevelStudio(tk.Tk):
 
     def current_room(self) -> dict[str, Any]:
         return self.model.room(self.room_index.get())
+
+    def copy_room(self) -> None:
+        self.room_clipboard = copy.deepcopy(self.current_room())
+        self.set_status(f"Copied Room {self.room_index.get() + 1:02d}")
+
+    def paste_room(self) -> None:
+        if self.room_clipboard is None:
+            self.set_status("Copy a room before pasting")
+            return
+        try:
+            changed = self.model.replace_room(
+                self.room_index.get(), self.room_clipboard
+            )
+            self.selection = None
+            self.load_properties()
+            self.redraw()
+            self.set_status("Pasted room contents" if changed else "No change")
+        except LevelEditorError as exc:
+            messagebox.showerror("Cannot paste room", str(exc), parent=self)
+
+    def clear_room(self) -> None:
+        if not messagebox.askyesno(
+            "Clear room contents",
+            (
+                "Remove all blocks, placed enemies, and placed items from this room?\n\n"
+                "Room properties, anchors, tileset, and constellation ending are kept."
+            ),
+            parent=self,
+        ):
+            return
+        try:
+            changed = self.model.clear_room_contents(self.room_index.get())
+            self.selection = None
+            self.load_properties()
+            self.redraw()
+            self.set_status("Cleared room contents" if changed else "Room is already clear")
+        except LevelEditorError as exc:
+            messagebox.showerror("Cannot clear room", str(exc), parent=self)
 
     def select_room(self, _event: object = None) -> None:
         self.room_index.set(int(self.room_choice.get().split()[-1]) - 1)

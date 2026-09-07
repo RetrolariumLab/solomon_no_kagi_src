@@ -133,11 +133,12 @@ return the same 65,552-byte container hash for both profiles. Modified builds
 must fit the original allocations; 2.0 does not silently expand or relocate
 the ROM.
 
-Level Studio is a thin interface over this headless model. Undo, record
-inspection, room rendering, native CHR/palette previews, shared-table dialogs,
-allocation pressure, and FCEUX room playtests do not bypass codec validation.
-The runtime smoke gate enters one selected room in each source-built regional
-image through the game's original room loader.
+Level Studio is a thin interface over this headless model. Undo, whole-room
+copy/paste and safe content clearing, record inspection, room rendering, native
+CHR/palette previews, shared-table dialogs, allocation pressure, and FCEUX room
+playtests do not bypass codec validation. The runtime smoke gate enters one
+selected room in each source-built regional image through the game's original
+room loader.
 
 The ignored `references/skchain` checkout is useful as an independent format
 and editor-design reference. Likewise, `references/levelBlocks.csv` provides a

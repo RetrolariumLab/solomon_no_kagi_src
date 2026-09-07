@@ -234,6 +234,47 @@ class DirtyStateTests(unittest.TestCase):
             "Items 14/12 (OVER by 2)",
         )
 
+    def test_room_copy_preserves_target_number_and_is_deep(self) -> None:
+        document = studio_document()
+        second = copy.deepcopy(document["rooms"][0])
+        second["number"] = 2
+        second["blocks"] = {"brown": [], "white": []}
+        document["rooms"].append(second)
+        model = level_studio.StudioDocument(document)
+        clipboard = copy.deepcopy(model.room(0))
+
+        self.assertTrue(model.replace_room(1, clipboard))
+        self.assertEqual(model.room(1)["number"], 2)
+        self.assertEqual(model.room(1)["blocks"], model.room(0)["blocks"])
+        model.room(0)["blocks"]["brown"].clear()
+        self.assertNotEqual(model.room(1)["blocks"], model.room(0)["blocks"])
+        self.assertTrue(model.undo())
+        self.assertEqual(model.room(1)["blocks"], {"brown": [], "white": []})
+
+    def test_clear_room_keeps_properties_anchors_and_terminal(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        before = copy.deepcopy(model.room(0))
+        terminal = copy.deepcopy(before["items"]["commands"][-1])
+
+        self.assertTrue(model.clear_room_contents(0))
+        room = model.room(0)
+        self.assertEqual(room["blocks"], {"brown": [], "white": []})
+        self.assertEqual(room["enemies"]["placements"], [])
+        self.assertEqual(room["items"]["commands"], [terminal])
+        self.assertEqual(room["items"]["metadata"], before["items"]["metadata"])
+        self.assertEqual(
+            room["enemies"]["spawn_lifetime"], before["enemies"]["spawn_lifetime"]
+        )
+        self.assertTrue(model.undo())
+        self.assertEqual(model.room(0), before)
+
+    def test_clear_room_is_a_noop_when_only_terminal_remains(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        self.assertTrue(model.clear_room_contents(0))
+        model.mark_saved()
+        self.assertFalse(model.clear_room_contents(0))
+        self.assertEqual(len(model.undo_stack), 1)
+
 
 class TilePatternEditingTests(unittest.TestCase):
     def test_updates_shared_pattern_as_one_undoable_change(self) -> None:

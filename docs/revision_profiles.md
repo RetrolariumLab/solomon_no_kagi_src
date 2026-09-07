@@ -433,6 +433,17 @@ otherwise makes it look identical to a white block. Existing direct, repeated,
 and constellation item records are all visible; erasing one repeated placement
 shrinks the command and removes it when its last position disappears.
 
+Whole-room actions fill the practical blank-canvas gap identified while
+reviewing `skchain`. `Copy` and `Paste` transfer an independent deep copy of
+the room's geometry, placed records, metadata, anchors, and terminating
+tileset/constellation command while retaining the destination room number.
+`Clear contents` removes only block geometry, placed enemies, and placed item
+records after confirmation. It deliberately keeps enemy lifetime, room
+properties, anchors, and the terminating command, so the result remains a
+well-formed room rather than silently discarding required loader state. Paste
+and clear are single undoable changes and remain subject to the global stream
+capacity checks at save/build time.
+
 `repeat item position` authors the stream's compact repeated-item form without
 exposing its raw opcode. Select an existing direct or repeated item record and
 click additional cells on the room canvas. The first click after selecting a
