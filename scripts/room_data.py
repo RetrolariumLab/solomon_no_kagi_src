@@ -121,6 +121,7 @@ SPECIAL_ROOM_RANDOM_POSITION_COUNT = 32
 SPECIAL_ROOM_RANDOM_ITEM_COUNT = 16
 SOLOMON_SEAL_ROOMS = (9, 13, 17, 19, 21, 29, 46, 47)
 PRINCESS_ROOM_HIDDEN_CELL_COUNT = 12
+SPECIAL_ROOM_DATA_SIZE = 116
 MIRROR_SCHEDULE_TABLE = USA_ROOM_DATA_LAYOUT.mirror_schedule_table
 MIRROR_ENEMY_SET_TABLE = USA_ROOM_DATA_LAYOUT.mirror_enemy_set_table
 MIRROR_SCHEDULE_DATA = USA_ROOM_DATA_LAYOUT.mirror_schedule_data
@@ -722,6 +723,30 @@ def encode_special_room_data(value: object) -> dict[str, bytes]:
     }
 
 
+def special_room_segments(
+    encoded: dict[str, bytes],
+    layout: RoomDataLayout,
+) -> tuple[tuple[str, int, bytes], ...]:
+    segments = (
+        (
+            "random_bonus_room_positions",
+            layout.special_room_item_positions,
+        ),
+        (
+            "random_bonus_room_item_types",
+            layout.special_room_item_types,
+        ),
+        ("solomon_seal_positions", layout.solomon_seal_positions),
+        ("princess_room_hidden_cells", layout.princess_room_hidden_cells),
+        ("room_20_bat_symbols", layout.room_20_special_bitplane),
+        ("room_30_blue_opals", layout.room_30_special_bitplane),
+    )
+    result = tuple((name, offset, encoded[name]) for name, offset in segments)
+    if sum(len(payload) for _name, _offset, payload in result) != SPECIAL_ROOM_DATA_SIZE:
+        raise RoomDataError("special-room encoded size differs from 116 bytes")
+    return result
+
+
 def decode_room(
     prg: bytes,
     room_index: int,
@@ -1097,22 +1122,7 @@ def roundtrip_rooms(
     checked_bytes += len(encoded_tile_patterns)
 
     special_data = encode_special_room_data(decode_special_room_data(prg, layout))
-    special_segments = (
-        (
-            "random_bonus_room_positions",
-            layout.special_room_item_positions,
-        ),
-        (
-            "random_bonus_room_item_types",
-            layout.special_room_item_types,
-        ),
-        ("solomon_seal_positions", layout.solomon_seal_positions),
-        ("princess_room_hidden_cells", layout.princess_room_hidden_cells),
-        ("room_20_bat_symbols", layout.room_20_special_bitplane),
-        ("room_30_blue_opals", layout.room_30_special_bitplane),
-    )
-    for name, offset in special_segments:
-        encoded = special_data[name]
+    for name, offset, encoded in special_room_segments(special_data, layout):
         if encoded != prg[offset : offset + len(encoded)]:
             raise RoomDataError(f"{name} round trip differs")
         checked_bytes += len(encoded)

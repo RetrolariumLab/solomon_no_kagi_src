@@ -220,10 +220,10 @@ opaque PRG asset.
 ## Level editor boundary
 
 The level editor is the first authoring deliverable. Its canonical document
-will expose the 16 by 12 block grid, enemy placements and profile-specific
+exposes the 16 by 12 block grid, enemy placements and profile-specific
 spawn lifetime, item placements and compressed commands, player/key/door and
 mirror positions, Demon Mirror schedules and enemy sets, room CHR-bank choice,
-and tile-pattern metadata.
+tile-pattern metadata, and all 116 bytes of table-backed special-room content.
 
 Import must decode a selected private or source-built profile. Export must be
 deterministic and lossless for an untouched document. Modified documents must
@@ -283,6 +283,7 @@ The current per-profile budgets are:
 | --- | ---: | ---: | --- |
 | Demon Mirror schedules | 128 | 128 | 16 pointers rebuilt |
 | Demon Mirror enemy sets | 42 | 42 | 17 pointers rebuilt |
+| Special-room tables | 116 | 116 | Six fixed profile-addressed regions |
 | Room enemy streams | 726 | 726 | 53 pointers rebuilt |
 | Room block planes | 2,544 | 2,544 | Fixed 48 bytes per room |
 | Room item streams | 1,342 | 1,342 | 53 pointers rebuilt |
@@ -307,6 +308,13 @@ packed coordinates, encoded enemy lifetimes, item-repeat opcodes, and the raw
 key-status/timer byte. Those values are deterministically regenerated from the
 editable representation. This prevents a GUI edit from leaving a stale raw
 field that disagrees with the visible room state.
+
+Level document schema 2 adds the random bonus-room positions and item types,
+the eight room-bound Seal positions, Princess-room hidden cells, and both
+special item bitplanes. Loading a schema-1 workspace first verifies its bound
+base ROM, then imports only these previously absent tables from that profile;
+existing authored room changes are retained. The upgraded document is written
+as schema 2 on its next Save.
 
 ### Visual Level Studio
 

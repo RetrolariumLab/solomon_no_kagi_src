@@ -31,22 +31,26 @@ from room_data import (
     ROOM_TILE_PATTERN_COUNT,
     ROOM_TILE_PATTERN_SIZE,
     ROOM_WIDTH,
+    SPECIAL_ROOM_DATA_SIZE,
     RoomDataError,
     decode_mirror_enemy_sets,
     decode_mirror_schedules,
     decode_room,
     decode_room_tile_patterns,
+    decode_special_room_data,
     encode_blocks,
     encode_enemies,
     encode_items,
     encode_mirror_enemy_set,
     encode_mirror_schedule,
     encode_room_tile_patterns,
+    encode_special_room_data,
     encode_split_pointers,
+    special_room_segments,
 )
 
 
-DOCUMENT_SCHEMA = 1
+DOCUMENT_SCHEMA = 2
 DOCUMENT_GAME = "solomons-key-nes"
 POSITION_FIELDS = ("door", "key", "player_start", "mirror_1", "mirror_2")
 KEY_STATUS_BITS = {"normal": 0x00, "in_block": 0x40, "hidden": 0x80}
@@ -182,6 +186,35 @@ def export_enemy_set(value: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def export_special_room_data(value: dict[str, Any]) -> dict[str, Any]:
+    bonus = value["random_bonus_room"]
+    return {
+        "random_bonus_room": {
+            "positions": [
+                clean_position(position) for position in bonus["positions"]
+            ],
+            "item_types": list(bonus["item_types"]),
+        },
+        "solomon_seals": [
+            {
+                "room": record["room"],
+                "position": clean_position(record["position"]),
+            }
+            for record in value["solomon_seals"]
+        ],
+        "princess_room_hidden_cells": [
+            clean_position(position)
+            for position in value["princess_room_hidden_cells"]
+        ],
+        "room_20_bat_symbols": [
+            clean_position(position) for position in value["room_20_bat_symbols"]
+        ],
+        "room_30_blue_opals": [
+            clean_position(position) for position in value["room_30_blue_opals"]
+        ],
+    }
+
+
 def export_document(parsed: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
     prg = parsed["prg"]
     layout = ROOM_DATA_LAYOUTS[profile["room_layout"]]
@@ -198,6 +231,9 @@ def export_document(parsed: dict[str, Any], profile: dict[str, Any]) -> dict[str
         "mirror_enemy_sets": [
             export_enemy_set(value) for value in decode_mirror_enemy_sets(prg, layout)
         ],
+        "special_room_data": export_special_room_data(
+            decode_special_room_data(prg, layout)
+        ),
         "rooms": [
             export_room(decode_room(prg, index, layout))
             for index in range(ROOM_COUNT)
@@ -357,10 +393,14 @@ def require_indexed_records(
     return records
 
 
-def validate_document_header(document: object) -> dict[str, Any]:
+def validate_document_header(
+    document: object,
+    allow_legacy: bool = False,
+) -> dict[str, Any]:
     if not isinstance(document, dict):
         raise LevelEditorError("level document is not an object")
-    if document.get("schema_version") != DOCUMENT_SCHEMA:
+    schema = document.get("schema_version")
+    if schema != DOCUMENT_SCHEMA and not (allow_legacy and schema == 1):
         raise LevelEditorError("unsupported level document schema")
     if document.get("game") != DOCUMENT_GAME:
         raise LevelEditorError("level document belongs to another game")
@@ -377,6 +417,28 @@ def validate_document_header(document: object) -> dict[str, Any]:
     ):
         raise LevelEditorError("level document has an invalid source ROM hash")
     return document
+
+
+def upgrade_document(
+    document: dict[str, Any],
+    parsed: dict[str, Any],
+    profile: dict[str, Any],
+) -> dict[str, Any]:
+    """Add special-room tables to a schema-1 workspace from its verified ROM."""
+    validate_document_header(document, allow_legacy=True)
+    if document["schema_version"] == DOCUMENT_SCHEMA:
+        return document
+    if document["source_profile"] != profile["id"]:
+        raise LevelEditorError("legacy document profile does not match selected profile")
+    if document["source_rom_sha256"] != profile["rom"]["sha256"]:
+        raise LevelEditorError("legacy document source ROM identity differs")
+    layout = ROOM_DATA_LAYOUTS[profile["room_layout"]]
+    upgraded = copy.deepcopy(document)
+    upgraded["schema_version"] = DOCUMENT_SCHEMA
+    upgraded["special_room_data"] = export_special_room_data(
+        decode_special_room_data(parsed["prg"], layout)
+    )
+    return validate_document_header(upgraded)
 
 
 def pack_records(
@@ -408,6 +470,7 @@ class EncodedLevelDocument:
     tile_patterns: bytes
     mirror_schedules: tuple[bytes, ...]
     mirror_enemy_sets: tuple[bytes, ...]
+    special_room_data: dict[str, bytes]
     room_enemies: tuple[bytes, ...]
     room_blocks: bytes
     room_items: tuple[bytes, ...]
@@ -456,6 +519,9 @@ def encode_level_document(
     encoded_enemy_sets = tuple(
         encode_mirror_enemy_set(enemy_set) for enemy_set in enemy_sets
     )
+    encoded_special_data = encode_special_room_data(
+        document.get("special_room_data")
+    )
     rooms = require_indexed_records(document.get("rooms"), "rooms", ROOM_COUNT)
     encoded_enemies = tuple(
         encode_room_enemies(room.get("enemies")) for room in rooms
@@ -481,6 +547,7 @@ def encode_level_document(
             sum(map(len, encoded_enemy_sets)),
             layout.enemy_pointer_table - schedule_end,
         ),
+        "special_room_data": (SPECIAL_ROOM_DATA_SIZE, SPECIAL_ROOM_DATA_SIZE),
         "room_enemies": (
             sum(map(len, encoded_enemies)),
             layout.block_data - (layout.enemy_pointer_table + pointer_bytes),
@@ -495,6 +562,7 @@ def encode_level_document(
         encoded_patterns,
         encoded_schedules,
         encoded_enemy_sets,
+        encoded_special_data,
         encoded_enemies,
         encoded_blocks,
         encoded_items,
@@ -516,6 +584,10 @@ def build_level_image(
     pattern_start = layout.room_tile_pattern_data
     pattern_end = pattern_start + ROOM_TILE_PATTERN_COUNT * ROOM_TILE_PATTERN_SIZE
     prg[pattern_start:pattern_end] = encoded.tile_patterns
+    for _name, offset, payload in special_room_segments(
+        encoded.special_room_data, layout
+    ):
+        prg[offset : offset + len(payload)] = payload
 
     schedule_end = layout.mirror_schedule_data + (
         MIRROR_SCHEDULE_COUNT * MIRROR_SCHEDULE_SIZE
@@ -537,6 +609,10 @@ def build_level_image(
         layout.enemy_pointer_table,
         encoded.mirror_enemy_sets,
         "Demon Mirror enemy set",
+    )
+    usage["special_room_data"] = (
+        SPECIAL_ROOM_DATA_SIZE,
+        SPECIAL_ROOM_DATA_SIZE,
     )
 
     pointer_bytes = ROOM_COUNT * 2
@@ -569,12 +645,12 @@ def build_level_image(
     return image, usage
 
 
-def load_document(path: Path) -> dict[str, Any]:
+def load_document(path: Path, allow_legacy: bool = False) -> dict[str, Any]:
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise LevelEditorError(f"cannot read level document {path}: {exc}") from exc
-    return validate_document_header(document)
+    return validate_document_header(document, allow_legacy=allow_legacy)
 
 
 def save_document(path: Path, document: dict[str, Any]) -> str:
@@ -617,10 +693,11 @@ def command_export(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
 
 
 def command_build(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
-    document = load_document(args.input)
+    document = load_document(args.input, allow_legacy=True)
     profile = get_profile(profiles, document["source_profile"])
     reference = resolve_reference(profile, args.private_root, args.base_rom)
-    verify_reference(reference, profile)
+    parsed = verify_reference(reference, profile)
+    document = upgrade_document(document, parsed, profile)
     base_image = reference.read_bytes()
     image, usage = build_level_image(document, base_image, profile)
     validate_rebuilt_document(document, image, profile)
@@ -630,10 +707,11 @@ def command_build(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
 
 
 def command_validate(args: argparse.Namespace, profiles: dict[str, Any]) -> None:
-    document = load_document(args.input)
+    document = load_document(args.input, allow_legacy=True)
     profile = get_profile(profiles, document["source_profile"])
     reference = resolve_reference(profile, args.private_root, args.base_rom)
-    verify_reference(reference, profile)
+    parsed = verify_reference(reference, profile)
+    document = upgrade_document(document, parsed, profile)
     image, usage = build_level_image(document, reference.read_bytes(), profile)
     validate_rebuilt_document(document, image, profile)
     print(f"[OK] valid {profile['id']} level document: {usage_text(usage)}")
@@ -661,7 +739,7 @@ def command_roundtrip(args: argparse.Namespace, profiles: dict[str, Any]) -> Non
 
 
 def command_summary(args: argparse.Namespace) -> None:
-    document = load_document(args.input)
+    document = load_document(args.input, allow_legacy=True)
     rooms = require_indexed_records(document.get("rooms"), "rooms", ROOM_COUNT)
     brown = sum(len(room["blocks"]["brown"]) for room in rooms)
     white = sum(len(room["blocks"]["white"]) for room in rooms)

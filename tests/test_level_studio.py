@@ -29,6 +29,26 @@ def blank_tile_patterns() -> list[dict[str, int]]:
     ]
 
 
+def special_room_data() -> dict[str, object]:
+    return {
+        "random_bonus_room": {
+            "positions": [
+                {"x": index % 16, "y": index // 16} for index in range(32)
+            ],
+            "item_types": [0x88] * 16,
+        },
+        "solomon_seals": [
+            {"room": room, "position": {"x": index, "y": 1}}
+            for index, room in enumerate((9, 13, 17, 19, 21, 29, 46, 47))
+        ],
+        "princess_room_hidden_cells": [
+            {"x": index, "y": 2} for index in range(12)
+        ],
+        "room_20_bat_symbols": [],
+        "room_30_blue_opals": [],
+    }
+
+
 def room_metadata() -> dict[str, object]:
     return {
         "mirror_2_schedule": 0,
@@ -47,7 +67,7 @@ def room_metadata() -> dict[str, object]:
 
 def studio_document() -> dict[str, object]:
     return {
-        "schema_version": 1,
+        "schema_version": level_studio.DOCUMENT_SCHEMA,
         "game": "solomons-key-nes",
         "source_profile": "usa",
         "source_rom_sha256": "0" * 64,
@@ -55,6 +75,7 @@ def studio_document() -> dict[str, object]:
         "tile_patterns": blank_tile_patterns(),
         "mirror_schedules": [],
         "mirror_enemy_sets": [],
+        "special_room_data": special_room_data(),
         "rooms": [
             {
                 "number": 1,

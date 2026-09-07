@@ -16,6 +16,7 @@ from tkinter import messagebox, ttk
 from typing import Any, Callable
 
 from level_editor import (
+    DOCUMENT_SCHEMA,
     KEY_STATUS_BITS,
     POSITION_FIELDS,
     ROOM_COUNT,
@@ -31,6 +32,7 @@ from level_editor import (
     load_document,
     room_runtime_diagnostics,
     save_document,
+    upgrade_document,
     validate_rebuilt_document,
 )
 from level_preview import (
@@ -2315,10 +2317,10 @@ def load_studio_document(
 ) -> dict[str, Any]:
     parsed = verify_reference(reference, profile)
     if document_path.is_file():
-        document = load_document(document_path)
+        document = load_document(document_path, allow_legacy=True)
         if document["source_profile"] != profile["id"]:
             raise LevelEditorError("workspace profile does not match selected profile")
-        return document
+        return upgrade_document(document, parsed, profile)
     document = export_document(parsed, profile)
     save_document(document_path, document)
     return document

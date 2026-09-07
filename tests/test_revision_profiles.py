@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import project
 import level_editor
 import revision_profiles
+import room_data
 
 
 def sample_image(seed: int = 0x20) -> bytes:
@@ -523,6 +524,24 @@ def empty_level_fixture() -> tuple[dict[str, object], bytes, dict[str, object]]:
             {"index": index, "enemy_types": [0x50], "loop_offset": 0}
             for index in range(17)
         ],
+        "special_room_data": {
+            "random_bonus_room": {
+                "positions": [
+                    {"x": index % 16, "y": index // 16}
+                    for index in range(32)
+                ],
+                "item_types": [0x88] * 16,
+            },
+            "solomon_seals": [
+                {"room": room, "position": {"x": index, "y": 1}}
+                for index, room in enumerate(room_data.SOLOMON_SEAL_ROOMS)
+            ],
+            "princess_room_hidden_cells": [
+                {"x": index, "y": 2} for index in range(12)
+            ],
+            "room_20_bat_symbols": [],
+            "room_30_blue_opals": [],
+        },
         "rooms": [
             {
                 "number": index + 1,
@@ -707,6 +726,20 @@ class LevelDocumentStructureTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), first)
             self.assertEqual(level_editor.load_document(path), document)
 
+    def test_schema_one_workspace_gains_verified_special_room_data(self) -> None:
+        document, image, profile = empty_level_fixture()
+        rebuilt, _ = level_editor.build_level_image(document, image, profile)
+        legacy = copy.deepcopy(document)
+        legacy["schema_version"] = 1
+        del legacy["special_room_data"]
+        upgraded = level_editor.upgrade_document(
+            legacy, project.parse_ines(rebuilt), profile
+        )
+        self.assertEqual(upgraded["schema_version"], level_editor.DOCUMENT_SCHEMA)
+        self.assertEqual(
+            upgraded["special_room_data"], document["special_room_data"]
+        )
+
 
 class LevelPackingTests(unittest.TestCase):
     def test_pack_records_updates_split_pointer_planes(self) -> None:
@@ -758,6 +791,20 @@ class LevelPackingTests(unittest.TestCase):
         rebuilt, _ = level_editor.build_level_image(document, image, profile)
         decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
         self.assertEqual(decoded["tile_patterns"][8], document["tile_patterns"][8])
+
+    def test_modified_special_room_tables_survive_build_and_decode(self) -> None:
+        document, image, profile = empty_level_fixture()
+        special = document["special_room_data"]
+        special["random_bonus_room"]["positions"][2] = {"x": 12, "y": 9}
+        special["random_bonus_room"]["item_types"][3] = 0x98
+        special["solomon_seals"][0]["position"] = {"x": 8, "y": 8}
+        special["princess_room_hidden_cells"][0] = {"x": 7, "y": 7}
+        special["room_20_bat_symbols"] = [{"x": 3, "y": 4}]
+        special["room_30_blue_opals"] = [{"x": 5, "y": 6}]
+        rebuilt, usage = level_editor.build_level_image(document, image, profile)
+        decoded = level_editor.export_document(project.parse_ines(rebuilt), profile)
+        self.assertEqual(decoded["special_room_data"], special)
+        self.assertEqual(usage["special_room_data"], (116, 116))
 
     def test_modified_combined_block_survives_build_and_decode(self) -> None:
         document, image, profile = empty_level_fixture()

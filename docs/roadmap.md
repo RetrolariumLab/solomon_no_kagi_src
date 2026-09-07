@@ -390,6 +390,9 @@ passes on the reviewed `main` commit.
   opcode fields are independent. Runtime diagnostics enforce the source-proven
   17-slot placed-enemy ceiling and expose free dynamic slots plus intentional
   right-wall wrap risks without rewriting authored geometry.
+  Level document schema 2 also round-trips the random bonus-room pool, Seal
+  positions, Princess hidden cells, and special room 20/30 item bitplanes;
+  legacy workspaces import only these absent tables from their verified ROM;
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;
 - the disassembly author's independently produced level-block spreadsheet
