@@ -701,6 +701,44 @@ renderer does not emulate the pulse sweep unit cycle for cycle, so final sound
 decisions must still be checked in the built ROM. Higher-level composition
 naming remains later Sound Studio depth.
 
+## Graphics authoring document
+
+The first graphics-authoring layer is the deterministic CHR codec in
+`scripts/graphics_editor.py`. It exports all four 8 KiB CNROM banks as 2,048
+indexed NES tiles. Every tile is represented by eight strings of eight values
+from `0` through `3`; the encoder reconstructs the original pair of bitplanes
+instead of retaining an opaque copy of the tile bytes.
+
+Create and inspect an ignored, profile-bound document with:
+
+```console
+make export-graphics PROFILE=usa
+make validate-graphics PROFILE=usa
+make graphics-summary PROFILE=usa
+```
+
+The default path is `content/workspace/<profile>/graphics.json`. Although the
+stock USA and European releases share their 32 KiB CHR payload, their documents
+retain distinct source-ROM identities. A document therefore cannot silently be
+applied to the other regional image. The fixed bank count, bank size, tile
+indices, row dimensions, and two-bit pixel alphabet are validated before a ROM
+can be produced.
+
+Build an edited image or prove the zero-edit contract with:
+
+```console
+make build-graphics PROFILE=usa
+make roundtrip-graphics-profiles
+```
+
+The build replaces only the fixed CHR allocation in a verified private base
+image, then decodes it again and compares the canonical document. Both required
+profiles reproduce their complete 65,552-byte reference images byte for byte.
+Private ROMs, split CHR, editable workspaces, and built content images remain
+ignored. A visual tile studio will sit on this codec; until that interface and
+its headless projection check exist, graphics authoring is deliberately not an
+accepted Source 2.0 release-manifest capability.
+
 ## Remaining Source 2.0 work
 
 The complete European source build closes the regional byte-reconstruction

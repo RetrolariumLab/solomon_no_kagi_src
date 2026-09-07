@@ -15,6 +15,7 @@ LEVEL_STUDIO := scripts/level_studio.py
 AUDIO_EDITOR := scripts/audio_editor.py
 SOUND_STUDIO := scripts/sound_studio.py
 AUDIO_PREVIEW_TOOL := scripts/audio_preview.py
+GRAPHICS_EDITOR := scripts/graphics_editor.py
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -27,6 +28,8 @@ AUDIO_ROM ?= build/content/$(PROFILE)/solomons_key_audio.nes
 AUDIO_EFFECT ?= 1
 AUDIO_PREVIEW_SECONDS ?= 12
 AUDIO_PREVIEW ?= build/content/$(PROFILE)/effect$(AUDIO_EFFECT)-preview.wav
+GRAPHICS_DOCUMENT ?= content/workspace/$(PROFILE)/graphics.json
+GRAPHICS_ROM ?= build/content/$(PROFILE)/solomons_key_graphics.nes
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
@@ -198,6 +201,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	export-audio validate-audio build-audio roundtrip-audio \
 	roundtrip-audio-profiles audio-summary preview-audio sound-studio \
 	check-sound-studio \
+	export-graphics validate-graphics build-graphics roundtrip-graphics \
+	roundtrip-graphics-profiles graphics-summary \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions revision-symbols validate-revision-symbols \
 	validate-revision-symbol-profiles trace-revision-runtime \
@@ -392,6 +397,30 @@ check-sound-studio:
 		--profile usa --check
 	$(PYTHON) "$(SOUND_STUDIO)" --profiles "$(REVISION_MANIFEST)" \
 		--profile europe --check
+
+export-graphics:
+	$(PYTHON) "$(GRAPHICS_EDITOR)" --profiles "$(REVISION_MANIFEST)" export \
+		--profile "$(PROFILE)" --output "$(GRAPHICS_DOCUMENT)"
+
+validate-graphics:
+	$(PYTHON) "$(GRAPHICS_EDITOR)" --profiles "$(REVISION_MANIFEST)" validate \
+		--input "$(GRAPHICS_DOCUMENT)"
+
+build-graphics:
+	$(PYTHON) "$(GRAPHICS_EDITOR)" --profiles "$(REVISION_MANIFEST)" build \
+		--input "$(GRAPHICS_DOCUMENT)" --output "$(GRAPHICS_ROM)"
+
+roundtrip-graphics:
+	$(PYTHON) "$(GRAPHICS_EDITOR)" --profiles "$(REVISION_MANIFEST)" roundtrip \
+		--profile "$(PROFILE)"
+
+roundtrip-graphics-profiles:
+	$(MAKE) roundtrip-graphics PROFILE=usa
+	$(MAKE) roundtrip-graphics PROFILE=europe
+
+graphics-summary:
+	$(PYTHON) "$(GRAPHICS_EDITOR)" --profiles "$(REVISION_MANIFEST)" summary \
+		--input "$(GRAPHICS_DOCUMENT)"
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
 	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \

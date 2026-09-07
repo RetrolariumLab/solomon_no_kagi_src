@@ -237,6 +237,11 @@ make audio-summary PROFILE=usa # summarize effects, envelopes, and stream comman
 make preview-audio PROFILE=usa AUDIO_EFFECT=5 # render an APU-like WAV preview
 make sound-studio PROFILE=usa # edit streams, effects, envelopes, and timing
 make check-sound-studio # headlessly validate both regional studio projections
+make export-graphics PROFILE=usa # create an ignored editable CHR tile document
+make validate-graphics PROFILE=usa # validate and decode a rebuilt graphics image
+make build-graphics PROFILE=usa # build a ROM with the workspace's edited CHR
+make roundtrip-graphics-profiles # prove untouched USA and Europe CHR identity
+make graphics-summary PROFILE=usa # summarize banks, tiles, and pixels
 make build-revision PROFILE=europe # assemble the complete PAL source profile
 make verify-revision-source PROFILE=europe # verify the complete source-owned PAL PRG
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
@@ -365,6 +370,7 @@ scripts/level_studio.py    visual room editor with build and FCEUX play actions
 scripts/audio_editor.py    deterministic audio document import/build pipeline
 scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
 scripts/sound_studio.py    visual audio-bank editor over the shared codec
+scripts/graphics_editor.py deterministic four-bank CHR document codec
 scripts/reconstruction_status.py semantic coverage and provenance audit
 scripts/scheduler_data.py scheduler-table decoder and source-call audit
 scripts/enemy_ai_data.py enemy AI handler-table decoder and audit
