@@ -412,11 +412,14 @@ art. Grid labels stay above that image so overlapping records remain easy to
 select.
 
 Five view toggles independently show the grid, metadata, items, enemies, and
-scripted special-room overlays. Metadata and item switches are applied inside
-the RoomMap renderer, and the enemy switch suppresses native sprite composition,
-so a hidden layer is not merely covered by an editor overlay. `Ctrl+S` and
-`Ctrl+Z` save and undo, `G` toggles the grid outside text controls, and
-`Page Up`, `Page Down`, `Home`, and `End` navigate the 53-room set.
+scripted special-room content. The special layer uses native RoomMap art for
+all eight Solomon's Seals, the room-20 bat-symbol bitplane, and the room-30
+blue-opal bitplane; only script cells without an established initial pattern
+retain dashed editor overlays. Metadata, item, and special switches are applied
+inside the RoomMap renderer, and the enemy switch suppresses native sprite
+composition, so a hidden layer is not merely covered by an editor overlay.
+`Ctrl+S` and `Ctrl+Z` save and undo, `G` toggles the grid outside text controls,
+and `Page Up`, `Page Down`, `Home`, and `End` navigate the 53-room set.
 
 Placed enemies are rendered through the engine's own type configuration,
 33-entry animation pointer table, initial action descriptor, three-byte frame
@@ -425,18 +428,20 @@ bank. The European animation table is independently located at `$D068`
 instead of inheriting the USA `$D0E8` address; both values live in the
 validated revision manifest. A type outside the decoded engine range remains
 visible as an explicit editor marker rather than being assigned invented art.
-The lateral ground-enemy families `$50-$7F` receive the editor's horizontal
-orientation correction; flying families retain the direct native projection.
-The player start uses Dana's Type 00 walking descriptor and faces toward the
-center of the room, matching the room loader's initial action selection rather
-than showing a `P` placeholder.
+The lateral ground-enemy families `$50-$7F` receive the editor's vertical
+orientation correction so their initial frames stand upright; flying families
+retain the direct native projection. The player start uses Dana's Type 00
+standing-idle descriptor `$16/$17` and faces toward the center of the room,
+rather than showing the room loader's transient walking pose or a `P`
+placeholder.
 
-Item flag `$80` keeps the brown-block base and overlays the collectible art at
-half opacity, representing an item embedded in a wall. Flag `$40` keeps the
-empty or constellation background and uses the same translucent overlay for
-an item revealed after creating and breaking a block. Hidden and embedded keys
-follow the corresponding rule. This is a preview-only composition: the stored
-item byte and both original block planes remain unchanged.
+Item flag `$80` draws the brown-block base at reduced opacity and overlays the
+collectible more strongly, keeping both the wall and the embedded object
+legible. Flag `$40` keeps the empty or constellation background and uses a
+half-opacity overlay for an item revealed after creating and breaking a block.
+Hidden and embedded keys follow the corresponding rule. This is a preview-only
+composition: the stored item byte and both original block planes remain
+unchanged.
 
 The toolbar can place brown, white, or combined brown-and-white blocks, erase a
 complete cell, move the player start, key, door, and either Demon Mirror, and

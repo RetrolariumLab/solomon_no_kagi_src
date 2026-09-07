@@ -20,9 +20,12 @@ ROOM_MAP_EMPTY = 0x10
 ROOM_MAP_BROWN_BLOCK = 0x90
 ROOM_MAP_WHITE_BLOCK = 0xF8
 ROOM_MAP_CLOSED_DOOR = 0x02
+ROOM_MAP_BAT_SYMBOL = 0x04
 ROOM_MAP_DEMON_MIRROR = 0x05
 ROOM_MAP_KEY = 0x06
 ROOM_MAP_DEFERRED_DOOR = 0x35
+ROOM_MAP_SOLOMON_SEAL = 0x20
+ROOM_MAP_BLUE_OPAL = 0x27
 ROOM_MAP_DECORATION_BIT = 0x40
 ROOM_MAP_SOLID_BIT = 0x80
 ROOM_MAP_IMMUTABLE_MINIMUM = 0xF8
@@ -77,9 +80,12 @@ ROOM_SPRITE_PALETTE = (
 )
 ENEMY_TYPE_CONFIGURATION_COUNT = 27
 OBJECT_ANIMATION_POINTER_COUNT = 33
-DANA_WALK_ACTION_RIGHT = 0x14
-DANA_WALK_ACTION_LEFT = 0x15
-TRANSLUCENT_OPACITY = 128
+DANA_IDLE_ACTION_RIGHT = 0x16
+DANA_IDLE_ACTION_LEFT = 0x17
+HIDDEN_OBJECT_OPACITY = 128
+EMBEDDED_BLOCK_OPACITY = 80
+EMBEDDED_OBJECT_OPACITY = 192
+COMBINED_BLOCK_OPACITY = 128
 GROUND_ENEMY_TYPE_MINIMUM = 0x50
 GROUND_ENEMY_TYPE_LIMIT = 0x80
 
@@ -165,6 +171,7 @@ class PreviewLayers:
     metadata: bool = True
     items: bool = True
     enemies: bool = True
+    special: bool = True
 
 
 def manifest_address(value: object, field: str) -> int:
@@ -284,12 +291,12 @@ class EnemySpriteDecoder:
         return self.action_frame(enemy_type >> 2, action, enemy_type & 3)
 
     def dana_frame(self, faces_left: bool) -> SpriteFrame | None:
-        action = DANA_WALK_ACTION_LEFT if faces_left else DANA_WALK_ACTION_RIGHT
+        action = DANA_IDLE_ACTION_LEFT if faces_left else DANA_IDLE_ACTION_RIGHT
         return self.action_frame(0, action)
 
 
-def mirror_ground_enemy(enemy_type: int) -> bool:
-    """Correct the editor projection for the lateral ground-enemy families."""
+def flip_ground_enemy_vertical(enemy_type: int) -> bool:
+    """Turn the lateral ground-enemy families upright in editor previews."""
     return GROUND_ENEMY_TYPE_MINIMUM <= enemy_type < GROUND_ENEMY_TYPE_LIMIT
 
 
@@ -461,6 +468,39 @@ def constellation_pattern(
     )
 
 
+def special_room_pattern_placements(
+    document: dict[str, Any], room_index: int
+) -> tuple[tuple[dict[str, int], int], ...]:
+    """Return special-script cells that have a native RoomMap pattern."""
+    special = document.get("special_room_data")
+    if not isinstance(special, dict):
+        return ()
+    room_number = room_index + 1
+    placements: list[tuple[dict[str, int], int]] = []
+    seals = special.get("solomon_seals", ())
+    if isinstance(seals, list):
+        for record in seals:
+            if (
+                isinstance(record, dict)
+                and record.get("room") == room_number
+                and visible(record.get("position"))
+            ):
+                placements.append((record["position"], ROOM_MAP_SOLOMON_SEAL))
+    family: object = ()
+    pattern_index: int | None = None
+    if room_number == 20:
+        family = special.get("room_20_bat_symbols", ())
+        pattern_index = ROOM_MAP_BAT_SYMBOL
+    elif room_number == 30:
+        family = special.get("room_30_blue_opals", ())
+        pattern_index = ROOM_MAP_BLUE_OPAL
+    if pattern_index is not None and isinstance(family, list):
+        placements.extend(
+            (position, pattern_index) for position in family if visible(position)
+        )
+    return tuple(placements)
+
+
 class LevelPreviewRenderer:
     """Decode CHR once and render any authored room into a 256x192 RGB frame."""
 
@@ -549,7 +589,7 @@ class LevelPreviewRenderer:
             0,
             bank,
             frame,
-            mirror_x=mirror_ground_enemy(enemy_type),
+            mirror_y=flip_ground_enemy_vertical(enemy_type),
         )
         return RoomPreview(
             METATILE_SIZE, METATILE_SIZE, bytes(rgb), bank, palette, (0,)
@@ -575,6 +615,20 @@ class LevelPreviewRenderer:
             for position in room.get("blocks", {}).get("brown", ())
             if position in room.get("blocks", {}).get("white", ())
         }
+        embedded_values: dict[tuple[int, int], int] = {}
+        metadata = room.get("items", {}).get("metadata", {})
+        if layers.metadata and metadata.get("key_status") == "in_block":
+            key = metadata.get("key")
+            if visible(key):
+                embedded_values[(key["x"], key["y"])] = (
+                    ROOM_MAP_SOLID_BIT | ROOM_MAP_KEY
+                )
+        if layers.items:
+            for item_type, position in item_placements(
+                room.get("items", {}).get("commands", ())
+            ):
+                if item_type & ROOM_MAP_SOLID_BIT:
+                    embedded_values[(position["x"], position["y"])] = item_type
 
         for cell_y, row in enumerate(values):
             for cell_x, value in enumerate(row):
@@ -583,17 +637,20 @@ class LevelPreviewRenderer:
                     (cell_x, cell_y) in combined_blocks
                     and value == ROOM_MAP_WHITE_BLOCK
                 )
-                if value == ROOM_MAP_EMPTY or translucent_block:
+                embedded_block = (
+                    embedded_values.get((cell_x, cell_y)) == value
+                )
+                if value == ROOM_MAP_EMPTY or translucent_block or embedded_block:
                     pattern = constellation_pattern(constellation, cell_x, cell_y)
                 if pattern is None:
                     pattern_index = (
                         ROOM_MAP_EMPTY
-                        if translucent_block
+                        if translucent_block or embedded_block
                         else classify_pattern(value)
                     )
                     pattern = document_pattern(self.document, pattern_index)
                 self._draw_metatile(rgb, width, cell_x, cell_y, bank, palette, pattern)
-                if translucent_block:
+                if translucent_block or embedded_block:
                     self._draw_metatile(
                         rgb,
                         width,
@@ -601,10 +658,30 @@ class LevelPreviewRenderer:
                         cell_y,
                         bank,
                         palette,
-                        document_pattern(self.document, 3),
-                        opacity=TRANSLUCENT_OPACITY,
+                        document_pattern(
+                            self.document, 0 if embedded_block else 3
+                        ),
+                        opacity=(
+                            EMBEDDED_BLOCK_OPACITY
+                            if embedded_block
+                            else COMBINED_BLOCK_OPACITY
+                        ),
                         transparent_zero=True,
                     )
+
+        if layers.special:
+            for position, pattern_index in special_room_pattern_placements(
+                self.document, room_index
+            ):
+                self._draw_metatile(
+                    rgb,
+                    width,
+                    position["x"],
+                    position["y"],
+                    bank,
+                    palette,
+                    document_pattern(self.document, pattern_index),
+                )
 
         if layers.items:
             patterns = self.document.get("tile_patterns", ())
@@ -625,11 +702,14 @@ class LevelPreviewRenderer:
                     bank,
                     palette,
                     document_pattern(self.document, pattern_index),
-                    opacity=TRANSLUCENT_OPACITY,
+                    opacity=(
+                        EMBEDDED_OBJECT_OPACITY
+                        if item_type & ROOM_MAP_SOLID_BIT
+                        else HIDDEN_OBJECT_OPACITY
+                    ),
                     transparent_zero=True,
                 )
 
-        metadata = room.get("items", {}).get("metadata", {})
         if layers.metadata and metadata.get("key_status") in {"hidden", "in_block"}:
             key = metadata.get("key")
             expected = KEY_CLASS_BITS[metadata["key_status"]] | ROOM_MAP_KEY
@@ -642,7 +722,11 @@ class LevelPreviewRenderer:
                     bank,
                     palette,
                     document_pattern(self.document, ROOM_MAP_KEY),
-                    opacity=TRANSLUCENT_OPACITY,
+                    opacity=(
+                        EMBEDDED_OBJECT_OPACITY
+                        if metadata["key_status"] == "in_block"
+                        else HIDDEN_OBJECT_OPACITY
+                    ),
                     transparent_zero=True,
                 )
 
@@ -678,7 +762,7 @@ class LevelPreviewRenderer:
                     position["y"],
                     bank,
                     frame,
-                    mirror_x=mirror_ground_enemy(enemy_type),
+                    mirror_y=flip_ground_enemy_vertical(enemy_type),
                 )
                 rendered_enemy_indices.append(index)
         return RoomPreview(
@@ -738,6 +822,7 @@ class LevelPreviewRenderer:
         bank: int,
         frame: SpriteFrame,
         mirror_x: bool = False,
+        mirror_y: bool = False,
     ) -> None:
         attributes = sprite_attributes(frame.flags)
         for half, tile_byte in enumerate((frame.left_tile, frame.right_tile)):
@@ -760,7 +845,10 @@ class LevelPreviewRenderer:
                     if mirror_x:
                         relative_x = METATILE_SIZE - 1 - relative_x
                     x = cell_x * METATILE_SIZE + relative_x
-                    y = cell_y * METATILE_SIZE + output_y
+                    relative_y = (
+                        METATILE_SIZE - 1 - output_y if mirror_y else output_y
+                    )
+                    y = cell_y * METATILE_SIZE + relative_y
                     color = NES_RGB[
                         ROOM_SPRITE_PALETTE[palette_offset + pixel] & 0x3F
                     ]

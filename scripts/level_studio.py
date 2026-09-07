@@ -3217,6 +3217,7 @@ class LevelStudio(tk.Tk):
                 metadata=self.show_metadata.get(),
                 items=self.show_items.get(),
                 enemies=self.show_enemies.get(),
+                special=self.show_special.get(),
             ),
         )
         base = tk.PhotoImage(data=preview.ppm(), format="PPM")
@@ -3271,6 +3272,8 @@ class LevelStudio(tk.Tk):
             for overlay in special_room_overlays(
                 self.model.document["special_room_data"], self.room_index.get() + 1
             ):
+                if overlay.label in {"S", "B", "O"}:
+                    continue
                 if not 0 <= overlay.y < ROOM_HEIGHT:
                     continue
                 self.canvas.create_rectangle(
