@@ -699,16 +699,19 @@ naming remains later Sound Studio depth.
 The complete European source build closes the regional byte-reconstruction
 milestone: semantic symbols align the profiles, every PRG difference is
 classified and source-owned, and both images reproduce without post-link
-patching. The remaining release work is now evidence and authoring depth:
+patching. The revision-three Source 2.0 manifest now consolidates the regional
+room, audio, scheduler, PPU, title, object, and handler contracts, and the
+aggregate static gate passes. Remaining release work is now bounded authoring
+review and publication:
 
-1. consolidate the completed regional room, audio, scheduler, PPU, title,
-   object, and handler contracts into the Source 2.0 release manifest;
-2. add higher-level composition naming and final emulator audition to Sound
+1. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
-3. expand the focused PAL baseline and existing USA matrix when a remaining
-   semantic claim needs new runtime evidence;
-4. create the aggregate Source Reconstruction 2.0 release gate and tag audit;
-5. keep Japanese reconstruction as a later, explicitly scoped profile.
+2. expand the focused PAL baseline and existing USA matrix only when a
+   remaining semantic claim needs new runtime evidence;
+3. review the declared scope and exclusions, change the manifest from
+   `development` to `tag-ready`, and run `make source-2-check` on the final
+   clean release commit;
+4. keep Japanese reconstruction as a later, explicitly scoped profile.
 
 Regional work must not weaken the byte-identical USA build or mutate the
 Source 1.0 manifest retroactively.

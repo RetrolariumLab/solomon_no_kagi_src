@@ -422,9 +422,17 @@ passes on the reviewed `main` commit.
   also exposed the PAL bank's full 64-byte duration index space. A four-voice
   piano roll and a complete call-site-derived effect catalog make routing and
   primary/secondary channel use visible without inventing soundtrack titles;
+- the revision-three `config/source_reconstruction_2_0.json` manifest binds
+  the accepted USA/PAL source, artifact, runtime, structured-data, and editor
+  evidence. `make source-2-static-check` passes the additive matrix, while
+  `make source-2-regression-check` begins with the complete published 1.0
+  technical gate;
 - explicit PAL timing and audio comparisons against the fixed USA baseline;
+- finish source-built audio audition and decide which additional structured
+  formats merit complete authoring studios before the final 2.0 scope review;
 - expand the existing deterministic movement, casting, room-completion,
-  scheduler-sensitive timing, and audio scenarios to rarer mechanics;
+  scheduler-sensitive timing, and audio scenarios only when new claims need
+  rarer-mechanic evidence;
 - deepen historical-intent research where 1.0 deliberately retains neutral,
   behaviorally correct names.
 

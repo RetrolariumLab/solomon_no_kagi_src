@@ -254,6 +254,10 @@ make validate-revision-symbols PROFILE=europe # export and verify PAL debugger l
 make validate-revision-symbol-profiles # verify USA and Europe debugger contracts
 make trace-revision-runtime PROFILE=europe # freshly capture and validate PAL traces
 make trace-revision-runtimes # capture the complete USA and focused PAL matrices
+make source-2-release-audit # validate the additive 2.0 manifest and evidence bindings
+make source-2-static-check # check both profiles, codecs, studios, and symbols
+make source-2-regression-check # run published 1.0, then all technical 2.0 evidence
+make source-2-check # final clean-tree/tag-ready Source 2.0 release gate
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs
