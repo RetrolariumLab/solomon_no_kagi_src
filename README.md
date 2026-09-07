@@ -238,6 +238,7 @@ make verify-revision-source PROFILE=europe # verify the complete source-owned PA
 make verify-revision-sources # verify source-owned PRG bytes for USA and Europe
 make verify-revision PROFILE=europe # verify one complete regional ROM image
 make verify-revisions # verify complete USA and Europe source-built ROMs
+make item-handler-profile-audits # verify native USA/PAL item dispatch tables
 make ppu-update-profile-audits # round-trip localized USA/PAL PPU streams
 make object-animation-profile-audits # round-trip all USA/PAL animation tables
 make object-motion-profile-audits # round-trip all USA/PAL motion tables

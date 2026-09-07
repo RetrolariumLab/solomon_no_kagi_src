@@ -44,6 +44,7 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `scheduler-audit` | check stacks, static/reviewed dynamic entries, and call counts |
 | `enemy-ai-audit` | check all 28 inline enemy-AI handler pointers |
 | `item-handler-audit` | check all 29 item selectors, pointers, names, and table hash |
+| `item-handler-profile-audits` | validate all semantic item selectors against native USA/PAL handler addresses |
 | `ppu-update-audit` | check 18 static stream pointers, coverage, hashes, and byte round trips |
 | `ppu-update-profile-audits` | independently round-trip all USA/PAL static PPU programs and localized payloads |
 | `object-animation-audit` | round-trip 2,283 bytes of pointers, descriptors, selectors, and frames |

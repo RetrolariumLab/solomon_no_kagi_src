@@ -18,6 +18,12 @@ except ImportError:
     from room_data import RoomDataError, extract_prg
 
 
+ITEM_HANDLER_MANIFESTS = {
+    "usa": "item_handlers.json",
+    "europe": "item_handlers_europe.json",
+}
+
+
 def load_manifest(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict) or value.get("schema_version") != 1:
@@ -32,6 +38,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
             raise RoomDataError(f"item handler {index} needs a name")
         parse_number(handler.get("address"), f"handler {index} address")
     return value
+
+
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"item handler profile mismatch: expected={profile}, manifest={actual}"
+        )
 
 
 def collect_report(prg: bytes, manifest: dict[str, Any]) -> dict[str, object]:
@@ -88,11 +102,17 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(ITEM_HANDLER_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "item_handlers.json"
+    manifest_path = args.manifest or (
+        root / "config" / ITEM_HANDLER_MANIFESTS[args.profile]
+    )
     try:
         manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
         report = collect_report(extract_prg(args.image.read_bytes()), manifest)
         if args.command == "report":
             print(json.dumps(report, indent=2, sort_keys=True))

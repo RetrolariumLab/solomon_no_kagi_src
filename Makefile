@@ -170,7 +170,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	reconstruction-status reconstruction-audit \
 	prg-layout-report prg-layout-audit format-coverage-audit \
 	scheduler-report scheduler-audit enemy-ai-report enemy-ai-audit \
-	item-handler-report item-handler-audit \
+	item-handler-report item-handler-audit item-handler-profile-audit \
+	item-handler-profile-audits \
 	enemy-pointer-report enemy-pointer-audit ppu-update-report ppu-update-audit \
 	ppu-update-profile-audit ppu-update-profile-audits \
 	object-animation-report object-animation-audit object-animation-profile-audit \
@@ -560,6 +561,14 @@ item-handler-report: $(ROM)
 
 item-handler-audit: $(ROM)
 	$(PYTHON) scripts/item_handler_data.py audit --image "$(ROM)"
+
+item-handler-profile-audit: build-revision
+	$(PYTHON) scripts/item_handler_data.py audit --image "$(REVISION_ROM)" \
+		--profile "$(PROFILE)"
+
+item-handler-profile-audits:
+	$(MAKE) item-handler-profile-audit PROFILE=usa
+	$(MAKE) item-handler-profile-audit PROFILE=europe
 
 enemy-pointer-report: $(ROM)
 	$(PYTHON) scripts/enemy_pointer_data.py report --image "$(ROM)"

@@ -24,8 +24,9 @@ own state transitions. The exact meaning of `$0087` remains unassigned.
 
 ## Handler appendix
 
-`ItemInteractionHandlerTable` at `$C4D3-$C50C` is an inline appendix consumed
-by `JumpWithParams`. Carry is deliberately clear before `SBC #$05`, so map
+`ItemInteractionHandlerTable` at USA `$C4D3-$C50C` / Europe `$C453-$C48C` is
+an inline appendix consumed by `JumpWithParams`. Carry is deliberately clear
+before `SBC #$05`, so map
 tiles `$06-$24` become selectors `$00-$1E`; the appendix itself ends at
 selector `$1C`. If malformed map data exposes `$23/$24`, their words are read
 from the first four bytes of the adjacent red-bottle routine and decode as
@@ -67,6 +68,12 @@ routines for item types that intentionally share behavior.
 `make item-handler-audit` independently decodes the built ROM and checks every
 selector, semantic name, address, and the complete table SHA-1 against
 `config/item_handlers.json`.
+
+The European item block moves `$80` bytes earlier, including all 20 unique
+handler targets. `config/item_handlers_europe.json` records those native PAL
+addresses and its independently hashed 58-byte table while preserving the
+same selector, map-tile, and semantic-name sequence. Run
+`make item-handler-profile-audits` to validate both source-built layouts.
 
 Tile `$21` is shared by the Page of Time and Page of Space rooms. Before
 gameplay starts, the loader restores `CurrentRoomIndex` to the source-room

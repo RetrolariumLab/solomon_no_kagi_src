@@ -220,6 +220,12 @@ same hashes for 402 title bytes and 68 demo bytes, while
 `make title-data-profile-audits` proves those values by decoding each regional
 source build at its own addresses.
 
+The complete 29-entry item-dispatch appendix and all 20 unique handler targets
+move `$80` bytes earlier in PAL. The profile manifests preserve one common
+selector-to-map-tile vocabulary while recording distinct physical targets and
+table hashes. `make item-handler-profile-audits` validates every semantic
+entry against both source-built ROMs.
+
 Run the combined source ownership gate with:
 
 ```console
@@ -682,7 +688,7 @@ patching. The remaining release work is now evidence and authoring depth:
 
 1. make the remaining structured-data audits profile-aware where PAL differs
    (object motion, object animation, static PPU streams, and title/demo data
-   are complete);
+   and item-handler dispatch are complete);
 2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
 3. expand the focused PAL baseline and existing USA matrix when a remaining
