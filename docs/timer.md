@@ -1,6 +1,6 @@
 # Countdown timer
 
-`src/game/timer.asm` owns CPU `$A15F-$A225`. The upstream Bisqwit map names
+`src/game/timer/runtime.asm` owns CPU `$A15F-$A225`. The upstream Bisqwit map names
 the public entries at `$A15F` and `$A183` as `DecrementTimer` and
 `DecrementTimerByOne`; the instruction flow and RAM accesses independently
 confirm countdown arithmetic over the four decimal timer digits.
@@ -38,7 +38,7 @@ proved, so the source keeps the conservative `PreTimerWarningTableBytes` name.
 
 ## Display update builder
 
-`src/game/timer_display.asm` owns `$A238-$A273`. It constructs a small update
+`src/game/timer/display.asm` owns `$A238-$A273`. It constructs a small update
 program in RAM at `$03E6`: a copied three-byte `JSR $4469` prefix, the four
 timer digits in most-significant-first order, and two zero terminators. Leading
 zero digits are replaced with blank tile `$24`. The OR of all four digits is

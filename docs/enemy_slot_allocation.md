@@ -1,6 +1,6 @@
 # Enemy slot allocation
 
-`src/game/enemy_slot_allocation.asm` owns CPU `$B42A-$B445` and provides
+`src/game/enemies/slot_allocation.asm` owns CPU `$B42A-$B445` and provides
 `FindFreeEnemySlotIndex`. Bisqwit's map independently assigns the same name to
 the entry point.
 

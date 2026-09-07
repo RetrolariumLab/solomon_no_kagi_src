@@ -1,6 +1,6 @@
 # Enemy movement prepass
 
-`src/game/enemy_movement.asm` owns CPU `$A274-$A2DB`. Bisqwit's map identifies
+`src/game/enemies/movement.asm` owns CPU `$A274-$A2DB`. Bisqwit's map identifies
 the entry as `UpdateEnemiesMovement`; the routine is called once near the
 start of `MainGameplayThread`.
 

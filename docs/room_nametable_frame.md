@@ -25,4 +25,4 @@ increments as needed, and tail-calls `EndDirectPpuTransfer`.
 
 Its four source records and repeated writers are separately owned by
 `src/data/repeated_ppu_patterns.asm` and
-`src/graphics/ppu_data_writers.asm`.
+`src/graphics/ppu/data_writers.asm`.

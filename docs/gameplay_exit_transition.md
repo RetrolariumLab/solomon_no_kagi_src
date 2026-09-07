@@ -1,6 +1,6 @@
 # Gameplay-exit transition
 
-`src/game/gameplay_exit_transition.asm` owns CPU `$C78A-$C980`. Four scheduler
+`src/game/flow/exit_transition.asm` owns CPU `$C78A-$C980`. Four scheduler
 entries enter different stages of the same cooperative exit pipeline:
 
 | Code | Entry | Role |

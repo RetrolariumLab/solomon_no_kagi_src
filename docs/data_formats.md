@@ -74,7 +74,7 @@ cells in reverse order, rotating each byte right. This produces the same
 top-to-bottom, MSB-first logical ordering while filling RoomMap indices
 `$10-$CF`; indices `$00-$0F` and `$D0-$DF` are sentinel rows.
 
-All 2,544 encoded bytes are source-owned in `src/data/room_blocks.asm` and can
+All 2,544 encoded bytes are source-owned in `src/data/rooms/blocks.asm` and can
 be regenerated from a reviewed ROM with `scripts/room_data.py --source-blocks`.
 The existing `make room-data-audit` check independently decodes and re-encodes
 every bitplane.
@@ -92,7 +92,7 @@ to pixel coordinates before `InitializeEnemy` and `ConfigureEnemyType` fill
 the parallel object and AI records.
 
 The complete pointer tables and all streams through `$E02B` are symbolic ca65
-source in `src/data/room_enemies.asm`. Its 53 stream labels replace raw ROM
+source in `src/data/rooms/enemies.asm`. Its 53 stream labels replace raw ROM
 addresses, while the existing round-trip codec remains the independent binary
 contract.
 
@@ -139,7 +139,7 @@ the original item command grouping so that naming uncertainty or RLE expansion
 does not corrupt the lossless structural result.
 
 The 53-entry split pointer table at `$EA1C-$EA85` and every metadata/command
-stream at `$EA86-$EFC3` are source-owned in `src/data/room_items.asm`. Named
+stream at `$EA86-$EFC3` are source-owned in `src/data/rooms/items.asm`. Named
 macros preserve header, individual-item, repeated-item, constellation, and
 terminator boundaries. The reviewed source can be regenerated with
 `scripts/room_data.py --source-items`.

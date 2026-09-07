@@ -29,7 +29,7 @@ The first 24 bytes are the brown/breakable bitplane; the second 24 are the
 white/solid bitplane.
 
 `RoomBlockData` and all 53 records are source-owned in the 485-line
-`src/data/room_blocks.asm`. Each room is shown as three eight-byte rows per
+`src/data/rooms/blocks.asm`. Each room is shown as three eight-byte rows per
 brown/breakable plane followed by three per white/solid plane; the file can be
 reproduced with `scripts/room_data.py --source-blocks`.
 

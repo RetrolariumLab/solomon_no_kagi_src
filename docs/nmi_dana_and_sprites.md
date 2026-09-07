@@ -1,6 +1,6 @@
 # NMI Dana control and sprite composition
 
-`src/game/nmi_dana_and_sprites.asm` owns `$83C2-$863B`. The NMI gameplay path
+`src/game/nmi/dana_and_sprites.asm` owns `$83C2-$863B`. The NMI gameplay path
 uses its first half to update Dana's action from cached input and its second
 half to compose every two-sprite object into OAM.
 

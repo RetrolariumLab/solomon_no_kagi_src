@@ -1,6 +1,6 @@
 # NMI gameplay interactions
 
-`src/game/nmi_gameplay_interactions.asm` owns `$80FF-$837C`, immediately after
+`src/game/nmi/gameplay_interactions.asm` owns `$80FF-$837C`, immediately after
 the core NMI handler. The range contains three related services invoked by the
 active-gameplay NMI path: enemy overlap scans, fireball-to-map collision, and
 Dana action request setup.
@@ -35,7 +35,7 @@ RoomMap sign-bit tests and returns their packed low-nibble collision mask.
 Before dispatch, the routine temporarily makes `EnemyAiPointer` address
 `FireballActive` and `EnemyObjectPointer` address `FireballObject`. The
 16-entry split handler table targets the path-mask handlers reconstructed in
-`src/game/pathfinding_enemy_ai.asm`. The pointer setup, mask construction, and
+`src/game/enemies/ai_pathfinding.asm`. The pointer setup, mask construction, and
 all table destinations are statically confirmed and assemble byte-for-byte.
 This synthetic AI-record view also proves `$0430-$0431` as the current and
 alternate four-way path directions at AI offsets 6 and 7.

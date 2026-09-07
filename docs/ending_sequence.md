@@ -26,6 +26,6 @@ commands. Initial and later messages both wait for the high byte of the active
 PPU stream pointer to clear before overwriting the shared buffer.
 
 The handler calls source-owned helpers and consumes source-owned tables in
-`src/game/ending_and_special_room_support.asm`. That adjacent module also
+`src/game/ending/special_room_support.asm`. That adjacent module also
 classifies the complete tail through `$C0FF`, so the ending no longer depends
 on numeric aliases into the preservation listing.

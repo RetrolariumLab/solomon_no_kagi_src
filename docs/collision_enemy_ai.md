@@ -1,6 +1,6 @@
 # Collision-driven enemy AI
 
-`src/game/collision_enemy_ai.asm` owns CPU `$AD37-$AF5B`. It contains the
+`src/game/enemies/ai_collision.asm` owns CPU `$AD37-$AF5B`. It contains the
 shared target for type groups `$1C-$37` and the shared target for `$5C-$63`,
 with both action tables expressed as inline `.addr` data.
 

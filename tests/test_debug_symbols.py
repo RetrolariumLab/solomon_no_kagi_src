@@ -20,11 +20,11 @@ def write_json(path: Path, document: dict[str, object]) -> None:
 class RecordTests(unittest.TestCase):
     def test_parses_quoted_debug_fields(self) -> None:
         kind, fields = debug_symbols.parse_record(
-            'file\tid=3,name="src/game/main_thread.asm",size=10'
+            'file\tid=3,name="src/game/flow/main_thread.asm",size=10'
         )
         self.assertEqual(kind, "file")
         self.assertEqual(fields["id"], "3")
-        self.assertEqual(fields["name"], "src/game/main_thread.asm")
+        self.assertEqual(fields["name"], "src/game/flow/main_thread.asm")
 
     def test_loads_code_labels(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

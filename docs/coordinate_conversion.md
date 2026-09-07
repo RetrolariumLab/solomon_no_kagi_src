@@ -1,6 +1,6 @@
 # Room-map coordinate conversion
 
-`src/game/coordinate_conversion.asm` owns CPU `$918A-$91B8`. Bisqwit's map
+`src/game/objects/coordinate_conversion.asm` owns CPU `$918A-$91B8`. Bisqwit's map
 independently names both entry points. Together they define the bridge between
 pixel coordinates and the packed byte used to index the 16-column `RoomMap`.
 

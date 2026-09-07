@@ -1,6 +1,6 @@
 # Attract and demo flow
 
-`src/game/attract_demo_flow.asm` owns CPU `$CA6E-$CB6E`. It connects the
+`src/game/flow/attract_demo.asm` owns CPU `$CA6E-$CB6E`. It connects the
 gameplay-exit pipeline to the post-game summary, title wait, and automated
 gameplay demonstration through three scheduler entries.
 

@@ -180,7 +180,7 @@ def validate_debug_artifacts(
         "src/main.asm",
         "src/memory/ram.inc",
         "src/system/scheduler.asm",
-        "src/game/main_thread.asm",
+        "src/game/flow/main_thread.asm",
     }
     missing_sources = sorted(required_sources - normalized_files)
     if missing_sources:

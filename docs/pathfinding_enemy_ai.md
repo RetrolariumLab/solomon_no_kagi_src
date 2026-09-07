@@ -1,6 +1,6 @@
 # Pathfinding enemy AI
 
-`src/game/pathfinding_enemy_ai.asm` owns CPU `$A998-$AD36`. The first 209
+`src/game/enemies/ai_pathfinding.asm` owns CPU `$A998-$AD36`. The first 209
 bytes complete the three still-external actions of the `$08-$0B` handler
 table: phase-to-action promotion, horizontal orientation, and vertical
 orientation. `CheckEnemyAiDeltaRange` then checks both signed AI motion deltas

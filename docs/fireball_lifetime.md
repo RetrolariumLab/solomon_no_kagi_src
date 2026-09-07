@@ -1,6 +1,6 @@
 # Fireball lifetime service
 
-`src/game/fireball_lifetime.asm` owns CPU `$A3A4-$A3D6`. Bisqwit's map labels
+`src/game/items/fireball_lifetime.asm` owns CPU `$A3A4-$A3D6`. Bisqwit's map labels
 the entry `MaybeRunFireballAI_1`; the narrower reconstructed name
 `UpdateFireballLifetime` reflects what this routine proves directly.
 

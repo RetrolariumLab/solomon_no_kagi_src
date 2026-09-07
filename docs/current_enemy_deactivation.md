@@ -1,6 +1,6 @@
 # Current enemy deactivation
 
-`src/game/current_enemy_deactivation.asm` owns CPU `$B4B6-$B4C3`. It clears
+`src/game/enemies/current_deactivation.asm` owns CPU `$B4B6-$B4C3`. It clears
 byte 0 in the records selected by `EnemyAiPointer` and `EnemyObjectPointer`,
 then writes the hidden/offscreen `$F8` sentinel to object offset 7.
 

@@ -1,6 +1,6 @@
 # Late enemy AI families
 
-`src/game/late_enemy_ai.asm` owns CPU `$AF5C-$B289`, the final range formerly
+`src/game/enemies/ai_late.asm` owns CPU `$AF5C-$B289`, the final range formerly
 held in the address-ordered preservation source. It reconstructs handler
 targets for type groups `$64-$6B`, `$0C-$0F`, and `$48-$53`, plus shared
 collision, direction, linked-slot, and forward-map helpers.

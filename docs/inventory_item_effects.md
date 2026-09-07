@@ -1,6 +1,6 @@
 # Inventory and item effects
 
-`src/game/inventory_item_effects.asm` owns CPU `$C698-$C70F`. Bisqwit's map
+`src/game/items/inventory_effects.asm` owns CPU `$C698-$C70F`. Bisqwit's map
 identifies the public entries as Scroll Extender, two fireball bottles, Fairy
 Bell, blue/red Tzo, Blue Crystal, and the shared type-04/type-06 score effect.
 

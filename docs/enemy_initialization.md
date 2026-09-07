@@ -1,6 +1,6 @@
 # Enemy slot initialization
 
-`src/game/enemy_initialization.asm` owns CPU `$A3D7-$A3F7`. Bisqwit's map
+`src/game/enemies/initialization.asm` owns CPU `$A3D7-$A3F7`. Bisqwit's map
 identifies the entry as `InitializeEnemy`. Four call sites use the same
 zero-page input contract:
 

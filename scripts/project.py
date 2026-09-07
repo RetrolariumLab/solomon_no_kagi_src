@@ -527,41 +527,41 @@ def command_lint(_args: argparse.Namespace) -> None:
         "scripts/verify_rom.py",
         "src/main.asm",
         "src/system/nmi.asm",
-        "src/game/nmi_gameplay_interactions.asm",
-        "src/game/nmi_dana_and_sprites.asm",
+        "src/game/nmi/gameplay_interactions.asm",
+        "src/game/nmi/dana_and_sprites.asm",
         "src/system/pause_thread.asm",
         "src/system/scheduler.asm",
         "src/system/startup.asm",
-        "src/game/main_thread.asm",
-        "src/game/enemy_movement.asm",
-        "src/game/enemy_initialization.asm",
-        "src/game/enemy_type_configuration.asm",
-        "src/data/enemy_types.asm",
-        "src/data/enemy_record_pointers.asm",
-        "src/game/enemy_ai_dispatch.asm",
-        "src/game/enemy_ai_handlers.asm",
-        "src/game/early_enemy_ai.asm",
-        "src/game/mid_enemy_ai.asm",
-        "src/game/pathfinding_enemy_ai.asm",
-        "src/game/collision_enemy_ai.asm",
-        "src/game/late_enemy_ai.asm",
-        "src/game/enemy_position.asm",
-        "src/game/enemy_pointers.asm",
-        "src/game/enemy_deactivation.asm",
-        "src/game/enemy_slot_allocation.asm",
-        "src/game/current_enemy_deactivation.asm",
-        "src/game/active_object_states.asm",
-        "src/game/non_dana_object_deactivation.asm",
-        "src/game/object_pointer.asm",
-        "src/game/object_x_left_clamp.asm",
-        "src/game/object_y_clamp.asm",
-        "src/game/coordinate_conversion.asm",
+        "src/game/flow/main_thread.asm",
+        "src/game/enemies/movement.asm",
+        "src/game/enemies/initialization.asm",
+        "src/game/enemies/type_configuration.asm",
+        "src/data/enemies/types.asm",
+        "src/data/enemies/record_pointers.asm",
+        "src/game/enemies/ai_dispatch.asm",
+        "src/game/enemies/ai_handlers.asm",
+        "src/game/enemies/ai_early.asm",
+        "src/game/enemies/ai_mid.asm",
+        "src/game/enemies/ai_pathfinding.asm",
+        "src/game/enemies/ai_collision.asm",
+        "src/game/enemies/ai_late.asm",
+        "src/game/enemies/position.asm",
+        "src/game/enemies/pointers.asm",
+        "src/game/enemies/deactivation.asm",
+        "src/game/enemies/slot_allocation.asm",
+        "src/game/enemies/current_deactivation.asm",
+        "src/game/objects/active_states.asm",
+        "src/game/objects/non_dana_deactivation.asm",
+        "src/game/objects/pointer.asm",
+        "src/game/objects/clamp_x_left.asm",
+        "src/game/objects/clamp_y.asm",
+        "src/game/objects/coordinate_conversion.asm",
         "src/system/jump_with_params.asm",
         "src/system/ppu_update_buffer.asm",
         "src/system/sound_effect_queue.asm",
-        "src/game/fireball_lifetime.asm",
-        "src/game/timer.asm",
-        "src/game/timer_display.asm",
+        "src/game/items/fireball_lifetime.asm",
+        "src/game/timer/runtime.asm",
+        "src/game/timer/display.asm",
     )
     missing = [name for name in required if not (ROOT / name).is_file()]
     if missing:
@@ -593,13 +593,13 @@ def command_lint(_args: argparse.Namespace) -> None:
     source_contract = {
         "src/main.asm": ('.setcpu "6502x"', '.segment "HEADER"'),
         "src/system/nmi.asm": ('.segment "PRG_NMI"', "NMI:", "WritePpuScroll:"),
-        "src/game/nmi_gameplay_interactions.asm": (
+        "src/game/nmi/gameplay_interactions.asm": (
             '.segment "PRG_NMI_GAMEPLAY_INTERACTIONS"',
             "CheckGameplayObjectInteractions:",
             "UpdateActiveFireballCollision:",
             "QueuePendingThreadStart:",
         ),
-        "src/game/nmi_dana_and_sprites.asm": (
+        "src/game/nmi/dana_and_sprites.asm": (
             '.segment "PRG_NMI_DANA_AND_SPRITES"',
             "UpdateDanaControlState:",
             "RenderGameplayObjectsToOam:",
@@ -635,136 +635,136 @@ def command_lint(_args: argparse.Namespace) -> None:
             "FindSoundEffectQueueSlot:",
             "StoreSoundEffectRequest:",
         ),
-        "src/game/main_thread.asm": (
+        "src/game/flow/main_thread.asm": (
             '.segment "PRG_MAIN_THREAD"',
             "MainGameplayThread:",
             "ContinueMainGameplayThread:",
         ),
-        "src/game/coordinate_conversion.asm": (
+        "src/game/objects/coordinate_conversion.asm": (
             '.segment "PRG_COORDINATE_CONVERSION"',
             "ConvertPixelCoordinatesToMapIndex:",
             "ConvertMapIndexToPixelCoordinates:",
         ),
-        "src/game/object_pointer.asm": (
+        "src/game/objects/pointer.asm": (
             '.segment "PRG_LOAD_OBJECT_POINTER"',
             "LoadObjectPointer:",
         ),
-        "src/game/object_y_clamp.asm": (
+        "src/game/objects/clamp_y.asm": (
             '.segment "PRG_OBJECT_Y_CLAMP"',
             "ObjectClampYCoordinateToSurface:",
         ),
-        "src/game/object_x_left_clamp.asm": (
+        "src/game/objects/clamp_x_left.asm": (
             '.segment "PRG_OBJECT_X_LEFT_CLAMP"',
             "ObjectClampXCoordinateToLeftSurface:",
             "ClearObjectXMotion:",
         ),
-        "src/game/active_object_states.asm": (
+        "src/game/objects/active_states.asm": (
             '.segment "PRG_SET_ACTIVE_OBJECT_STATES"',
             "SetActiveNonDanaObjectState:",
         ),
-        "src/game/non_dana_object_deactivation.asm": (
+        "src/game/objects/non_dana_deactivation.asm": (
             '.segment "PRG_DEACTIVATE_NON_DANA_OBJECTS"',
             "DeactivateAllNonDanaObjects:",
         ),
-        "src/game/timer.asm": (
+        "src/game/timer/runtime.asm": (
             '.segment "PRG_TIMER"',
             "DecrementTimer:",
             "DecrementTimerByOne:",
             "UpdateTimerWarningState:",
         ),
-        "src/game/timer_display.asm": (
+        "src/game/timer/display.asm": (
             '.segment "PRG_TIMER_DISPLAY"',
             "BuildTimerDisplayUpdate:",
             "TimerDisplayWriterCallTemplate:",
         ),
-        "src/game/enemy_movement.asm": (
+        "src/game/enemies/movement.asm": (
             '.segment "PRG_ENEMY_MOVEMENT"',
             "UpdateEnemiesMovement:",
             "UpdateNextEnemyMovement:",
         ),
-        "src/game/enemy_ai_dispatch.asm": (
+        "src/game/enemies/ai_dispatch.asm": (
             '.segment "PRG_ENEMY_AI_DISPATCH"',
             "RunEnemyAiDispatcher:",
             "CheckNextEnemyAiSlot:",
         ),
-        "src/game/enemy_ai_handlers.asm": (
+        "src/game/enemies/ai_handlers.asm": (
             '.segment "PRG_ENEMY_AI_HANDLERS"',
             "DispatchEnemyAiHandler:",
             "EnemyAiHandlerTable:",
         ),
-        "src/game/early_enemy_ai.asm": (
+        "src/game/enemies/ai_early.asm": (
             '.segment "PRG_EARLY_ENEMY_AI"',
             "RunType00To03EnemyAi:",
             "HandleEnemyCollisionReward:",
             "RunType04To07EnemyAi:",
         ),
-        "src/game/mid_enemy_ai.asm": (
+        "src/game/enemies/ai_mid.asm": (
             '.segment "PRG_MID_ENEMY_AI"',
             "RunType10To13EnemyAi:",
             "RunType54To5BEnemyAi:",
             "RunType08To0BEnemyAi:",
         ),
-        "src/game/pathfinding_enemy_ai.asm": (
+        "src/game/enemies/ai_pathfinding.asm": (
             '.segment "PRG_PATHFINDING_ENEMY_AI"',
             "UpdateType08To0BPhaseAction:",
             "RunType14To17EnemyAi:",
             "Type14To1BPathMaskHandlers:",
         ),
-        "src/game/collision_enemy_ai.asm": (
+        "src/game/enemies/ai_collision.asm": (
             '.segment "PRG_COLLISION_ENEMY_AI"',
             "RunType1CTo37EnemyAi:",
             "SampleCurrentEnemyRoomMapCollision:",
             "RunType5CTo63EnemyAi:",
         ),
-        "src/game/late_enemy_ai.asm": (
+        "src/game/enemies/ai_late.asm": (
             '.segment "PRG_LATE_ENEMY_AI"',
             "RunType64To6BEnemyAi:",
             "RunType0CTo0FEnemyAi:",
             "RunType48To53EnemyAi:",
         ),
-        "src/game/enemy_position.asm": (
+        "src/game/enemies/position.asm": (
             '.segment "PRG_ENEMY_POSITION"',
             "LoadCurrentEnemyPosition:",
         ),
-        "src/game/enemy_pointers.asm": (
+        "src/game/enemies/pointers.asm": (
             '.segment "PRG_ENEMY_POINTERS"',
             "LoadEnemyObjectPointer:",
             "LoadEnemyAiPointer:",
         ),
-        "src/game/enemy_slot_allocation.asm": (
+        "src/game/enemies/slot_allocation.asm": (
             '.segment "PRG_FIND_FREE_ENEMY_SLOT"',
             "FindFreeEnemySlotIndex:",
             "FinishEnemySlotSearch:",
         ),
-        "src/game/enemy_deactivation.asm": (
+        "src/game/enemies/deactivation.asm": (
             '.segment "PRG_ENEMY_DEACTIVATION"',
             "DeactivateEnemySlot:",
         ),
-        "src/game/current_enemy_deactivation.asm": (
+        "src/game/enemies/current_deactivation.asm": (
             '.segment "PRG_CURRENT_ENEMY_DEACTIVATION"',
             "DeactivateCurrentEnemy:",
         ),
-        "src/game/fireball_lifetime.asm": (
+        "src/game/items/fireball_lifetime.asm": (
             '.segment "PRG_FIREBALL_LIFETIME"',
             "UpdateFireballLifetime:",
             "FinishFireballLifetimeUpdate:",
         ),
-        "src/game/enemy_initialization.asm": (
+        "src/game/enemies/initialization.asm": (
             '.segment "PRG_ENEMY_INITIALIZATION"',
             "InitializeEnemy:",
             "ClearEnemyAiStateFields:",
         ),
-        "src/game/enemy_type_configuration.asm": (
+        "src/game/enemies/type_configuration.asm": (
             '.segment "PRG_ENEMY_TYPE_CONFIGURATION"',
             "ConfigureEnemyType:",
             "FinishEnemyTypeConfiguration:",
         ),
-        "src/data/enemy_types.asm": (
+        "src/data/enemies/types.asm": (
             '.segment "PRG_ENEMY_TYPE_DATA"',
             "EnemyTypeConfigurationTable:",
             "EnemyTypeConfigurationCount =",
         ),
-        "src/data/enemy_record_pointers.asm": (
+        "src/data/enemies/record_pointers.asm": (
             '.segment "PRG_ENEMY_POINTER_TABLES"',
             "EnemyAiRecordPointerLowTable:",
             "EnemyAiRecordPointerHighTable:",

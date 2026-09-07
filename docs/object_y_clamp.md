@@ -1,6 +1,6 @@
 # Object Y-coordinate surface clamp
 
-`src/game/object_y_clamp.asm` owns CPU `$8A62-$8A7E`. Bisqwit's map names its
+`src/game/objects/clamp_y.asm` owns CPU `$8A62-$8A7E`. Bisqwit's map names its
 single entry `ObjectClampYCoordinateToSurface`; all three static callers now
 use that symbol.
 

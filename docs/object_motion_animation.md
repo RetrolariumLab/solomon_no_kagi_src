@@ -49,7 +49,7 @@ profile-selected values with their own hash. Run
 round-trip all 524 bytes from both source-built ROMs.
 
 The complete `$D9D3-$DBDE` range is now source-owned in the 523-line
-`src/data/object_motion.asm`. Its macros distinguish direct vector indices
+`src/data/objects/motion.asm`. Its macros distinguish direct vector indices
 from negative room-state selectors, and its pointer table uses the same
 type-group symbols as the selector payload.
 
@@ -75,8 +75,8 @@ pointer, confirming the output contract independently of the table layout.
 See `docs/object_update_pipeline.md`.
 
 The complete animation descriptor and frame payload is source-owned in
-`src/data/object_animations.asm`; the adjacent motion pointer, selector, and
-vector families are source-owned in `src/data/object_motion.asm`.
+`src/data/objects/animations.asm`; the adjacent motion pointer, selector, and
+vector families are source-owned in `src/data/objects/motion.asm`.
 
 `make object-animation-audit` independently locks the reviewed data layout:
 

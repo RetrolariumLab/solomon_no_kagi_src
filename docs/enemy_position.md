@@ -1,6 +1,6 @@
 # Current enemy position helper
 
-`src/game/enemy_position.asm` owns CPU `$A4A6-$A4B2`. The helper reads the
+`src/game/enemies/position.asm` owns CPU `$A4A6-$A4B2`. The helper reads the
 current enemy object through `EnemyObjectPointer`, copies byte offsets 7 and 10
 into `SpawnYPosition` and `SpawnXPosition`, and returns.
 

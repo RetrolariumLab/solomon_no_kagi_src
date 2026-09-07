@@ -397,72 +397,72 @@ src/system/controller_input.asm serial sampling and cached controller input
 src/system/startup.asm     reset, warm-boot state, PPU and thread bootstrap
 src/system/scheduler.asm   eight-context cooperative stack scheduler
 src/system/pause_thread.asm context-two Start-button pause loop
-src/game/special_room_scripts.asm 53-entry room script dispatcher and triggers
-src/game/ending_sequence.asm room-index 49 ending sequence
-src/game/ending_and_special_room_support.asm ending and special-room support
+src/game/rooms/special_scripts.asm 53-entry room script dispatcher and triggers
+src/game/ending/sequence.asm room-index 49 ending sequence
+src/game/ending/special_room_support.asm ending and special-room support
 src/system/sound_effect_queue.asm three-slot sound command producer
 src/system/audio_engine.asm NMI audio sequencer, command VM, and APU publisher
 src/system/ppu_update_buffer.asm publish shared RAM program to NMI
-src/graphics/ppu_attribute_read.asm NMI RoomMap attribute-byte reader
+src/graphics/ppu/attribute_read.asm NMI RoomMap attribute-byte reader
 src/system/jump_with_params.asm inline appendix tail-dispatch ABI
-src/game/room_clear_thread.asm context-one room completion and handoff
-src/game/room_time_bonus.asm decimal remaining-time score conversion
-src/game/room_load_thread.asm common new-game and room loading pipeline
-src/game/new_game_state_reset.asm initial counters, flags, and score reset
-src/data/room_load_palette.asm mutable room palette update template
-src/data/room_clear.asm overlapping transition AI/object templates
-src/data/room_load.asm Dana preload and room palette selection tables
-src/game/room_door_key_update.asm initial visible room cells
-src/game/room_intro.asm room/lives HUD and special-room names
-src/game/room_entry_animation.asm Dana placement and entry presentation
-src/game/transition_object_orbit.asm timed fifteen-object orbit controller
-src/game/transition_orbit_position.asm sine-scaled orbit positioning
+src/game/rooms/clear_thread.asm context-one room completion and handoff
+src/game/rooms/time_bonus.asm decimal remaining-time score conversion
+src/game/rooms/load_thread.asm common new-game and room loading pipeline
+src/game/flow/new_game_reset.asm initial counters, flags, and score reset
+src/data/rooms/load_palette.asm mutable room palette update template
+src/data/rooms/clear.asm overlapping transition AI/object templates
+src/data/rooms/load.asm Dana preload and room palette selection tables
+src/game/rooms/door_key_update.asm initial visible room cells
+src/game/rooms/intro.asm room/lives HUD and special-room names
+src/game/rooms/entry_animation.asm Dana placement and entry presentation
+src/game/transitions/object_orbit.asm timed fifteen-object orbit controller
+src/game/transitions/orbit_position.asm sine-scaled orbit positioning
 src/data/quarter_sine.asm 32-entry transition magnitude table
 src/system/masked_ram_wait.asm cooperative masked zero-page waits
 src/system/secondary_thread_reset.asm stop other contexts during transitions
-src/game/gameplay_exit_transition.asm life-loss, TIME OVER, and GDV flow
-src/game/room_transition_reset.asm exit-screen data and transition state reset
-src/game/object_y_clamp.asm align object Y to a 16-pixel surface
-src/game/object_x_left_clamp.asm clamp object X against its left surface
-src/game/object_x_right_clamp.asm clamp object X against its right surface
-src/game/object_motion_animation.asm load type/action motion and animation data
-src/game/object_update.asm  traverse and update all 21 object records
-src/game/object_motion.asm  integrate signed fixed-point object motion
-src/game/object_collision.asm sample RoomMap cells into collision masks
-src/game/object_animation.asm advance packed animation frames
-src/game/object_collision_dispatch.asm dispatch collision-mask responses
-src/data/object_collision_handlers.asm 16-entry response pointer table
-src/game/object_collision_response.asm coordinate/motion/action responses
-src/game/object_y_thirteen_clamp.asm clamp object Y to the `$...D` inset
-src/game/coordinate_conversion.asm pixel and packed room-index conversion
-src/game/main_thread.asm   context-three gameplay service loop
-src/game/demon_mirror_schedule.asm two eight-byte spawn schedules
-src/game/demon_mirror_spawn.asm allocate scheduled mirror placeholders
-src/game/demon_mirror_activation.asm cyclic enemy-set activation
-src/game/demon_mirror_initialization.asm mirror coordinate/object setup
-src/game/timer.asm         countdown arithmetic and warning-state transitions
-src/game/timer_item_effects.asm multiply or replace time from collected items
-src/game/inventory_item_effects.asm packed inventory and related item handlers
+src/game/flow/exit_transition.asm life-loss, TIME OVER, and GDV flow
+src/game/rooms/transition_reset.asm exit-screen data and transition state reset
+src/game/objects/clamp_y.asm align object Y to a 16-pixel surface
+src/game/objects/clamp_x_left.asm clamp object X against its left surface
+src/game/objects/clamp_x_right.asm clamp object X against its right surface
+src/game/objects/motion_animation.asm load type/action motion and animation data
+src/game/objects/update.asm  traverse and update all 21 object records
+src/game/objects/motion.asm  integrate signed fixed-point object motion
+src/game/objects/collision.asm sample RoomMap cells into collision masks
+src/game/objects/animation.asm advance packed animation frames
+src/game/objects/collision_dispatch.asm dispatch collision-mask responses
+src/data/objects/collision_handlers.asm 16-entry response pointer table
+src/game/objects/collision_response.asm coordinate/motion/action responses
+src/game/objects/clamp_y_thirteen.asm clamp object Y to the `$...D` inset
+src/game/objects/coordinate_conversion.asm pixel and packed room-index conversion
+src/game/flow/main_thread.asm   context-three gameplay service loop
+src/game/demon_mirror/schedule.asm two eight-byte spawn schedules
+src/game/demon_mirror/spawn.asm allocate scheduled mirror placeholders
+src/game/demon_mirror/activation.asm cyclic enemy-set activation
+src/game/demon_mirror/initialization.asm mirror coordinate/object setup
+src/game/timer/runtime.asm         countdown arithmetic and warning-state transitions
+src/game/timer/item_effects.asm multiply or replace time from collected items
+src/game/items/inventory_effects.asm packed inventory and related item handlers
 src/data/item_scores.asm  collectible score digit and amount lookup tables
 src/game/auxiliary_effect.asm shared auxiliary-object effect initialization
 src/game/score.asm         game-state-gated decimal score addition
-src/game/timer_display.asm NMI update-program builder for timer digits
-src/game/enemy_movement.asm active-enemy movement prepass
-src/game/enemy_ai_dispatch.asm 17-slot per-enemy AI selector
-src/game/fireball_lifetime.asm fireball expiration and delayed cleanup
-src/game/enemy_initialization.asm enemy slot position/state initialization
-src/game/enemy_type_configuration.asm spawn-type object/AI configuration
-src/data/enemy_types.asm  packed enemy-type configuration table
-src/game/enemy_ai_handlers.asm handler tables and linked-slot behavior support
-src/game/enemy_position.asm shared current-enemy position-copy helper
-src/game/enemy_pointers.asm shared object/AI record pointer resolvers
-src/game/enemy_slot_allocation.asm free enemy-record allocator
-src/data/enemy_record_pointers.asm generated record-pool pointer tables
-src/game/enemy_deactivation.asm parallel-record slot retirement
-src/game/current_enemy_deactivation.asm retirement, lifetime, and adjacent filler
-src/game/active_object_states.asm update active non-Dana record states
-src/game/object_pointer.asm non-Dana object-record pointer resolver
-src/game/non_dana_object_deactivation.asm clear the non-Dana object pool
+src/game/timer/display.asm NMI update-program builder for timer digits
+src/game/enemies/movement.asm active-enemy movement prepass
+src/game/enemies/ai_dispatch.asm 17-slot per-enemy AI selector
+src/game/items/fireball_lifetime.asm fireball expiration and delayed cleanup
+src/game/enemies/initialization.asm enemy slot position/state initialization
+src/game/enemies/type_configuration.asm spawn-type object/AI configuration
+src/data/enemies/types.asm  packed enemy-type configuration table
+src/game/enemies/ai_handlers.asm handler tables and linked-slot behavior support
+src/game/enemies/position.asm shared current-enemy position-copy helper
+src/game/enemies/pointers.asm shared object/AI record pointer resolvers
+src/game/enemies/slot_allocation.asm free enemy-record allocator
+src/data/enemies/record_pointers.asm generated record-pool pointer tables
+src/game/enemies/deactivation.asm parallel-record slot retirement
+src/game/enemies/current_deactivation.asm retirement, lifetime, and adjacent filler
+src/game/objects/active_states.asm update active non-Dana record states
+src/game/objects/pointer.asm non-Dana object-record pointer resolver
+src/game/objects/non_dana_deactivation.asm clear the non-Dana object pool
 src/graphics/chr.asm       `.incbin` wrapper for ignored generated CHR
 src/memory/                hardware and RAM symbol registries
 tests/                     tooling and codec tests

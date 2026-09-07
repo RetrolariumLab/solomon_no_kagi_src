@@ -5,7 +5,7 @@ ten-byte room item header and compressed item stream documented in
 `docs/data_formats.md`.
 
 Its complete 53-entry split pointer table and source records are reconstructed
-at `$EA1C-$EFC3` in `src/data/room_items.asm`; the decoder now resolves the
+at `$EA1C-$EFC3` in `src/data/rooms/items.asm`; the decoder now resolves the
 table through symbols instead of fixed addresses.
 
 It performs four stages:

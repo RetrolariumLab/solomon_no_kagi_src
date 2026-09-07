@@ -1,6 +1,6 @@
 # Enemy and object record pointer tables
 
-`src/data/enemy_record_pointers.asm` owns CPU `$B446-$B491`. The 76-byte
+`src/data/enemies/record_pointers.asm` owns CPU `$B446-$B491`. The 76-byte
 region contains four split pointer tables:
 
 | Table | Entries | Address sequence |

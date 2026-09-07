@@ -6,7 +6,7 @@ pointers at `$DCEC/$DD21`; the resulting stream uses the format already
 round-tripped by `scripts/room_data.py`.
 
 Both pointer halves and all 53 streams are source-owned in the 552-line
-`src/data/room_enemies.asm`. Each record is expressed with macros for the
+`src/data/rooms/enemies.asm`. Each record is expressed with macros for the
 encoded lifetime, `(enemy_type, map_position)` pair, and terminator; the source
 can be reproduced with `scripts/room_data.py --source-enemies`.
 

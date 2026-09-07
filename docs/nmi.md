@@ -4,7 +4,7 @@
 
 `src/system/nmi.asm` owns CPU `$8000-$80FE` (255 bytes). The adjacent gameplay
 services at `$80FF-$837C` are reconstructed separately in
-`src/game/nmi_gameplay_interactions.asm`. The linker places both segments
+`src/game/nmi/gameplay_interactions.asm`. The linker places both segments
 before the remaining fixed PRG, and
 `make reconstruction-audit` checks its start, end, size, and required labels.
 

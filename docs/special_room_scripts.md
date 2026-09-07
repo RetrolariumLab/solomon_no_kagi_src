@@ -87,7 +87,7 @@ single-byte content difference is fingerprinted rather than normalized away.
 The room-index 49 offset selects `RunEndingRoomScript` at `$BA34`. That complete
 ending handler is source-owned through `$BD93`. Its supporting waits, Solomon's
 Seal reveal state, object-position table, text streams, and two special-room
-bitplanes are source-owned in `src/game/ending_and_special_room_support.asm`.
+bitplanes are source-owned in `src/game/ending/special_room_support.asm`.
 
 The cameo and page names are cross-checked against the documented NES room
 solutions and item effects in the
