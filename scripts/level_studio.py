@@ -40,6 +40,7 @@ from level_preview import (
     ROOM_MAP_EMPTY,
     LevelPreviewError,
     LevelPreviewRenderer,
+    PreviewLayers,
     classify_pattern,
     constellation_command,
     constellation_pattern,
@@ -2099,6 +2100,11 @@ class LevelStudio(tk.Tk):
         self.room_index = tk.IntVar(value=0)
         self.room_choice = tk.StringVar(value="Room 01")
         self.mode = tk.StringVar(value="select")
+        self.show_grid = tk.BooleanVar(value=True)
+        self.show_metadata = tk.BooleanVar(value=True)
+        self.show_items = tk.BooleanVar(value=True)
+        self.show_enemies = tk.BooleanVar(value=True)
+        self.show_special = tk.BooleanVar(value=True)
         self.enemy_type = tk.StringVar(value=ENEMY_TYPE_CHOICES[0x71 - 0x18])
         self.item_type = tk.StringVar(
             value=type_choice(0x18, item_type_name(0x18))
@@ -2123,6 +2129,7 @@ class LevelStudio(tk.Tk):
         self.minsize(1050, 680)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.build_ui()
+        self.bind_shortcuts()
         self.load_properties()
         self.redraw()
 
@@ -2237,6 +2244,24 @@ class LevelStudio(tk.Tk):
         )
         self.allocation_label.pack(anchor="w")
 
+        view = ttk.LabelFrame(side, text="Visible layers", padding=7)
+        view.pack(fill="x", pady=(8, 0))
+        for column, (label, variable) in enumerate(
+            (
+                ("Grid", self.show_grid),
+                ("Metadata", self.show_metadata),
+                ("Items", self.show_items),
+                ("Enemies", self.show_enemies),
+                ("Special", self.show_special),
+            )
+        ):
+            ttk.Checkbutton(
+                view,
+                text=label,
+                variable=variable,
+                command=self.redraw,
+            ).grid(row=column // 3, column=column % 3, sticky="w", padx=(0, 9))
+
         records = ttk.LabelFrame(side, text="Room records", padding=7)
         records.pack(fill="both", expand=True, pady=(8, 0))
         self.record_tree = ttk.Treeview(
@@ -2308,9 +2333,49 @@ class LevelStudio(tk.Tk):
                 "Cyan S/B/O/H/R: scripted special data\n\n"
                 "Left click applies selected tool.\n"
                 "Repeat tool appends to selected item.\n"
-                "Right click erases the cell."
+                "Right click erases the cell.\n"
+                "Ctrl+S save, Ctrl+Z undo, G grid.\n"
+                "PgUp/PgDn/Home/End change room."
             ),
         ).pack(anchor="w")
+
+    def bind_shortcuts(self) -> None:
+        self.bind("<Control-s>", self.save_shortcut)
+        self.bind("<Control-z>", self.undo_shortcut)
+        self.bind("<Key-g>", self.grid_shortcut)
+        self.bind("<Prior>", lambda event: self.room_shortcut(event, -1))
+        self.bind("<Next>", lambda event: self.room_shortcut(event, 1))
+        self.bind("<Home>", lambda event: self.room_shortcut(event, -ROOM_COUNT))
+        self.bind("<End>", lambda event: self.room_shortcut(event, ROOM_COUNT))
+
+    def save_shortcut(self, _event: tk.Event) -> str:
+        self.save()
+        return "break"
+
+    def undo_shortcut(self, _event: tk.Event) -> str:
+        self.undo()
+        return "break"
+
+    def grid_shortcut(self, event: tk.Event) -> str | None:
+        if isinstance(
+            event.widget,
+            (tk.Entry, tk.Text, ttk.Entry, ttk.Combobox, ttk.Spinbox),
+        ):
+            return None
+        self.show_grid.set(not self.show_grid.get())
+        self.redraw()
+        return "break"
+
+    def room_shortcut(self, _event: tk.Event, delta: int) -> str:
+        if delta <= -ROOM_COUNT:
+            room_index = 0
+        elif delta >= ROOM_COUNT:
+            room_index = ROOM_COUNT - 1
+        else:
+            room_index = min(max(self.room_index.get() + delta, 0), ROOM_COUNT - 1)
+        self.room_choice.set(f"Room {room_index + 1:02d}")
+        self.select_room()
+        return "break"
 
     def open_mirror_data(self) -> None:
         MirrorDataDialog(self)
@@ -2720,16 +2785,26 @@ class LevelStudio(tk.Tk):
         self.canvas.delete("all")
         room = self.current_room()
         self.preview_renderer.document = self.model.document
-        preview = self.preview_renderer.render(self.room_index.get())
+        preview = self.preview_renderer.render(
+            self.room_index.get(),
+            PreviewLayers(
+                metadata=self.show_metadata.get(),
+                items=self.show_items.get(),
+                enemies=self.show_enemies.get(),
+            ),
+        )
         base = tk.PhotoImage(data=preview.ppm(), format="PPM")
         self.preview_image = base.zoom(PIXEL_SCALE, PIXEL_SCALE)
         self.canvas.create_image(0, 0, image=self.preview_image, anchor="nw")
-        for x in range(ROOM_WIDTH + 1):
-            self.canvas.create_line(
-                x * CELL, 0, x * CELL, CANVAS_HEIGHT, fill="#405060"
-            )
-        for y in range(ROOM_HEIGHT + 1):
-            self.canvas.create_line(0, y * CELL, CANVAS_WIDTH, y * CELL, fill="#405060")
+        if self.show_grid.get():
+            for x in range(ROOM_WIDTH + 1):
+                self.canvas.create_line(
+                    x * CELL, 0, x * CELL, CANVAS_HEIGHT, fill="#405060"
+                )
+            for y in range(ROOM_HEIGHT + 1):
+                self.canvas.create_line(
+                    0, y * CELL, CANVAS_WIDTH, y * CELL, fill="#405060"
+                )
         for x, y in sorted(combined_block_positions(room["blocks"])):
             self.canvas.create_text(
                 (x + 1) * CELL - 2,
@@ -2739,74 +2814,78 @@ class LevelStudio(tk.Tk):
                 font=("Consolas", 7, "bold"),
                 anchor="ne",
             )
-        metadata = room["items"]["metadata"]
-        for field, text, color in (
-            ("player_start", "P", "#66ddff"),
-            ("key", "K", "#ffff55"),
-            ("door", "D", "#66ff77"),
-            ("mirror_1", "M1", "#dd88ff"),
-            ("mirror_2", "M2", "#bb66ff"),
-        ):
-            self.draw_label(metadata[field], text, color)
+        if self.show_metadata.get():
+            metadata = room["items"]["metadata"]
+            for field, text, color in (
+                ("player_start", "P", "#66ddff"),
+                ("key", "K", "#ffff55"),
+                ("door", "D", "#66ff77"),
+                ("mirror_1", "M1", "#dd88ff"),
+                ("mirror_2", "M2", "#bb66ff"),
+            ):
+                self.draw_label(metadata[field], text, color)
         rendered_enemies = set(preview.rendered_enemy_indices)
-        for enemy_index, enemy in enumerate(room["enemies"]["placements"]):
-            position = enemy["position"]
-            x, y = position["x"], position["y"]
-            if y < 0 or y >= ROOM_HEIGHT:
-                continue
-            if enemy_index not in rendered_enemies:
-                self.canvas.create_oval(
-                    x * CELL + 5,
-                    y * CELL + 5,
-                    (x + 1) * CELL - 5,
-                    (y + 1) * CELL - 5,
-                    fill="#bb3344",
-                    outline="#ff99aa",
+        if self.show_enemies.get():
+            for enemy_index, enemy in enumerate(room["enemies"]["placements"]):
+                position = enemy["position"]
+                x, y = position["x"], position["y"]
+                if y < 0 or y >= ROOM_HEIGHT:
+                    continue
+                if enemy_index not in rendered_enemies:
+                    self.canvas.create_oval(
+                        x * CELL + 5,
+                        y * CELL + 5,
+                        (x + 1) * CELL - 5,
+                        (y + 1) * CELL - 5,
+                        fill="#bb3344",
+                        outline="#ff99aa",
+                    )
+                    self.draw_label(position, f"{enemy['type']:02X}", "white")
+                else:
+                    self.canvas.create_text(
+                        x * CELL + 3,
+                        y * CELL + 3,
+                        text=f"{enemy['type']:02X}",
+                        fill="white",
+                        font=("Consolas", 8, "bold"),
+                        anchor="nw",
+                    )
+        if self.show_items.get():
+            for item in self.model.item_placements(self.room_index.get()):
+                x, y = item.position["x"], item.position["y"]
+                if y < 0 or y >= ROOM_HEIGHT:
+                    continue
+                self.canvas.create_polygon(
+                    x * CELL + CELL // 2,
+                    y * CELL + 4,
+                    (x + 1) * CELL - 4,
+                    y * CELL + CELL // 2,
+                    x * CELL + CELL // 2,
+                    (y + 1) * CELL - 4,
+                    x * CELL + 4,
+                    y * CELL + CELL // 2,
+                    fill="#d6a900",
+                    outline="#fff099",
                 )
-                self.draw_label(position, f"{enemy['type']:02X}", "white")
-            else:
-                self.canvas.create_text(
-                    x * CELL + 3,
-                    y * CELL + 3,
-                    text=f"{enemy['type']:02X}",
-                    fill="white",
-                    font=("Consolas", 8, "bold"),
-                    anchor="nw",
+                self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
+        if self.show_special.get():
+            for overlay in special_room_overlays(
+                self.model.document["special_room_data"], self.room_index.get() + 1
+            ):
+                if not 0 <= overlay.y < ROOM_HEIGHT:
+                    continue
+                self.canvas.create_rectangle(
+                    overlay.x * CELL + 3,
+                    overlay.y * CELL + 3,
+                    (overlay.x + 1) * CELL - 3,
+                    (overlay.y + 1) * CELL - 3,
+                    outline="#55ffff",
+                    width=2,
+                    dash=(3, 2),
                 )
-        for item in self.model.item_placements(self.room_index.get()):
-            x, y = item.position["x"], item.position["y"]
-            if y < 0 or y >= ROOM_HEIGHT:
-                continue
-            self.canvas.create_polygon(
-                x * CELL + CELL // 2,
-                y * CELL + 4,
-                (x + 1) * CELL - 4,
-                y * CELL + CELL // 2,
-                x * CELL + CELL // 2,
-                (y + 1) * CELL - 4,
-                x * CELL + 4,
-                y * CELL + CELL // 2,
-                fill="#d6a900",
-                outline="#fff099",
-            )
-            self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
-        for overlay in special_room_overlays(
-            self.model.document["special_room_data"], self.room_index.get() + 1
-        ):
-            if not 0 <= overlay.y < ROOM_HEIGHT:
-                continue
-            self.canvas.create_rectangle(
-                overlay.x * CELL + 3,
-                overlay.y * CELL + 3,
-                (overlay.x + 1) * CELL - 3,
-                (overlay.y + 1) * CELL - 3,
-                outline="#55ffff",
-                width=2,
-                dash=(3, 2),
-            )
-            self.draw_label(
-                {"x": overlay.x, "y": overlay.y}, overlay.label, "#55ffff"
-            )
+                self.draw_label(
+                    {"x": overlay.x, "y": overlay.y}, overlay.label, "#55ffff"
+                )
         self.refresh_record_table()
         self.refresh_allocation()
         self.set_status(

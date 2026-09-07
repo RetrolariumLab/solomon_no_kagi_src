@@ -410,6 +410,13 @@ game art rather than editor-only colored boxes. Grid labels and outlines stay
 above that image so overlapping enemy, item, and anchor records remain easy to
 select.
 
+Five view toggles independently show the grid, metadata, items, enemies, and
+scripted special-room overlays. Metadata and item switches are applied inside
+the RoomMap renderer, and the enemy switch suppresses native sprite composition,
+so a hidden layer is not merely covered by an editor overlay. `Ctrl+S` and
+`Ctrl+Z` save and undo, `G` toggles the grid outside text controls, and
+`Page Up`, `Page Down`, `Home`, and `End` navigate the 53-room set.
+
 Placed enemies are rendered through the engine's own type configuration,
 33-entry animation pointer table, initial action descriptor, three-byte frame
 record, 8x16 sprite-table convention, packed palette/flip flags, and room CHR

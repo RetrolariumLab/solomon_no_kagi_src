@@ -892,6 +892,21 @@ class NativePreviewTests(unittest.TestCase):
         self.assertEqual(values[0][1], level_preview.ROOM_MAP_WHITE_BLOCK)
         self.assertEqual(values[0][2], 8)
 
+    def test_preview_layers_hide_items_and_metadata_without_hiding_blocks(self) -> None:
+        room = preview_room()
+        metadata = room["items"]["metadata"]
+        metadata["door"] = {"x": 3, "y": 0}
+        metadata["key"] = {"x": 4, "y": 0}
+        metadata["mirror_1"] = {"x": 5, "y": 0}
+        metadata["mirror_2"] = {"x": 6, "y": 0}
+        values = level_preview.room_map_values(
+            room,
+            level_preview.PreviewLayers(metadata=False, items=False),
+        )
+        self.assertEqual(values[0][0], level_preview.ROOM_MAP_BROWN_BLOCK)
+        self.assertEqual(values[0][1], level_preview.ROOM_MAP_WHITE_BLOCK)
+        self.assertEqual(values[0][2:7], (level_preview.ROOM_MAP_EMPTY,) * 5)
+
     def test_hidden_key_uses_the_decorated_map_class(self) -> None:
         room = preview_room()
         metadata = room["items"]["metadata"]
@@ -983,6 +998,24 @@ class NativePreviewTests(unittest.TestCase):
         self.assertEqual(preview.rgb[0:3], sprite_color)
         self.assertEqual(preview.rgb[8 * 3 : 9 * 3], sprite_color)
         self.assertEqual(preview.rendered_enemy_indices, (0,))
+
+    def test_enemy_layer_removes_native_sprite_from_preview(self) -> None:
+        prg, chr_data, contract = enemy_preview_data()
+        room = preview_room()
+        room["enemies"]["placements"] = [
+            {"type": 0x1C, "position": {"x": 0, "y": 0}}
+        ]
+        document = {"tile_patterns": preview_patterns(), "rooms": [room]}
+        renderer = level_preview.LevelPreviewRenderer(
+            document, chr_data, prg, contract
+        )
+        visible = renderer.render(0)
+        hidden = renderer.render(
+            0, level_preview.PreviewLayers(enemies=False)
+        )
+        self.assertEqual(visible.rendered_enemy_indices, (0,))
+        self.assertEqual(hidden.rendered_enemy_indices, ())
+        self.assertNotEqual(visible.rgb[0:3], hidden.rgb[0:3])
 
     def test_unknown_enemy_type_remains_available_for_editor_fallback(self) -> None:
         prg, chr_data, contract = enemy_preview_data()

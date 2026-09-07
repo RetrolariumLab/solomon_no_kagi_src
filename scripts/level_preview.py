@@ -152,6 +152,15 @@ class SpriteFrame:
     flags: int
 
 
+@dataclass(frozen=True)
+class PreviewLayers:
+    """Select logical foreground families without changing room data."""
+
+    metadata: bool = True
+    items: bool = True
+    enemies: bool = True
+
+
 def manifest_address(value: object, field: str) -> int:
     try:
         address = int(value, 0) if isinstance(value, str) else int(value)
@@ -333,7 +342,10 @@ def room_palette(room_index: int) -> tuple[int, ...]:
     return tuple(palette)
 
 
-def room_map_values(room: dict[str, Any]) -> tuple[tuple[int, ...], ...]:
+def room_map_values(
+    room: dict[str, Any], layers: PreviewLayers | None = None
+) -> tuple[tuple[int, ...], ...]:
+    layers = layers or PreviewLayers()
     values = [[ROOM_MAP_EMPTY for _ in range(ROOM_WIDTH)] for _ in range(ROOM_HEIGHT)]
     blocks = room.get("blocks", {})
     for position in blocks.get("brown", ()):
@@ -343,20 +355,22 @@ def room_map_values(room: dict[str, Any]) -> tuple[tuple[int, ...], ...]:
 
     items = room.get("items", {})
     metadata = items.get("metadata", {})
-    door = metadata.get("door")
-    key = metadata.get("key")
-    set_map_cell(values, door, ROOM_MAP_CLOSED_DOOR)
-    if visible(key):
-        status = metadata.get("key_status")
-        if status not in KEY_CLASS_BITS:
-            raise LevelPreviewError(f"unknown room key status: {status!r}")
-        set_map_cell(values, key, KEY_CLASS_BITS[status] | ROOM_MAP_KEY)
-    elif visible(door):
-        set_map_cell(values, door, ROOM_MAP_DEFERRED_DOOR)
-    set_map_cell(values, metadata.get("mirror_1"), ROOM_MAP_DEMON_MIRROR)
-    set_map_cell(values, metadata.get("mirror_2"), ROOM_MAP_DEMON_MIRROR)
-    for item_type, position in item_placements(items.get("commands", ())):
-        set_map_cell(values, position, item_type)
+    if layers.metadata:
+        door = metadata.get("door")
+        key = metadata.get("key")
+        set_map_cell(values, door, ROOM_MAP_CLOSED_DOOR)
+        if visible(key):
+            status = metadata.get("key_status")
+            if status not in KEY_CLASS_BITS:
+                raise LevelPreviewError(f"unknown room key status: {status!r}")
+            set_map_cell(values, key, KEY_CLASS_BITS[status] | ROOM_MAP_KEY)
+        elif visible(door):
+            set_map_cell(values, door, ROOM_MAP_DEFERRED_DOOR)
+        set_map_cell(values, metadata.get("mirror_1"), ROOM_MAP_DEMON_MIRROR)
+        set_map_cell(values, metadata.get("mirror_2"), ROOM_MAP_DEMON_MIRROR)
+    if layers.items:
+        for item_type, position in item_placements(items.get("commands", ())):
+            set_map_cell(values, position, item_type)
     return tuple(tuple(row) for row in values)
 
 
@@ -476,15 +490,18 @@ class LevelPreviewRenderer:
             (),
         )
 
-    def render(self, room_index: int) -> RoomPreview:
+    def render(
+        self, room_index: int, layers: PreviewLayers | None = None
+    ) -> RoomPreview:
+        layers = layers or PreviewLayers()
         rooms = self.document.get("rooms")
         if not isinstance(rooms, list) or not 0 <= room_index < len(rooms):
             raise LevelPreviewError("room index is outside the level document")
         room = rooms[room_index]
         bank = room_chr_bank(room)
         palette = room_palette(room_index)
-        values = room_map_values(room)
-        constellation = constellation_command(room)
+        values = room_map_values(room, layers)
+        constellation = constellation_command(room) if layers.metadata else None
         width = ROOM_WIDTH * METATILE_SIZE
         height = ROOM_HEIGHT * METATILE_SIZE
         rgb = bytearray(width * height * 3)
@@ -498,7 +515,7 @@ class LevelPreviewRenderer:
                     pattern = document_pattern(self.document, classify_pattern(value))
                 self._draw_metatile(rgb, width, cell_x, cell_y, bank, palette, pattern)
         rendered_enemy_indices: list[int] = []
-        if self.enemy_decoder is not None:
+        if layers.enemies and self.enemy_decoder is not None:
             placements = room.get("enemies", {}).get("placements", ())
             for index, enemy in enumerate(placements):
                 position = enemy.get("position") if isinstance(enemy, dict) else None
