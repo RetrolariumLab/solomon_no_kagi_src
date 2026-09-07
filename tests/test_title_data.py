@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
 import unittest
 
 from scripts.title_data import (
@@ -15,12 +16,28 @@ from scripts.title_data import (
     encode_cursor_command,
     encode_demo_input,
     encode_stream,
+    load_manifest,
     title_ppu_address,
+    validate_manifest_profile,
     validate_report,
 )
 
 
 class TitleDataTests(unittest.TestCase):
+    def test_committed_profiles_record_relocated_identical_title_and_demo_data(
+        self,
+    ) -> None:
+        root = Path(__file__).resolve().parent.parent
+        usa = load_manifest(root / "config" / "title_data.json")
+        europe = load_manifest(root / "config" / "title_data_europe.json")
+        validate_manifest_profile(usa, "usa")
+        validate_manifest_profile(europe, "europe")
+        self.assertNotEqual(usa["data_start"], europe["data_start"])
+        self.assertEqual(usa["data_sha1"], europe["data_sha1"])
+        self.assertEqual(
+            usa["demo_input"]["data_sha1"], europe["demo_input"]["data_sha1"]
+        )
+
     def test_cursor_commands_round_trip_semantically(self) -> None:
         expected = (
             (0x06, "set_column", 6),

@@ -19,6 +19,10 @@ except ImportError:
 
 
 PRG_BASE = 0x8000
+TITLE_DATA_MANIFESTS = {
+    "usa": "title_data.json",
+    "europe": "title_data_europe.json",
+}
 TERMINATOR = 0x7F
 BUTTON_BITS = (
     (0x80, "A"),
@@ -239,6 +243,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
     return value
 
 
+def validate_manifest_profile(manifest: dict[str, Any], profile: str) -> None:
+    actual = manifest.get("profile", "usa")
+    if actual != profile:
+        raise RoomDataError(
+            f"title data profile mismatch: expected={profile}, manifest={actual}"
+        )
+
+
 def token_report(token: TitleCursorCommand | TitleLiteralRun) -> dict[str, object]:
     if isinstance(token, TitleCursorCommand):
         report: dict[str, object] = {"kind": token.kind}
@@ -442,11 +454,17 @@ def main() -> int:
     parser.add_argument("command", choices=("report", "audit"))
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument(
+        "--profile", choices=tuple(TITLE_DATA_MANIFESTS), default="usa"
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    manifest_path = args.manifest or root / "config" / "title_data.json"
+    manifest_path = args.manifest or (
+        root / "config" / TITLE_DATA_MANIFESTS[args.profile]
+    )
     try:
         manifest = load_manifest(manifest_path)
+        validate_manifest_profile(manifest, args.profile)
         prg = extract_prg(args.image.read_bytes())
         report = collect_report(prg, manifest)
         if args.command == "report":

@@ -31,7 +31,8 @@ mirrored title layout.
 
 ## Record/background layer
 
-`DrawTitleRecordLayer` renders `TitleRecordPackedData` at `$CD5F`, writes a
+`DrawTitleRecordLayer` renders `TitleRecordPackedData` at USA `$CD5F` /
+Europe `$CCEF`, writes a
 21-byte fixed tail in reverse order, then queues static PPU streams `$09-$0B`.
 It reuses `BuildScoreDisplayUpdate` three times with local headers to publish:
 
@@ -47,9 +48,9 @@ reusing the shared buffer.
 ## Logo layer
 
 `DrawTitleLogoLayer` waits for vblank, queues static stream `$05`, and renders
-`TitleLogoPackedData` at `$CDFA`. It then writes three fixed direct-PPU
-patterns: 16 alternating `$DF/$DE` pairs, eight `$F5` tiles, one `$CF` accent,
-and a seven-byte attribute sequence.
+`TitleLogoPackedData` at USA `$CDFA` / Europe `$CD8A`. It then writes three
+fixed direct-PPU patterns: 16 alternating `$DF/$DE` pairs, eight `$F5` tiles,
+one `$CF` accent, and a seven-byte attribute sequence.
 
 Both packed streams are source-owned in `PRG_TITLE_PACKED_DATA`. The first is
 155 bytes and ends at `$CDF9`; the second is 247 bytes and ends at `$CEF0`.
@@ -67,3 +68,10 @@ The same adjacent-data audit includes the attract demo's 34 duration and
 controller bytes at `$CEF1-$CF34`. Controller masks are decoded to named NES
 buttons before re-encoding; see `docs/attract_demo_flow.md` for playback
 semantics.
+
+The European layout moves both packed streams and the demo tables `$70` bytes
+earlier: title data occupies `$CCEF-$CE80` and demo input occupies
+`$CE81-$CEC4`. Their hashes and decoded records are identical to USA. The
+separate `config/title_data_europe.json` manifest makes that conclusion an
+independent ROM-backed contract. `make title-data-profile-audits` round-trips
+all 470 bytes from both source-built images.

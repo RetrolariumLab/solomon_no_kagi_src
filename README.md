@@ -241,6 +241,7 @@ make verify-revisions # verify complete USA and Europe source-built ROMs
 make ppu-update-profile-audits # round-trip localized USA/PAL PPU streams
 make object-animation-profile-audits # round-trip all USA/PAL animation tables
 make object-motion-profile-audits # round-trip all USA/PAL motion tables
+make title-data-profile-audits # round-trip relocated USA/PAL title/demo data
 make validate-revision-symbols PROFILE=europe # export and verify PAL debugger labels
 make validate-revision-symbol-profiles # verify USA and Europe debugger contracts
 make trace-revision-runtime PROFILE=europe # freshly capture and validate PAL traces

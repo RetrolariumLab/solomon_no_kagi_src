@@ -51,6 +51,7 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `object-motion-audit` | round-trip 524 bytes of pointers, selectors, and vectors |
 | `object-motion-profile-audits` | independently round-trip relocated USA and PAL pointer, selector, and motion-vector layouts |
 | `title-data-audit` | round-trip packed title streams and the adjacent attract-demo tables |
+| `title-data-profile-audits` | independently round-trip relocated USA/PAL title graphics and demo input |
 | `audio-data-audit` | check audio pointers, reachability, hashes, and byte round trips |
 | `release-audit` | cross-check the revision-3 manifest, identity, scope, evidence, toolchain, profiles, and artifacts |
 | `pre-tag-audit` | check clean tree, commit policy, release title, and local/remote tag absence |

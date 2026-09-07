@@ -213,6 +213,13 @@ bytes because its final license message is shorter. Two other text streams
 select a regional tile value. `make ppu-update-profile-audits` validates the
 split pointer tables, exact coverage, hashes, and lossless encoding for both.
 
+Packed title graphics and the attract-demo controller script move `$70` bytes
+earlier in PAL without changing their encoded content. USA uses
+`$CD5F-$CF34`; Europe uses `$CCEF-$CEC4`. Their separate manifests retain the
+same hashes for 402 title bytes and 68 demo bytes, while
+`make title-data-profile-audits` proves those values by decoding each regional
+source build at its own addresses.
+
 Run the combined source ownership gate with:
 
 ```console
@@ -674,7 +681,8 @@ classified and source-owned, and both images reproduce without post-link
 patching. The remaining release work is now evidence and authoring depth:
 
 1. make the remaining structured-data audits profile-aware where PAL differs
-   (object motion, object animation, and static PPU streams are complete);
+   (object motion, object animation, static PPU streams, and title/demo data
+   are complete);
 2. add higher-level composition naming and final emulator audition to Sound
    Studio, then author the other significant structured formats;
 3. expand the focused PAL baseline and existing USA matrix when a remaining

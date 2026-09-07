@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "profile": "europe",
+  "data_start": "0xccef",
+  "data_end": "0xce80",
+  "data_sha1": "b340f87a5996369b19d73f345c7cd1ea4f744874",
+  "demo_input": {
+    "duration_address": "0xce81",
+    "input_address": "0xcea3",
+    "end_address": "0xcec4",
+    "input_count": 34,
+    "encoded_size": 68,
+    "terminal_duration_alias": 0,
+    "duration_sha1": "645ce2d58f969c23586017d5644a6275660e92ae",
+    "input_sha1": "2bf822eac25015d0bf6f3accd1059979bfd6de50",
+    "data_sha1": "848146063087bfe3e1a4b7d19e5d6955255b0995"
+  },
+  "streams": [
+    {
+      "name": "record",
+      "address": "0xccef",
+      "end_address": "0xcd89",
+      "encoded_size": 155,
+      "command_count": 11,
+      "literal_run_count": 8,
+      "literal_tile_count": 144,
+      "literal_ppu_addresses": [
+        "0x28c6", "0x2906", "0x2946", "0x2986",
+        "0x28e6", "0x2926", "0x2966", "0x29a6"
+      ],
+      "sha1": "2ccfaf424d807714915405528af3af959cdbd513"
+    },
+    {
+      "name": "logo",
+      "address": "0xcd8a",
+      "end_address": "0xce80",
+      "encoded_size": 247,
+      "command_count": 14,
+      "literal_run_count": 9,
+      "literal_tile_count": 233,
+      "literal_ppu_addresses": [
+        "0x2a66", "0x2a85", "0x2aa3", "0x2ac2", "0x2ae2",
+        "0x2b01", "0x2b20", "0x2b60", "0x2b40"
+      ],
+      "sha1": "02d84ab043ac4c807fde0aae526a245ecb7a0c42"
+    }
+  ]
+}

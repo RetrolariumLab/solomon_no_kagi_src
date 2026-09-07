@@ -177,7 +177,8 @@ SOURCE_FILES := src/main.asm src/system/nmi.asm src/game/nmi_gameplay_interactio
 	object-animation-profile-audits \
 	object-motion-report object-motion-audit object-motion-profile-audit \
 	object-motion-profile-audits \
-	title-data-report title-data-audit audio-data-report audio-data-audit \
+	title-data-report title-data-audit title-data-profile-audit \
+	title-data-profile-audits audio-data-report audio-data-audit \
 	audio-profile-audit audio-profile-audits clean \
 	list-revisions identify-revision verify-revision-reference \
 	verify-revision-references split-revision-assets split-all \
@@ -613,6 +614,14 @@ title-data-report: $(ROM)
 
 title-data-audit: $(ROM)
 	$(PYTHON) scripts/title_data.py audit --image "$(ROM)"
+
+title-data-profile-audit: build-revision
+	$(PYTHON) scripts/title_data.py audit --image "$(REVISION_ROM)" \
+		--profile "$(PROFILE)"
+
+title-data-profile-audits:
+	$(MAKE) title-data-profile-audit PROFILE=usa
+	$(MAKE) title-data-profile-audit PROFILE=europe
 
 audio-data-report: $(ROM)
 	$(PYTHON) scripts/audio_data.py report --image "$(ROM)"
