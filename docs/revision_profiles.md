@@ -433,6 +433,15 @@ otherwise makes it look identical to a white block. Existing direct, repeated,
 and constellation item records are all visible; erasing one repeated placement
 shrinks the command and removes it when its last position disappears.
 
+Block and erase tools support continuous mouse strokes. The editor fills every
+logical cell on a Bresenham path between motion events, so fast diagonal or
+horizontal drags cannot leave gaps merely because the window received fewer
+mouse events. All cells touched during one press-drag-release gesture form one
+compound edit: repeated cells are ignored, a no-op stroke creates no history,
+and one `Ctrl+Z` restores both source bitplanes and every erased record from the
+entire gesture. Other tools retain their single-click semantics to prevent an
+accidental drag from cloning enemies, items, or room anchors.
+
 Whole-room actions fill the practical blank-canvas gap identified while
 reviewing `skchain`. `Copy` and `Paste` transfer an independent deep copy of
 the room's geometry, placed records, metadata, anchors, and terminating

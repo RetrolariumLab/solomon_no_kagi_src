@@ -90,6 +90,12 @@ ANCHOR_MODES = {
     "mirror 1": "mirror_1",
     "mirror 2": "mirror_2",
 }
+STROKE_MODES = {
+    "brown block": "brown",
+    "white block": "white",
+    "brown + white block": "brown_white",
+    "erase cell": "erase",
+}
 
 ITEM_IDENTITY_NAMES = {
     0x00: "Brown block (glitch)",
@@ -362,6 +368,29 @@ def catalog_preview(
     raise LevelEditorError(f"unknown element catalog kind: {kind!r}")
 
 
+def grid_line(start: tuple[int, int], end: tuple[int, int]) -> tuple[tuple[int, int], ...]:
+    """Return every logical cell crossed by an integer line, including ends."""
+    x, y = start
+    target_x, target_y = end
+    delta_x = abs(target_x - x)
+    step_x = 1 if x < target_x else -1
+    delta_y = -abs(target_y - y)
+    step_y = 1 if y < target_y else -1
+    error = delta_x + delta_y
+    cells = []
+    while True:
+        cells.append((x, y))
+        if x == target_x and y == target_y:
+            return tuple(cells)
+        twice_error = 2 * error
+        if twice_error >= delta_y:
+            error += delta_y
+            x += step_x
+        if twice_error <= delta_x:
+            error += delta_x
+            y += step_y
+
+
 def room_map_pattern_name(value: int) -> str:
     structural_names = {
         0x00: "Brown block / default solid cell",
@@ -553,6 +582,7 @@ class StudioDocument:
         self.document = document
         self.original = canonical_document(document)
         self.undo_stack: list[dict[str, Any]] = []
+        self.compound_before: dict[str, Any] | None = None
 
     @property
     def dirty(self) -> bool:
@@ -607,15 +637,43 @@ class StudioDocument:
         return self.mutate(apply)
 
     def mutate(self, callback: Callable[[], bool]) -> bool:
-        before = copy.deepcopy(self.document)
+        before = (
+            copy.deepcopy(self.document) if self.compound_before is None else None
+        )
         changed = callback()
-        if changed:
+        if changed and before is not None:
             self.undo_stack.append(before)
             if len(self.undo_stack) > 100:
                 del self.undo_stack[0]
         return changed
 
+    def begin_compound_edit(self) -> None:
+        if self.compound_before is not None:
+            raise LevelEditorError("a compound level edit is already active")
+        self.compound_before = copy.deepcopy(self.document)
+
+    def end_compound_edit(self) -> bool:
+        if self.compound_before is None:
+            return False
+        before = self.compound_before
+        self.compound_before = None
+        if before == self.document:
+            return False
+        self.undo_stack.append(before)
+        del self.undo_stack[:-100]
+        return True
+
+    def cancel_compound_edit(self) -> bool:
+        if self.compound_before is None:
+            return False
+        changed = self.compound_before != self.document
+        self.document = self.compound_before
+        self.compound_before = None
+        return changed
+
     def undo(self) -> bool:
+        if self.compound_before is not None:
+            raise LevelEditorError("finish the active compound edit before undo")
         if not self.undo_stack:
             return False
         self.document = self.undo_stack.pop()
@@ -2307,6 +2365,10 @@ class LevelStudio(tk.Tk):
         self.selected_x = tk.IntVar(value=0)
         self.selected_y = tk.IntVar(value=0)
         self.room_clipboard: dict[str, Any] | None = None
+        self.stroke_active = False
+        self.stroke_kind: str | None = None
+        self.stroke_last: tuple[int, int] | None = None
+        self.stroke_cells: set[tuple[int, int]] = set()
         self.property_vars = {
             "spawn_lifetime": tk.IntVar(),
             "time_decrease_rate": tk.IntVar(),
@@ -2371,7 +2433,9 @@ class LevelStudio(tk.Tk):
             highlightthickness=0,
         )
         self.canvas.pack(side="left", fill="both", expand=True)
-        self.canvas.bind("<Button-1>", self.canvas_click)
+        self.canvas.bind("<ButtonPress-1>", self.canvas_press)
+        self.canvas.bind("<B1-Motion>", self.canvas_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.canvas_release)
         self.canvas.bind("<Button-3>", self.erase_click)
 
         side = ttk.Frame(body, padding=(10, 0))
@@ -2548,6 +2612,7 @@ class LevelStudio(tk.Tk):
                 "Gold diamonds: items\n"
                 "Cyan S/B/O/H/R: scripted special data\n\n"
                 "Left click applies selected tool.\n"
+                "Drag continuously paints blocks or erases.\n"
                 "Repeat tool appends to selected item.\n"
                 "Right click erases the cell.\n"
                 "Ctrl+S save, Ctrl+Z undo, G grid.\n"
@@ -2964,6 +3029,80 @@ class LevelStudio(tk.Tk):
         except LevelEditorError as exc:
             messagebox.showerror("Cannot delete record", str(exc))
 
+    def canvas_press(self, event: tk.Event) -> None:
+        if self.mode.get() not in STROKE_MODES:
+            self.canvas_click(event)
+            return
+        try:
+            self.model.begin_compound_edit()
+            self.stroke_active = True
+            self.stroke_kind = STROKE_MODES[self.mode.get()]
+            self.stroke_last = None
+            self.stroke_cells.clear()
+            self.extend_stroke(self.canvas_cell(event))
+        except LevelEditorError as exc:
+            self.cancel_stroke()
+            messagebox.showerror("Invalid stroke", str(exc), parent=self)
+
+    def canvas_drag(self, event: tk.Event) -> None:
+        if not self.stroke_active:
+            return
+        try:
+            self.extend_stroke(self.canvas_cell(event))
+        except LevelEditorError as exc:
+            self.cancel_stroke()
+            messagebox.showerror("Invalid stroke", str(exc), parent=self)
+
+    def canvas_release(self, event: tk.Event) -> None:
+        if not self.stroke_active:
+            return
+        try:
+            self.extend_stroke(self.canvas_cell(event))
+            changed = self.model.end_compound_edit()
+            cell_count = len(self.stroke_cells)
+            self.stroke_active = False
+            self.stroke_kind = None
+            self.stroke_last = None
+            self.stroke_cells.clear()
+            if changed:
+                self.selection = None
+                self.redraw()
+                self.set_status(f"Painted {cell_count} cells as one edit")
+            else:
+                self.set_status("Stroke made no change")
+        except LevelEditorError as exc:
+            self.cancel_stroke()
+            messagebox.showerror("Invalid stroke", str(exc), parent=self)
+
+    def extend_stroke(self, cell: tuple[int, int]) -> None:
+        start = self.stroke_last if self.stroke_last is not None else cell
+        if self.stroke_kind is None:
+            raise LevelEditorError("stroke has no block or erase operation")
+        changed = False
+        for x, y in grid_line(start, cell):
+            if (x, y) in self.stroke_cells:
+                continue
+            self.stroke_cells.add((x, y))
+            if self.stroke_kind == "erase":
+                changed = self.model.erase_cell(self.room_index.get(), x, y) or changed
+            else:
+                changed = self.model.set_block(
+                    self.room_index.get(), self.stroke_kind, x, y
+                ) or changed
+        self.stroke_last = cell
+        if changed:
+            self.selection = None
+            self.redraw()
+            self.set_status(f"Painting {len(self.stroke_cells)} cells...")
+
+    def cancel_stroke(self) -> None:
+        self.model.cancel_compound_edit()
+        self.stroke_active = False
+        self.stroke_kind = None
+        self.stroke_last = None
+        self.stroke_cells.clear()
+        self.redraw()
+
     def canvas_click(self, event: tk.Event) -> None:
         x, y = self.canvas_cell(event)
         mode = self.mode.get()
@@ -3029,6 +3168,12 @@ class LevelStudio(tk.Tk):
             self.redraw()
 
     def undo(self) -> None:
+        if self.stroke_active:
+            self.model.end_compound_edit()
+            self.stroke_active = False
+            self.stroke_kind = None
+            self.stroke_last = None
+            self.stroke_cells.clear()
         if self.model.undo():
             self.load_properties()
             self.redraw()
@@ -3232,6 +3377,10 @@ class LevelStudio(tk.Tk):
         self.playtest_process = None
 
     def close(self) -> None:
+        if self.stroke_active:
+            self.model.end_compound_edit()
+            self.stroke_active = False
+            self.stroke_kind = None
         if self.model.dirty and not messagebox.askyesno(
             "Unsaved edits", "Discard unsaved level edits?"
         ):

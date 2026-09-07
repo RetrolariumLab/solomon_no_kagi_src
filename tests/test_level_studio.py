@@ -224,6 +224,31 @@ class DirtyStateTests(unittest.TestCase):
             model.set_anchor(0, "key", index % 16, (index // 16) % 12)
         self.assertLessEqual(len(model.undo_stack), 100)
 
+    def test_compound_edit_groups_many_cells_into_one_undo(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        before = copy.deepcopy(model.room(0)["blocks"])
+        model.begin_compound_edit()
+        model.set_block(0, "white", 4, 5)
+        model.set_block(0, "white", 5, 5)
+        model.set_block(0, "white", 6, 5)
+        self.assertEqual(model.undo_stack, [])
+        self.assertTrue(model.end_compound_edit())
+        self.assertEqual(len(model.undo_stack), 1)
+        self.assertTrue(model.undo())
+        self.assertEqual(model.room(0)["blocks"], before)
+
+    def test_noop_and_cancelled_compound_edits_leave_no_undo(self) -> None:
+        model = level_studio.StudioDocument(studio_document())
+        model.begin_compound_edit()
+        self.assertFalse(model.set_block(0, "brown", 1, 2))
+        self.assertFalse(model.end_compound_edit())
+        self.assertEqual(model.undo_stack, [])
+        model.begin_compound_edit()
+        model.set_block(0, "white", 7, 8)
+        self.assertTrue(model.cancel_compound_edit())
+        self.assertNotIn({"x": 7, "y": 8}, model.room(0)["blocks"]["white"])
+        self.assertEqual(model.undo_stack, [])
+
     def test_allocation_text_distinguishes_free_space_and_overflow(self) -> None:
         self.assertEqual(
             level_studio.LevelStudio.allocation_fragment("Items", 10, 12),
@@ -340,6 +365,28 @@ class BlockEditingTests(unittest.TestCase):
         model = level_studio.StudioDocument(studio_document())
         with self.assertRaisesRegex(level_studio.LevelEditorError, "block kind"):
             model.set_block(0, "glass", 1, 1)
+
+
+class StrokeEditingTests(unittest.TestCase):
+    def test_grid_line_includes_every_horizontal_and_diagonal_cell(self) -> None:
+        self.assertEqual(
+            level_studio.grid_line((2, 4), (6, 4)),
+            ((2, 4), (3, 4), (4, 4), (5, 4), (6, 4)),
+        )
+        diagonal = level_studio.grid_line((1, 1), (6, 4))
+        self.assertEqual((diagonal[0], diagonal[-1]), ((1, 1), (6, 4)))
+        self.assertEqual(len({*diagonal}), len(diagonal))
+        self.assertTrue(
+            all(
+                abs(right[0] - left[0]) <= 1 and abs(right[1] - left[1]) <= 1
+                for left, right in zip(diagonal, diagonal[1:])
+            )
+        )
+
+    def test_grid_line_is_reversible(self) -> None:
+        forward = level_studio.grid_line((0, 11), (15, 0))
+        backward = level_studio.grid_line((15, 0), (0, 11))
+        self.assertEqual(forward, tuple(reversed(backward)))
 
 
 class EntityEditingTests(unittest.TestCase):

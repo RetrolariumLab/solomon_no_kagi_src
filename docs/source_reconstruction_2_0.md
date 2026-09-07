@@ -134,7 +134,8 @@ must fit the original allocations; 2.0 does not silently expand or relocate
 the ROM.
 
 Level Studio is a thin interface over this headless model. Undo, whole-room
-copy/paste and safe content clearing, record inspection, room rendering, native
+copy/paste and safe content clearing, gap-free compound block/erase strokes,
+record inspection, room rendering, native
 CHR/palette previews, searchable native-art catalogs for all 108 enemy and 195
 item encodings, shared-table dialogs, allocation pressure, and FCEUX room
 playtests do not bypass codec validation. The runtime smoke gate enters one
