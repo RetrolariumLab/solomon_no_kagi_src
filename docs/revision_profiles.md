@@ -316,6 +316,16 @@ base ROM, then imports only these previously absent tables from that profile;
 existing authored room changes are retained. The upgraded document is written
 as schema 2 on its next Save.
 
+The `Special rooms` dialog authors those tables without exposing their physical
+profile addresses. Its bonus-room tab keeps the 32-position and 16-item cycles
+independent, matching the engine's separate indices. The fixed-cell tab edits
+the eight room-bound Seal positions and twelve Princess-room cells, while the
+bitplane tab toggles every logical cell in the room-20 bat-symbol and room-30
+blue-opal planes. All operations share the studio's bounded undo history and
+the same profile-selected encoder used by `Build ROM`. Cyan `S`, `B`, `O`, `H`,
+and `R` overlays project this otherwise invisible scripted content onto the
+rooms that consume it.
+
 ### Visual Level Studio
 
 Open the visual editor for either required profile with:

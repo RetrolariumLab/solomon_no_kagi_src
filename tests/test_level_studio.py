@@ -664,6 +664,30 @@ class MirrorDataEditingTests(unittest.TestCase):
 
 
 class SpecialRoomEditingTests(unittest.TestCase):
+    def test_projects_each_special_table_onto_its_runtime_room(self) -> None:
+        special = special_room_data()
+        special["room_20_bat_symbols"] = [{"x": 4, "y": 5}]
+        special["room_30_blue_opals"] = [{"x": 6, "y": 7}]
+        expected = {
+            9: {(0, 1, "S")},
+            20: {(4, 5, "B")},
+            30: {(6, 7, "O")},
+            49: {(index, 2, "H") for index in range(12)},
+            51: {(index % 16, index // 16, "R") for index in range(32)},
+        }
+        for room_number, values in expected.items():
+            with self.subTest(room=room_number):
+                overlays = level_studio.special_room_overlays(
+                    special, room_number
+                )
+                self.assertEqual(
+                    {(value.x, value.y, value.label) for value in overlays},
+                    values,
+                )
+
+    def test_unrelated_room_has_no_special_overlay(self) -> None:
+        self.assertEqual(level_studio.special_room_overlays(special_room_data(), 1), ())
+
     def test_updates_each_fixed_position_family_with_one_undo_path(self) -> None:
         model = level_studio.StudioDocument(studio_document())
         cases = (

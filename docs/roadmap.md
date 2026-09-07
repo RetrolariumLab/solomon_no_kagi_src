@@ -392,6 +392,8 @@ passes on the reviewed `main` commit.
   right-wall wrap risks without rewriting authored geometry.
   Level document schema 2 also round-trips the random bonus-room pool, Seal
   positions, Princess hidden cells, and special room 20/30 item bitplanes;
+  Level Studio exposes all six tables through undoable editors and projects
+  their scripted cells onto the applicable room canvases;
   legacy workspaces import only these absent tables from their verified ROM;
   Profile-specific FCEUX hooks enter the selected USA or PAL room through the
   original loader, with a two-profile runtime smoke gate;

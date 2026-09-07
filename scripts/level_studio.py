@@ -180,6 +180,16 @@ class ItemPlacement:
     position: dict[str, int]
 
 
+@dataclass(frozen=True)
+class SpecialRoomOverlay:
+    """One table-backed special-room marker projected onto the room grid."""
+
+    x: int
+    y: int
+    label: str
+    description: str
+
+
 def profile_integer(value: object, field: str) -> int:
     try:
         return int(value, 0) if isinstance(value, str) else int(value)
@@ -306,6 +316,9 @@ DIRECT_ITEM_TYPE_CHOICES = tuple(
     type_choice(value, item_type_name(value))
     for value in (*range(1, 0xC0), *range(0xFC, 0x100))
 )
+BONUS_ITEM_TYPE_CHOICES = tuple(
+    type_choice(value, item_type_name(value)) for value in range(1, 0xC0)
+)
 REPEATED_ITEM_TYPE_CHOICES = tuple(
     type_choice(value, item_type_name(value)) for value in range(0x100)
 )
@@ -342,6 +355,51 @@ def combined_block_positions(blocks: dict[str, Any]) -> set[tuple[int, int]]:
     brown = {(position["x"], position["y"]) for position in blocks["brown"]}
     white = {(position["x"], position["y"]) for position in blocks["white"]}
     return brown & white
+
+
+def special_room_overlays(
+    special: dict[str, Any], room_number: int
+) -> tuple[SpecialRoomOverlay, ...]:
+    """Project special tables onto the internal room that consumes them."""
+    overlays: list[SpecialRoomOverlay] = []
+    for record in special["solomon_seals"]:
+        if record["room"] == room_number:
+            position = record["position"]
+            overlays.append(
+                SpecialRoomOverlay(
+                    position["x"], position["y"], "S", "Solomon's Seal"
+                )
+            )
+    family: str | None = None
+    label = ""
+    description = ""
+    if room_number == 20:
+        family = "room_20_bat_symbols"
+        label = "B"
+        description = "scripted bat symbol"
+    elif room_number == 30:
+        family = "room_30_blue_opals"
+        label = "O"
+        description = "scripted blue opal"
+    elif room_number == 49:
+        family = "princess_room_hidden_cells"
+        label = "H"
+        description = "Princess-room hidden cell"
+    elif room_number == 51:
+        family = "random_bonus_room"
+        label = "R"
+        description = "random bonus-room position"
+    if family == "random_bonus_room":
+        positions = special[family]["positions"]
+    elif family is not None:
+        positions = special[family]
+    else:
+        positions = ()
+    overlays.extend(
+        SpecialRoomOverlay(position["x"], position["y"], label, description)
+        for position in positions
+    )
+    return tuple(overlays)
 
 
 def terminal_chr_bank(command: dict[str, Any]) -> int:
@@ -1590,6 +1648,425 @@ class MirrorDataDialog(tk.Toplevel):
             messagebox.showerror("Invalid Demon Mirror enemy set", str(exc), parent=self)
 
 
+class SpecialRoomDataDialog(tk.Toplevel):
+    """Edit table-backed objects that are added by special-room scripts."""
+
+    GRID_CELL = 26
+    BITPLANE_NAMES = {
+        "Room 20 bat symbols": "room_20_bat_symbols",
+        "Room 30 blue opals": "room_30_blue_opals",
+    }
+
+    def __init__(self, studio: "LevelStudio") -> None:
+        super().__init__(studio)
+        self.studio = studio
+        self.bonus_position_index = 0
+        self.bonus_item_index = 0
+        self.bonus_x = tk.IntVar(value=0)
+        self.bonus_y = tk.IntVar(value=0)
+        self.bonus_item_type = tk.StringVar()
+        self.fixed_family = "solomon_seals"
+        self.fixed_index = 0
+        self.fixed_x = tk.IntVar(value=0)
+        self.fixed_y = tk.IntVar(value=0)
+        self.bitplane_name = tk.StringVar(value=next(iter(self.BITPLANE_NAMES)))
+        self.bitplane_summary = tk.StringVar()
+        self.title(f"Special-room data [{studio.profile['id']}]")
+        self.geometry("820x590")
+        self.minsize(760, 540)
+        self.transient(studio)
+        self.build_ui()
+        self.refresh_bonus()
+        self.refresh_fixed()
+        self.redraw_bitplane()
+
+    @property
+    def special(self) -> dict[str, Any]:
+        return self.studio.model.document["special_room_data"]
+
+    def build_ui(self) -> None:
+        notebook = ttk.Notebook(self)
+        notebook.pack(fill="both", expand=True, padx=10, pady=10)
+        bonus_tab = ttk.Frame(notebook, padding=9)
+        fixed_tab = ttk.Frame(notebook, padding=9)
+        bitplane_tab = ttk.Frame(notebook, padding=9)
+        notebook.add(bonus_tab, text="Random bonus room")
+        notebook.add(fixed_tab, text="Fixed scripted cells")
+        notebook.add(bitplane_tab, text="Room 20 / 30 bitplanes")
+        self.build_bonus_tab(bonus_tab)
+        self.build_fixed_tab(fixed_tab)
+        self.build_bitplane_tab(bitplane_tab)
+
+    def build_bonus_tab(self, tab: ttk.Frame) -> None:
+        ttk.Label(
+            tab,
+            text=(
+                "The engine advances the 32-position and 16-item cycles "
+                "independently. Edit either source table without pairing rows."
+            ),
+            wraplength=720,
+            justify="left",
+        ).pack(fill="x", pady=(0, 8))
+        tables = ttk.Frame(tab)
+        tables.pack(fill="both", expand=True)
+        position_frame = ttk.LabelFrame(tables, text="32 position bytes", padding=7)
+        position_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        self.bonus_position_tree = ttk.Treeview(
+            position_frame,
+            columns=("index", "x", "y", "packed"),
+            show="headings",
+            height=13,
+            selectmode="browse",
+        )
+        for name, label, width in (
+            ("index", "Index", 55),
+            ("x", "X", 42),
+            ("y", "Y", 42),
+            ("packed", "Byte", 58),
+        ):
+            self.bonus_position_tree.heading(name, text=label)
+            self.bonus_position_tree.column(name, width=width, stretch=True)
+        self.bonus_position_tree.pack(fill="both", expand=True)
+        self.bonus_position_tree.bind(
+            "<<TreeviewSelect>>", self.select_bonus_position
+        )
+        position_edit = ttk.Frame(position_frame, padding=(0, 7, 0, 0))
+        position_edit.pack(fill="x")
+        self.build_xy_editor(
+            position_edit,
+            self.bonus_x,
+            self.bonus_y,
+            self.apply_bonus_position,
+        )
+
+        item_frame = ttk.LabelFrame(tables, text="16 item-type bytes", padding=7)
+        item_frame.pack(side="left", fill="both", expand=True, padx=(5, 0))
+        self.bonus_item_tree = ttk.Treeview(
+            item_frame,
+            columns=("index", "type", "name"),
+            show="headings",
+            height=13,
+            selectmode="browse",
+        )
+        for name, label, width in (
+            ("index", "Index", 55),
+            ("type", "Type", 55),
+            ("name", "Meaning", 210),
+        ):
+            self.bonus_item_tree.heading(name, text=label)
+            self.bonus_item_tree.column(name, width=width, stretch=name == "name")
+        self.bonus_item_tree.pack(fill="both", expand=True)
+        self.bonus_item_tree.bind("<<TreeviewSelect>>", self.select_bonus_item)
+        ttk.Combobox(
+            item_frame,
+            textvariable=self.bonus_item_type,
+            values=BONUS_ITEM_TYPE_CHOICES,
+            width=40,
+        ).pack(fill="x", pady=(7, 4))
+        ttk.Button(
+            item_frame,
+            text="Apply item type",
+            command=self.apply_bonus_item,
+        ).pack(fill="x")
+
+    @staticmethod
+    def build_xy_editor(
+        parent: ttk.Frame,
+        x_variable: tk.IntVar,
+        y_variable: tk.IntVar,
+        command: Callable[[], None],
+    ) -> None:
+        ttk.Label(parent, text="X").grid(row=0, column=0)
+        ttk.Spinbox(parent, from_=0, to=15, textvariable=x_variable, width=5).grid(
+            row=0, column=1, padx=(3, 9)
+        )
+        ttk.Label(parent, text="Y").grid(row=0, column=2)
+        ttk.Spinbox(parent, from_=-1, to=13, textvariable=y_variable, width=5).grid(
+            row=0, column=3, padx=(3, 9)
+        )
+        ttk.Button(parent, text="Apply position", command=command).grid(
+            row=0, column=4, sticky="ew"
+        )
+        parent.columnconfigure(4, weight=1)
+
+    def build_fixed_tab(self, tab: ttk.Frame) -> None:
+        ttk.Label(
+            tab,
+            text=(
+                "Seal rows retain their source room identity. Princess rows are "
+                "the twelve cells hidden by the internal room-48 script."
+            ),
+            wraplength=720,
+            justify="left",
+        ).pack(fill="x", pady=(0, 8))
+        self.fixed_tree = ttk.Treeview(
+            tab,
+            columns=("kind", "index", "room", "x", "y"),
+            show="headings",
+            height=16,
+            selectmode="browse",
+        )
+        for name, label, width in (
+            ("kind", "Table", 220),
+            ("index", "Index", 60),
+            ("room", "Room", 60),
+            ("x", "X", 50),
+            ("y", "Y", 50),
+        ):
+            self.fixed_tree.heading(name, text=label)
+            self.fixed_tree.column(name, width=width, stretch=name == "kind")
+        self.fixed_tree.pack(fill="both", expand=True)
+        self.fixed_tree.bind("<<TreeviewSelect>>", self.select_fixed_position)
+        editor = ttk.Frame(tab, padding=(0, 8, 0, 0))
+        editor.pack(fill="x")
+        self.build_xy_editor(
+            editor,
+            self.fixed_x,
+            self.fixed_y,
+            self.apply_fixed_position,
+        )
+
+    def build_bitplane_tab(self, tab: ttk.Frame) -> None:
+        controls = ttk.Frame(tab)
+        controls.pack(fill="x", pady=(0, 8))
+        ttk.Label(controls, text="Table").pack(side="left")
+        box = ttk.Combobox(
+            controls,
+            textvariable=self.bitplane_name,
+            values=tuple(self.BITPLANE_NAMES),
+            state="readonly",
+            width=28,
+        )
+        box.pack(side="left", padx=(7, 12))
+        box.bind("<<ComboboxSelected>>", self.redraw_bitplane)
+        ttk.Label(controls, textvariable=self.bitplane_summary).pack(side="left")
+        ttk.Label(
+            tab,
+            text=(
+                "Click a logical cell to toggle its source bit. The game expands "
+                "these 24-byte planes into bat symbols or blue opals at runtime."
+            ),
+            wraplength=720,
+            justify="left",
+        ).pack(fill="x", pady=(0, 8))
+        self.bitplane_canvas = tk.Canvas(
+            tab,
+            width=ROOM_WIDTH * self.GRID_CELL,
+            height=ROOM_HEIGHT * self.GRID_CELL,
+            bg="#101820",
+            highlightthickness=0,
+        )
+        self.bitplane_canvas.pack(anchor="center", pady=5)
+        self.bitplane_canvas.bind("<Button-1>", self.toggle_bitplane_cell)
+
+    def refresh_bonus(self) -> None:
+        self.bonus_position_tree.delete(*self.bonus_position_tree.get_children())
+        positions = self.special["random_bonus_room"]["positions"]
+        for index, position in enumerate(positions):
+            packed = ((position["y"] + 1) << 4) | position["x"]
+            self.bonus_position_tree.insert(
+                "",
+                "end",
+                iid=f"position-{index}",
+                values=(index, position["x"], position["y"], f"${packed:02X}"),
+            )
+        self.bonus_item_tree.delete(*self.bonus_item_tree.get_children())
+        for index, item_type in enumerate(
+            self.special["random_bonus_room"]["item_types"]
+        ):
+            self.bonus_item_tree.insert(
+                "",
+                "end",
+                iid=f"item-{index}",
+                values=(index, f"${item_type:02X}", item_type_name(item_type)),
+            )
+        self.select_tree_item(
+            self.bonus_position_tree, f"position-{self.bonus_position_index}"
+        )
+        self.select_tree_item(self.bonus_item_tree, f"item-{self.bonus_item_index}")
+        self.load_bonus_position()
+        self.load_bonus_item()
+
+    @staticmethod
+    def select_tree_item(tree: ttk.Treeview, item: str) -> None:
+        tree.selection_set(item)
+        tree.focus(item)
+        tree.see(item)
+
+    def select_bonus_position(self, _event: object = None) -> None:
+        selection = self.bonus_position_tree.selection()
+        if selection:
+            self.bonus_position_index = int(selection[0].split("-")[-1])
+            self.load_bonus_position()
+
+    def load_bonus_position(self) -> None:
+        position = self.special["random_bonus_room"]["positions"][
+            self.bonus_position_index
+        ]
+        self.bonus_x.set(position["x"])
+        self.bonus_y.set(position["y"])
+
+    def select_bonus_item(self, _event: object = None) -> None:
+        selection = self.bonus_item_tree.selection()
+        if selection:
+            self.bonus_item_index = int(selection[0].split("-")[-1])
+            self.load_bonus_item()
+
+    def load_bonus_item(self) -> None:
+        item_type = self.special["random_bonus_room"]["item_types"][
+            self.bonus_item_index
+        ]
+        self.bonus_item_type.set(type_choice(item_type, item_type_name(item_type)))
+
+    def apply_bonus_position(self) -> None:
+        try:
+            changed = self.studio.model.set_special_position(
+                "random_bonus_room",
+                self.bonus_position_index,
+                self.bonus_x.get(),
+                self.bonus_y.get(),
+            )
+            self.after_edit(changed, "Random bonus-room position updated")
+            self.refresh_bonus()
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid bonus-room position", str(exc), parent=self)
+
+    def apply_bonus_item(self) -> None:
+        try:
+            changed = self.studio.model.set_special_bonus_item_type(
+                self.bonus_item_index,
+                parse_type_choice(self.bonus_item_type.get(), "bonus item type"),
+            )
+            self.after_edit(changed, "Random bonus-room item updated")
+            self.refresh_bonus()
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid bonus-room item", str(exc), parent=self)
+
+    def refresh_fixed(self) -> None:
+        self.fixed_tree.delete(*self.fixed_tree.get_children())
+        for index, record in enumerate(self.special["solomon_seals"]):
+            position = record["position"]
+            self.fixed_tree.insert(
+                "",
+                "end",
+                iid=f"solomon_seals-{index}",
+                values=(
+                    "Solomon's Seal",
+                    index,
+                    record["room"],
+                    position["x"],
+                    position["y"],
+                ),
+            )
+        for index, position in enumerate(
+            self.special["princess_room_hidden_cells"]
+        ):
+            self.fixed_tree.insert(
+                "",
+                "end",
+                iid=f"princess_room_hidden_cells-{index}",
+                values=(
+                    "Princess hidden cell",
+                    index,
+                    49,
+                    position["x"],
+                    position["y"],
+                ),
+            )
+        item = f"{self.fixed_family}-{self.fixed_index}"
+        self.select_tree_item(self.fixed_tree, item)
+        self.load_fixed_position()
+
+    def select_fixed_position(self, _event: object = None) -> None:
+        selection = self.fixed_tree.selection()
+        if not selection:
+            return
+        item = selection[0]
+        if item.startswith("solomon_seals-"):
+            self.fixed_family = "solomon_seals"
+        else:
+            self.fixed_family = "princess_room_hidden_cells"
+        self.fixed_index = int(item.rsplit("-", 1)[-1])
+        self.load_fixed_position()
+
+    def load_fixed_position(self) -> None:
+        record = self.special[self.fixed_family][self.fixed_index]
+        position = (
+            record["position"] if self.fixed_family == "solomon_seals" else record
+        )
+        self.fixed_x.set(position["x"])
+        self.fixed_y.set(position["y"])
+
+    def apply_fixed_position(self) -> None:
+        try:
+            changed = self.studio.model.set_special_position(
+                self.fixed_family,
+                self.fixed_index,
+                self.fixed_x.get(),
+                self.fixed_y.get(),
+            )
+            self.after_edit(changed, "Scripted position updated")
+            self.refresh_fixed()
+        except (tk.TclError, LevelEditorError) as exc:
+            messagebox.showerror("Invalid scripted position", str(exc), parent=self)
+
+    def bitplane_family(self) -> str:
+        return self.BITPLANE_NAMES[self.bitplane_name.get()]
+
+    def redraw_bitplane(self, _event: object = None) -> None:
+        self.bitplane_canvas.delete("all")
+        positions = {
+            (position["x"], position["y"])
+            for position in self.special[self.bitplane_family()]
+        }
+        for y in range(ROOM_HEIGHT):
+            for x in range(ROOM_WIDTH):
+                active = (x, y) in positions
+                x0 = x * self.GRID_CELL
+                y0 = y * self.GRID_CELL
+                self.bitplane_canvas.create_rectangle(
+                    x0,
+                    y0,
+                    x0 + self.GRID_CELL,
+                    y0 + self.GRID_CELL,
+                    fill="#237a87" if active else "#182630",
+                    outline="#607080",
+                )
+                if active:
+                    self.bitplane_canvas.create_text(
+                        x0 + self.GRID_CELL // 2,
+                        y0 + self.GRID_CELL // 2,
+                        text="1",
+                        fill="white",
+                        font=("Consolas", 9, "bold"),
+                    )
+        self.bitplane_summary.set(f"{len(positions)} active cells / 192")
+
+    def toggle_bitplane_cell(self, event: tk.Event) -> None:
+        x = event.x // self.GRID_CELL
+        y = event.y // self.GRID_CELL
+        if not 0 <= x < ROOM_WIDTH or not 0 <= y < ROOM_HEIGHT:
+            return
+        family = self.bitplane_family()
+        positions = self.special[family]
+        enabled = not any(
+            position["x"] == x and position["y"] == y for position in positions
+        )
+        try:
+            changed = self.studio.model.set_special_bitplane_cell(
+                family, x, y, enabled
+            )
+            action = "enabled" if enabled else "disabled"
+            self.after_edit(changed, f"Special bitplane cell ({x}, {y}) {action}")
+            self.redraw_bitplane()
+        except LevelEditorError as exc:
+            messagebox.showerror("Invalid bitplane edit", str(exc), parent=self)
+
+    def after_edit(self, changed: bool, message: str) -> None:
+        self.studio.redraw()
+        self.studio.set_status(message if changed else "No change")
+
+
 class LevelStudio(tk.Tk):
     def __init__(
         self,
@@ -1678,6 +2155,7 @@ class LevelStudio(tk.Tk):
             ("Tileset", self.open_room_terminator),
             ("RoomMap art", self.open_room_map_patterns),
             ("Mirror data", self.open_mirror_data),
+            ("Special rooms", self.open_special_room_data),
             ("Play", self.play),
             ("Stop", self.stop_playtest),
         ):
@@ -1826,7 +2304,8 @@ class LevelStudio(tk.Tk):
                 "P player, K key, D door\n"
                 "M1/M2 Demon Mirrors\n"
                 "Red circles: enemies\n"
-                "Gold diamonds: items\n\n"
+                "Gold diamonds: items\n"
+                "Cyan S/B/O/H/R: scripted special data\n\n"
                 "Left click applies selected tool.\n"
                 "Repeat tool appends to selected item.\n"
                 "Right click erases the cell."
@@ -1835,6 +2314,9 @@ class LevelStudio(tk.Tk):
 
     def open_mirror_data(self) -> None:
         MirrorDataDialog(self)
+
+    def open_special_room_data(self) -> None:
+        SpecialRoomDataDialog(self)
 
     def open_room_map_patterns(self) -> None:
         RoomMapPatternDialog(self)
@@ -2308,6 +2790,23 @@ class LevelStudio(tk.Tk):
                 outline="#fff099",
             )
             self.draw_label(item.position, f"{item.item_type:02X}", "#201800")
+        for overlay in special_room_overlays(
+            self.model.document["special_room_data"], self.room_index.get() + 1
+        ):
+            if not 0 <= overlay.y < ROOM_HEIGHT:
+                continue
+            self.canvas.create_rectangle(
+                overlay.x * CELL + 3,
+                overlay.y * CELL + 3,
+                (overlay.x + 1) * CELL - 3,
+                (overlay.y + 1) * CELL - 3,
+                outline="#55ffff",
+                width=2,
+                dash=(3, 2),
+            )
+            self.draw_label(
+                {"x": overlay.x, "y": overlay.y}, overlay.label, "#55ffff"
+            )
         self.refresh_record_table()
         self.refresh_allocation()
         self.set_status(
