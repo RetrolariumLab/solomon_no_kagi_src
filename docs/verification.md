@@ -87,6 +87,16 @@ single coverage of every payload byte, and lossless re-encoding.
 `make ppu-update-profile-audits` applies that proof to the independently
 addressed and hashed USA and European source builds.
 
+## Public command smoke
+
+`make public-command-smoke` creates a disposable clone containing only tracked
+repository files, runs the real public `make lint` workflow there, and requires
+the clone to remain clean. This catches stale internal paths, missing tracked
+files, and accidental writes without requiring either private ROM image.
+
+The Source Reconstruction 2.1 aggregate gate runs this smoke after the complete
+published 2.0 regression gate and before the compatible-minor audit.
+
 ## Failure diagnostics
 
 The comparison script reports the first different byte. PRG failures include

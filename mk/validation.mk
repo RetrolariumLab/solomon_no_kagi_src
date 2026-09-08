@@ -263,8 +263,12 @@ source-2-check:
 source-2-minor-audit:
 	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) audit --release "$(SOURCE_2_MINOR_MANIFEST)"
 
+public-command-smoke:
+	$(RUN_TOOL) validation.public_command_smoke --project-root . --target lint
+
 source-2-minor-check:
 	$(MAKE) source-2-regression-check
+	$(MAKE) public-command-smoke
 	$(MAKE) source-2-minor-audit
 
 source-2-minor-pre-tag-check:

@@ -77,6 +77,7 @@ TARGET_GROUPS = (
         "Source Reconstruction 2.1 candidate",
         (
             ("source-2-minor-audit", "reconcile the compatible 2.1 delta"),
+            ("public-command-smoke", "run lint in a disposable tracked-only clone"),
             ("source-2-minor-check", "run the accepted 2.0 gate and 2.1 audit"),
             ("source-2-minor-pre-tag-check", "validate a clean 2.1 candidate"),
             ("source-2-minor-tag-check", "validate the checked-out 2.1 tag"),

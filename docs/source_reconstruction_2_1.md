@@ -47,7 +47,9 @@ make source-2-minor-audit
 
 The complete compatible-minor gate first executes the accepted 2.0 regression
 gate, including the transitive Source 1.0 checks, and only then validates the
-2.1 delta:
+2.1 delta. It also runs `make lint` as a real public command inside a disposable
+tracked-only clone, proving that the documented interface does not depend on
+untracked local files or mutate a clean checkout:
 
 ```console
 make source-2-minor-check

@@ -85,7 +85,13 @@
       "id": "self-contained-release-metadata",
       "kind": "release",
       "summary": "Define a self-contained compatible Source Reconstruction 2.1 boundary using only project-owned metadata and evidence.",
-      "evidence": ["config/source_reconstruction_2_1.json", "scripts/source_2_minor_release.py", "tests/test_source_2_minor_release.py", "docs/source_reconstruction_2_1.md"]
+      "evidence": ["config/source_reconstruction_2_1.json", "scripts/validation/source_2_minor_release.py", "tests/validation/test_source_2_minor_release.py", "docs/source_reconstruction_2_1.md"]
+    },
+    {
+      "id": "public-command-smoke",
+      "kind": "evidence",
+      "summary": "Execute the public lint workflow in a disposable tracked-only clone and reject stale paths, missing files, or worktree mutations.",
+      "evidence": ["public-command-smoke", "scripts/validation/public_command_smoke.py", "tests/validation/test_public_command_smoke.py"]
     }
   ],
   "requirements": {
@@ -104,6 +110,10 @@
     "responsibility_package_layout": {
       "status": "satisfied",
       "evidence": ["scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "tests/authoring", "tests/build", "tests/runtime", "tests/validation"]
+    },
+    "public_command_execution": {
+      "status": "satisfied",
+      "evidence": ["public-command-smoke", "scripts/validation/public_command_smoke.py", "tests/validation/test_public_command_smoke.py"]
     },
     "aggregate_source_2_minor_gate": {
       "status": "development",
@@ -149,6 +159,7 @@
     "config/source_reconstruction_2_1.json",
     "config/revision_profiles.json",
     "scripts/run.py",
+    "scripts/validation/public_command_smoke.py",
     "scripts/validation/source_2_minor_release.py",
     "scripts/validation/source_2_release.py",
     "Makefile",
@@ -163,6 +174,7 @@
     "lint",
     "test",
     "scaffold-check",
+    "public-command-smoke",
     "verify",
     "trace",
     "release-check",

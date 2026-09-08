@@ -110,6 +110,7 @@ ROMLESS_TEST_MODULES := \
 	tests.validation.test_prg_layout \
 	tests.validation.test_reconstruction_status \
 	tests.validation.test_release_history \
+	tests.validation.test_public_command_smoke \
 	tests.validation.test_source_2_minor_release
 
 .PHONY: all help build split verify verify-reference verify-built verify-header \
@@ -124,6 +125,7 @@ ROMLESS_TEST_MODULES := \
 	source-1-regression-check source-2-profile-audits \
 	source-2-release-audit source-2-static-check source-2-regression-check \
 	source-2-pre-tag-audit source-2-post-tag-audit source-2-check \
+	public-command-smoke \
 	source-2-minor-audit source-2-minor-check source-2-minor-pre-tag-check \
 	source-2-minor-tag-check \
 	validate-rooms room-data-audit chr-bank-report chr-bank-audit roundtrip-formats \
