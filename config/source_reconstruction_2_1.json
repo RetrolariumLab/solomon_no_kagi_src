@@ -16,8 +16,8 @@
   },
   "delta_history": {
     "from_exclusive": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
-    "through_inclusive": null,
-    "commit_count": 0,
+    "through_inclusive": "da91624c8a83a0e5b19c96880fcf97a703130999",
+    "commit_count": 25,
     "coverage_document": "docs/source_reconstruction_2_1.md"
   },
   "included_scope": [
@@ -380,7 +380,7 @@
     "history_policy": {
       "current_history_status": "development",
       "predecessor_commit": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
-      "development_branch": "sound-studio-playback",
+      "development_branch": "rewrite/source-2.1-modernization",
       "reason": "Source 2.1 is developed as non-empty attributed commits after the immutable published Source 2.0 tag."
     }
   }
