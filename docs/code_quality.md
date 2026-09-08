@@ -51,3 +51,11 @@ such as `; $B173` or `; $82AD D0 01`, are rejected as
 `machine-code-comment`. They duplicate the assembler listing without
 explaining behavior. `make format` removes these pure address/byte dumps
 automatically; a comment that also explains the code is kept.
+
+Important generated and authored outputs use the shared
+`scripts/build/atomic_io.py` writer: a uniquely named sibling temporary file is
+flushed before `os.replace` publishes it. ROMs, JSON documents, debugger label
+reports, formatted assembly, and WAV previews therefore never expose a partial
+destination. The FCEUX Lua capture scripts follow the same temporary-then-rename
+contract, and project lint rejects new direct Python `write_text`/`write_bytes`
+calls outside the shared owner.

@@ -105,6 +105,12 @@
       "kind": "release",
       "summary": "Expose the effective profiles, runtime matrix, toolchain, artifacts, licensing, and structured requirement evidence directly in the compatible-minor manifest.",
       "evidence": ["config/source_reconstruction_2_1.json", "scripts/validation/source_2_minor_release.py", "tests/validation/test_source_2_minor_release.py"]
+    },
+    {
+      "id": "atomic-output-publication",
+      "kind": "tooling",
+      "summary": "Publish authored ROMs and documents, debugger reports, formatted source, audio previews, and runtime results through temporary files and atomic replacement.",
+      "evidence": ["scripts/build/atomic_io.py", "tests/build/test_atomic_io.py", "scripts/build/project.py", "lint"]
     }
   ],
   "requirements": {
@@ -130,7 +136,7 @@
       "status": "satisfied",
       "evidence": {
         "targets": ["help", "lint", "scaffold-check"],
-        "files": ["Makefile", "mk/validation.mk", "scripts/build/project.py", "docs/verification.md"],
+        "files": ["Makefile", "mk/validation.mk", "scripts/build/atomic_io.py", "scripts/build/project.py", "tests/build/test_atomic_io.py", "docs/verification.md"],
         "scenarios": [],
         "artifacts": []
       }
@@ -273,9 +279,11 @@
     "config/revision_profiles.json",
     "scripts/run.py",
     "scripts/authoring/editor_workstation_smoke.py",
+    "scripts/build/atomic_io.py",
     "scripts/validation/public_command_smoke.py",
     "scripts/validation/source_2_minor_release.py",
     "scripts/validation/source_2_release.py",
+    "tests/build/test_atomic_io.py",
     "tests/validation/test_source_2_minor_release.py",
     "Makefile",
     "mk/authoring.mk",

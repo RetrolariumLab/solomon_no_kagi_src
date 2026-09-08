@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass, field
+import io
 import math
 from pathlib import Path
 import struct
@@ -13,6 +14,7 @@ import wave
 from typing import Any
 
 from scripts.authoring import audio_editor
+from scripts.build.atomic_io import atomic_write_bytes
 from scripts.build.project import ProjectError
 from scripts.build.revision_profiles import ROOT, get_profile, load_profiles
 from scripts.authoring.room_data import RoomDataError
@@ -479,12 +481,13 @@ def write_preview(
     maximum_frames = math.ceil(seconds * FRAME_RATES[timing])
     trace = trace_effect(document, effect_number, maximum_frames)
     payload = render_trace(trace, timing, sample_rate, enabled_voices)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(output), "wb") as target:
+    container = io.BytesIO()
+    with wave.open(container, "wb") as target:
         target.setnchannels(1)
         target.setsampwidth(2)
         target.setframerate(sample_rate)
         target.writeframes(payload)
+    atomic_write_bytes(output, container.getvalue())
     return trace
 
 

@@ -10,6 +10,8 @@ from pathlib import Path
 import re
 import sys
 
+from scripts.build.atomic_io import atomic_write_text
+
 
 RECORD_FIELD_RE = re.compile(r'(?:^|,)([a-z]+)=("(?:[^"]|"")*"|[^,]*)')
 VICE_LABEL_RE = re.compile(r"^al ([0-9A-Fa-f]{6}) \.([A-Za-z_][A-Za-z0-9_]*)$")
@@ -233,7 +235,7 @@ def write_fceux_labels(
     )
     for output_path, entries in groups:
         lines = [f"${address:04X}#{name}#\n" for address, name in choose_unique_addresses(entries)]
-        output_path.write_text("".join(lines), encoding="utf-8", newline="\n")
+        atomic_write_text(output_path, "".join(lines))
     return rom_path, ram_path
 
 
@@ -290,8 +292,7 @@ def main() -> int:
             if not args.summary.is_file() or args.summary.read_text(encoding="utf-8") != serialized:
                 raise SymbolError(f"stale debugger symbol summary: {args.summary}")
         else:
-            args.summary.parent.mkdir(parents=True, exist_ok=True)
-            args.summary.write_text(serialized, encoding="utf-8", newline="\n")
+            atomic_write_text(args.summary, serialized)
     except (OSError, SymbolError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1

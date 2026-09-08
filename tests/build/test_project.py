@@ -301,5 +301,35 @@ class ConfigLayoutTests(unittest.TestCase):
                 project.validate_config_layout(root)
 
 
+class AtomicOutputPolicyTests(unittest.TestCase):
+    def make_layout(self, root: Path) -> None:
+        atomic = root / "scripts" / "build" / "atomic_io.py"
+        atomic.parent.mkdir(parents=True)
+        atomic.write_text("path.write_bytes(payload)\n", encoding="utf-8")
+        runtime = root / "scripts" / "runtime"
+        runtime.mkdir(parents=True)
+        for name in ("capture_runtime_scenario.lua", "level_playtest.lua"):
+            (runtime / name).write_text(
+                'local temporary = output .. ".tmp"\nos.rename(temporary, output)\n',
+                encoding="utf-8",
+            )
+
+    def test_accepts_shared_atomic_writer_and_lua_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_layout(root)
+            project.validate_atomic_output_policy(root)
+
+    def test_rejects_direct_python_output_write(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_layout(root)
+            direct = root / "scripts" / "validation" / "report.py"
+            direct.parent.mkdir(parents=True)
+            direct.write_text("path.write_text(report)\n", encoding="utf-8")
+            with self.assertRaisesRegex(project.ProjectError, "non-atomic"):
+                project.validate_atomic_output_policy(root)
+
+
 if __name__ == "__main__":
     unittest.main()

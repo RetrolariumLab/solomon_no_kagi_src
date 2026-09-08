@@ -31,6 +31,10 @@ from the immutable 2.0 manifest. Every requirement uses structured
 `targets`, `files`, `scenarios`, and `artifacts` evidence; the minor aggregate
 remains `partial` only until the final clean pre-tag run is recorded.
 
+Important authoring and evidence outputs are now atomically published through
+a shared same-directory temporary writer. The same policy covers runtime Lua
+results, and `make lint` prevents a new Python tool from bypassing the writer.
+
 ## Repository layout
 
 Python tools and tests now occupy mirrored `authoring`, `build`, `runtime`, and

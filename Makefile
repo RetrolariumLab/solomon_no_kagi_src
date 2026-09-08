@@ -98,6 +98,7 @@ SOURCE_FILES := src/main.asm \
 	src/memory/hardware.inc src/memory/ram.inc
 MAKE_FRAGMENTS := mk/authoring.mk mk/profiles.mk mk/runtime.mk mk/validation.mk
 ROMLESS_TEST_MODULES := \
+	tests.build.test_atomic_io \
 	tests.build.test_make_help \
 	tests.build.test_project \
 	tests.build.test_script_runner \

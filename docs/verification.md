@@ -103,6 +103,11 @@ hashes, and licensing surface. Its requirement evidence is resolved by type:
 Make targets must exist, files and scenario manifests must be present, and
 artifact IDs must name declared byte-identical outputs.
 
+All important JSON, ROM, debugger report, formatted-source, audio-preview, and
+runtime-result writes are completed in a sibling temporary file before atomic
+publication. `make lint` rejects direct Python path writes outside that shared
+implementation and verifies the Lua capture scripts retain their rename step.
+
 ## Editor workstation actions
 
 `make editor-ui-smoke-profiles` opens each public studio in a disposable

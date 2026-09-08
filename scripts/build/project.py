@@ -7,7 +7,6 @@ import argparse
 import ast
 import hashlib
 import json
-import os
 from pathlib import Path, PurePosixPath
 import platform
 import re
@@ -16,6 +15,8 @@ import subprocess
 import sys
 from urllib.parse import unquote
 import zlib
+
+from scripts.build.atomic_io import atomic_write_bytes
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -137,10 +138,7 @@ def safe_asset_path(root: Path, relative: str) -> Path:
 def write_if_changed(path: Path, data: bytes) -> str:
     if path.is_file() and path.read_bytes() == data:
         return "OK"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_bytes(data)
-    os.replace(temporary, path)
+    atomic_write_bytes(path, data)
     return "WRITE"
 
 
@@ -566,6 +564,36 @@ def validate_config_layout(root: Path) -> None:
             raise ProjectError(f"missing config owner directory: config/{owner}")
 
 
+def validate_atomic_output_policy(root: Path) -> None:
+    """Reject direct important-output writes outside the shared atomic helper."""
+    offenders: list[str] = []
+    for path in sorted((root / "scripts").rglob("*.py")):
+        if path.name == "atomic_io.py":
+            continue
+        source = path.read_text(encoding="utf-8")
+        if re.search(r"\.write_(?:text|bytes)\s*\(", source):
+            offenders.append(path.relative_to(root).as_posix())
+    if offenders:
+        raise ProjectError("direct non-atomic output writes: " + ", ".join(offenders))
+    for name in ("capture_runtime_scenario.lua", "level_playtest.lua"):
+        source = (root / "scripts" / "runtime" / name).read_text(encoding="utf-8")
+        if ' .. ".tmp"' not in source or "os.rename(" not in source:
+            raise ProjectError(f"runtime output is not atomically published: {name}")
+
+
+def validate_atomic_output_policy(root: Path) -> None:
+    """Reject direct important-output writes outside the shared atomic helper."""
+    offenders: list[str] = []
+    for path in sorted((root / "scripts").rglob("*.py")):
+        if path.name == "atomic_io.py":
+            continue
+        source = path.read_text(encoding="utf-8")
+        if re.search(r"\.write_(?:text|bytes)\s*\(", source):
+            offenders.append(path.relative_to(root).as_posix())
+    if offenders:
+        raise ProjectError("direct non-atomic output writes: " + ", ".join(offenders))
+
+
 def command_lint(_args: argparse.Namespace) -> None:
     required = (
         "README.md",
@@ -658,6 +686,8 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_markdown_links(ROOT)
     validate_tool_layout(ROOT)
     validate_config_layout(ROOT)
+    validate_atomic_output_policy(ROOT)
+    validate_atomic_output_policy(ROOT)
     try:
         organization = json.loads(
             (ROOT / "config/reconstruction/source_organization.json").read_text(encoding="utf-8")
@@ -794,7 +824,8 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_tracked_outputs(ROOT)
     print(
         "[OK] project structure, manifests, source contract, Python/JSON syntax, "
-        "documentation links, source organization, and private/generated file policy"
+        "documentation links, atomic outputs, source organization, and "
+        "private/generated file policy"
     )
 
 

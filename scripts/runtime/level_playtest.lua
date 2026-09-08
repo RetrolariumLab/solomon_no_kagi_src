@@ -78,7 +78,9 @@ local function write_result(status)
     if result_path == nil or result_path == "" then
         return
     end
-    local output = assert(io.open(result_path, "w"))
+    local temporary_result_path = result_path .. ".tmp"
+    os.remove(temporary_result_path)
+    local output = assert(io.open(temporary_result_path, "w"))
     output:write(string.format(
         "status=%s requested_room=%02x current_room=%02x "
             .. "room_loads=%d gameplay_hits=%d frame=%d pc=%04x\n",
@@ -91,6 +93,7 @@ local function write_result(status)
         memory.getregister("pc")))
     output:write("trace=" .. table.concat(transitions, ",") .. "\n")
     output:close()
+    assert(os.rename(temporary_result_path, result_path))
 end
 
 local start_released = false

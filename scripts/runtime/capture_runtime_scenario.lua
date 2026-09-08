@@ -5,7 +5,9 @@ local scenario = assert(os.getenv("SOLOMON_RUNTIME_SCENARIO"))
 local max_frames = assert(tonumber(os.getenv("SOLOMON_RUNTIME_MAX_FRAMES")))
 local input_spec = os.getenv("SOLOMON_RUNTIME_INPUTS") or ""
 local patch_spec = os.getenv("SOLOMON_RUNTIME_PATCHES") or ""
-local output = assert(io.open(output_path, "w"))
+local temporary_output_path = output_path .. ".tmp"
+os.remove(temporary_output_path)
+local output = assert(io.open(temporary_output_path, "w"))
 local audio_probe = scenario == "audio-channel-priority"
 local pause_probe = scenario == "room-1-pause-resume"
 local death_probe = scenario == "room-1-life-loss-reload"
@@ -388,4 +390,5 @@ end
 
 emit("trace_end", scenario)
 output:close()
+assert(os.rename(temporary_output_path, output_path))
 emu.exit()
