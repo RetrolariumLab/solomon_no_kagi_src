@@ -169,6 +169,29 @@ class ReconstructionStatusTests(unittest.TestCase):
         targets = parse_make_targets(root / "Makefile")
         self.assertIn("build", targets)
         self.assertIn("source-1-audit", targets)
+        self.assertIn("source-2-check", targets)
+
+    def test_make_surface_includes_responsibility_fragments(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        (root / "mk").mkdir()
+        (root / "Makefile").write_text(
+            "include mk/validation.mk\nroot-target:\n\t@true\n",
+            encoding="utf-8",
+        )
+        (root / "mk" / "validation.mk").write_text(
+            "fragment-target:\n\t$(MAKE) root-target\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            parse_make_targets(root / "Makefile"),
+            {"root-target", "fragment-target"},
+        )
+        self.assertEqual(
+            make_recipe(root / "Makefile", "fragment-target"),
+            ["$(MAKE) root-target"],
+        )
 
     def test_release_contract_detects_metric_and_scenario_drift(self) -> None:
         root, release, metrics = self.make_release_fixture()

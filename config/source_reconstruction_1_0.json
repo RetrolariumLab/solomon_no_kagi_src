@@ -1,10 +1,6 @@
 {
-  "schema_version": 2,
-  "contract": {
-    "schema": "retrolarium.source_reconstruction_release_contract",
-    "version": 3,
-    "release_line": "1.0"
-  },
+  "schema_version": 3,
+  "release_line": "1.0",
   "release": {
     "name": "Source Reconstruction 1.0",
     "version": "1.0"
@@ -92,7 +88,7 @@
       "evidence": ["docs/runtime_evidence.md", "scenarios/runtime_scenarios.json", "config/debugger_breakpoints.json"]
     },
     {
-      "id": "release_contract_revision_3",
+      "id": "public_release_manifest",
       "kind": "release",
       "summary": "Pin toolchain inputs, classify licensing, enforce repository hygiene, and expose pre-tag and post-tag gates.",
       "evidence": ["config/toolchain.json", "docs/licensing.md", "docs/source_reconstruction_1_0.md"]

@@ -17,12 +17,14 @@ from typing import Any
 
 try:
     from .reconstruction_status import (
+        makefile_sources,
         parse_make_targets,
         validate_post_tag,
         validate_pre_tag,
     )
 except ImportError:  # Direct ``python scripts/source_2_release.py`` execution.
     from reconstruction_status import (
+        makefile_sources,
         parse_make_targets,
         validate_post_tag,
         validate_pre_tag,
@@ -30,7 +32,6 @@ except ImportError:  # Direct ``python scripts/source_2_release.py`` execution.
 
 
 ROOT = Path(__file__).resolve().parent.parent
-CONTRACT_SCHEMA = "retrolarium.source_reconstruction_release_contract"
 RELEASE_LINE = "2.0"
 RELEASE_TAG = "source-reconstruction-2.0"
 SUPPORTED_PROFILES = {"usa", "europe"}
@@ -124,26 +125,25 @@ def run_git(project_root: Path, *arguments: str) -> subprocess.CompletedProcess[
 
 def make_recipe(makefile: Path, target: str) -> list[str]:
     commands: list[str] = []
-    collecting = False
-    for line in makefile.read_text(encoding="utf-8").splitlines():
-        if not line.startswith((" ", "\t")):
-            collecting = line.startswith(f"{target}:")
-            continue
-        if collecting and line.startswith("\t"):
-            commands.append(line.strip())
+    for source in makefile_sources(makefile):
+        collecting = False
+        for line in source.read_text(encoding="utf-8").splitlines():
+            if not line.startswith((" ", "\t")):
+                collecting = line.startswith(f"{target}:")
+                continue
+            if collecting and line.startswith("\t"):
+                commands.append(line.strip())
     return commands
 
 
 def validate_contract_header(release: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    if release.get("schema_version") != 1:
+    if release.get("schema_version") != 2:
         errors.append("unsupported Source Reconstruction 2.0 manifest schema")
-    if release.get("contract") != {
-        "schema": CONTRACT_SCHEMA,
-        "version": 3,
-        "release_line": RELEASE_LINE,
-    }:
-        errors.append("release manifest does not adopt contract revision 3 for line 2.0")
+    if release.get("release_line") != RELEASE_LINE:
+        errors.append("release_line must be 2.0")
+    if "contract" in release:
+        errors.append("release manifest must contain only project-owned metadata")
     if release.get("release") != {
         "name": "Source Reconstruction 2.0",
         "version": "2.0",

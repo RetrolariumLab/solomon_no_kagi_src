@@ -39,14 +39,23 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
+def makefile_sources(path: Path) -> list[Path]:
+    """Return the root Makefile followed by its responsibility fragments."""
+
+    fragment_root = path.parent / "mk"
+    fragments = sorted(fragment_root.glob("*.mk")) if fragment_root.is_dir() else []
+    return [path, *fragments]
+
+
 def parse_make_targets(path: Path) -> set[str]:
     targets: set[str] = set()
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith((" ", "\t", ".")):
-            continue
-        match = MAKE_TARGET_RE.match(line)
-        if match:
-            targets.add(match.group(1))
+    for source in makefile_sources(path):
+        for line in source.read_text(encoding="utf-8").splitlines():
+            if line.startswith((" ", "\t", ".")):
+                continue
+            match = MAKE_TARGET_RE.match(line)
+            if match:
+                targets.add(match.group(1))
     return targets
 
 
@@ -469,15 +478,12 @@ def validate_release(
     metrics: dict[str, Any],
 ) -> list[str]:
     errors: list[str] = []
-    if release.get("schema_version") != 2:
+    if release.get("schema_version") != 3:
         errors.append("unsupported Source Reconstruction 1.0 manifest schema")
-    contract = release.get("contract")
-    if contract != {
-        "schema": "retrolarium.source_reconstruction_release_contract",
-        "version": 3,
-        "release_line": "1.0",
-    }:
-        errors.append("release manifest does not adopt contract revision 3 for line 1.0")
+    if release.get("release_line") != "1.0":
+        errors.append("release_line must be 1.0")
+    if "contract" in release:
+        errors.append("release manifest must contain only project-owned metadata")
     if release.get("release") != {
         "name": "Source Reconstruction 1.0",
         "version": "1.0",
