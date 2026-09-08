@@ -94,15 +94,26 @@ SOURCE_FILES := src/main.asm \
 	src/data/rooms/enemies.asm src/data/rooms/items.asm \
 	src/memory/hardware.inc src/memory/ram.inc
 MAKE_FRAGMENTS := mk/authoring.mk mk/profiles.mk mk/runtime.mk mk/validation.mk
+ROMLESS_TEST_MODULES := \
+	tests.test_make_help \
+	tests.test_asm_style \
+	tests.test_project \
+	tests.test_verify_rom \
+	tests.test_revision_profiles \
+	tests.test_reconstruction_status \
+	tests.test_runtime_scenarios \
+	tests.test_debug_symbols \
+	tests.test_prg_layout \
+	tests.test_room_data
 
-.PHONY: all build split verify verify-reference verify-built verify-header \
+.PHONY: all help build split verify verify-reference verify-built verify-header \
 	verify-prg verify-chr verify-payload verify-rom verify-assets check-assets \
 	verify-toolchain verify-build-toolchain verify-runtime-toolchain verify-host \
 	verify-private-input \
 	rom-info rom-info-reference rom-info-built symbols validate-symbols \
 	trace trace-runtime validate-runtime \
 	format format-check lint lint-asm \
-	lint-source lint-project test quality-check check release-audit pre-tag-audit \
+	lint-source lint-project test scaffold-check quality-check check release-audit pre-tag-audit \
 	release-static-check release-check source-1-audit source-1-post-tag-audit rooms \
 	source-1-regression-check source-2-profile-audits \
 	source-2-release-audit source-2-static-check source-2-regression-check \
@@ -146,6 +157,9 @@ MAKE_FRAGMENTS := mk/authoring.mk mk/profiles.mk mk/runtime.mk mk/validation.mk
 	validate-revision-runtime trace-revision-runtimes
 
 all: verify
+
+help:
+	@$(PYTHON) -m scripts.build.make_help
 
 $(BUILD_DIR):
 	$(PYTHON) scripts/project.py mkdir --path "$(BUILD_DIR)"

@@ -19,6 +19,9 @@ lint: lint-asm lint-source
 test:
 	$(PYTHON) -m unittest discover -s tests -v
 
+scaffold-check: lint
+	$(PYTHON) -m unittest $(ROMLESS_TEST_MODULES) -v
+
 rooms: $(ROM)
 	$(PYTHON) scripts/room_data.py --image "$(ROM)" --pretty
 
