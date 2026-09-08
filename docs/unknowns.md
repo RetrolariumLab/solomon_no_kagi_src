@@ -1,16 +1,27 @@
 # Unknowns and research queue
 
-Source Reconstruction 1.0 has no unresolved question that blocks its fixed USA
-profile. Neutral names remain where the original developers' historical intent
-cannot be proven; those are evidence boundaries, not missing binary ownership.
+Source Reconstruction 2.1 has no unresolved question that blocks the accepted
+USA or European fixed-layout profiles. Neutral names remain where the original
+developers' historical intent cannot be proven; those are evidence boundaries,
+not missing binary ownership.
 
-## Deferred to Source Reconstruction 2.0
+## Open and explicitly deferred
 
-1. Compare USA, Japan, and Europe PRG revisions without merging assumptions
-   from one profile into another. Region-specific source builds, PAL timing,
-   and independent identity gates are explicitly outside the 1.0 contract.
+1. Japan is hash-identified and its private CHR has an isolated extraction
+   path, but it has no complete source build or direct runtime matrix. It remains
+   a planned profile rather than an accepted 2.1 artifact.
+2. The USA and European runtime matrices cover critical boot, gameplay,
+   pause, death/reload, audio, scheduler, and transition paths; they do not
+   claim an exhaustive 53-room longplay or every ending/special-room branch.
+3. Systematic relocation, expanded images, mapper changes, and sibling engines
+   require a future major release because they change the fixed-layout ABI.
 
 ## Resolved questions
+
+- USA and Europe are independent complete source builds with byte-identical
+  image gates, profile-owned PAL timing/layout differences, direct runtime
+  evidence, and regional authoring round trips. Japan is kept separate rather
+  than borrowing conclusions from either accepted profile.
 
 - Every PRG byte is now separated into code, data, encoded stream, padding, or
   vector by `make prg-layout-audit`; there are no generated labels or raw

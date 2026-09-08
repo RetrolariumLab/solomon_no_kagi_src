@@ -111,6 +111,12 @@
       "kind": "tooling",
       "summary": "Publish authored ROMs and documents, debugger reports, formatted source, audio previews, and runtime results through temporary files and atomic replacement.",
       "evidence": ["scripts/build/atomic_io.py", "tests/build/test_atomic_io.py", "scripts/build/project.py", "lint"]
+    },
+    {
+      "id": "current-release-documentation",
+      "kind": "documentation",
+      "summary": "Distinguish published 1.0/2.0 tags from the 2.1 candidate, refresh open and resolved unknowns, and provide task-oriented navigation for the complete release document set.",
+      "evidence": ["README.md", "docs/index.md", "docs/unknowns.md", "docs/roadmap.md", "docs/revision_profiles.md"]
     }
   ],
   "requirements": {
@@ -166,6 +172,15 @@
         "files": ["scripts/authoring/editor_workstation_smoke.py", "tests/authoring/test_editor_workstation_smoke.py"],
         "scenarios": [],
         "artifacts": ["usa_nes_rom", "europe_nes_rom"]
+      }
+    },
+    "current_documentation": {
+      "status": "satisfied",
+      "evidence": {
+        "targets": ["lint", "source-2-minor-audit"],
+        "files": ["README.md", "CONTRIBUTING.md", "docs/index.md", "docs/architecture.md", "docs/source_layout.md", "docs/verification.md", "docs/data_formats.md", "docs/revision_profiles.md", "docs/licensing.md", "docs/provenance.md", "docs/unknowns.md", "docs/roadmap.md"],
+        "scenarios": [],
+        "artifacts": []
       }
     },
     "aggregate_source_2_minor_gate": {
@@ -261,6 +276,8 @@
     "README.md",
     "CONTRIBUTING.md",
     "docs/index.md",
+    "docs/architecture.md",
+    "docs/code_quality.md",
     "docs/source_reconstruction_1_0.md",
     "docs/source_reconstruction_2_0.md",
     "docs/source_reconstruction_2_1.md",
@@ -269,6 +286,9 @@
     "docs/runtime_evidence.md",
     "docs/data_formats.md",
     "docs/source_organization.md",
+    "docs/source_layout.md",
+    "docs/toolchain.md",
+    "docs/roadmap.md",
     "docs/licensing.md",
     "docs/provenance.md",
     "docs/unknowns.md"

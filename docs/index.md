@@ -24,7 +24,8 @@ ASM module.
   generated symbols, breakpoints, and watches.
 - [Naming policy](naming.md), [provenance](provenance.md), the machine-readable
   [rename ledger](provenance/label_renames.json), and
-  [unknowns](unknowns.md) define what semantic claims the source makes.
+  [open and resolved unknowns](unknowns.md) define what semantic claims the
+  source makes and which later-release questions remain explicitly deferred.
 - [Licensing and redistribution boundaries](licensing.md) classify project
   tools, imported material, reconstructed source, and private inputs separately.
 

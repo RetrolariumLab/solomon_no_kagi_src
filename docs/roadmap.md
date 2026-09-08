@@ -435,8 +435,9 @@ passes on the reviewed `main` commit.
   motion as tested regional codecs without claiming visual editors. Scheduler,
   AI, handler, and pointer tables remain engineering contracts rather than
   authored content;
-- Source Reconstruction 2.0 is tag-ready. Its bounded runtime matrix contains
-  ten direct USA and four direct PAL scenarios plus two profile-specific Level
+- Source Reconstruction 2.0 is published at the immutable annotated
+  `source-reconstruction-2.0` tag. Its bounded runtime matrix contains ten
+  direct USA and four direct PAL scenarios plus two profile-specific Level
   Studio room-entry smokes; future scenarios are added only for new claims;
 - Japanese reconstruction, expanded layouts, extra content studios, exact APU
   synthesis, rare-mechanic coverage, and deeper historical-intent research are
@@ -445,3 +446,14 @@ passes on the reviewed `main` commit.
 Castle Excellent / Castlequest research is related but intentionally outside
 this repository's byte-identity contract. It should receive its own project so
 that engines, platforms, and evidence do not become conflated.
+
+## Compatible reconstruction 2.1
+
+The 2.1 candidate retains every accepted 2.0 identity, profile, runtime, and
+fixed-layout capacity. Its compatible delta adds audible Sound Studio playback,
+native level-preview improvements, procedural bonus-room authoring, consolidated
+semantic source modules, responsibility-owned tooling/configuration, a stable
+public launcher and help surface, disposable public-command evidence, complete
+editor workstation actions, structured revision-5 release evidence, and atomic
+output publication. Final release status is set only after the aggregate gate
+passes from a clean build and the complete delta is pinned.

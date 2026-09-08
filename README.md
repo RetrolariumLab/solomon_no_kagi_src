@@ -12,13 +12,17 @@ subsystems.
 
 ## Current status
 
-- **Source Reconstruction 1.0 is tag-ready for the fixed USA profile.** Its
-  stable contract and tag procedure are in
+- **Source Reconstruction 1.0 is published for the fixed USA profile** as the
+  annotated `source-reconstruction-1.0` tag. Its stable contract is in
   [`docs/source_reconstruction_1_0.md`](docs/source_reconstruction_1_0.md).
-- **Source Reconstruction 2.0 is tag-ready.** USA and Europe are
-  complete byte-identical source profiles with direct runtime evidence and
-  profile-aware level/audio/graphics/presentation authoring; the additive release boundary and gates
-  are in [`docs/source_reconstruction_2_0.md`](docs/source_reconstruction_2_0.md).
+- **Source Reconstruction 2.0 is published** as the annotated
+  `source-reconstruction-2.0` tag. USA and Europe are complete byte-identical
+  source profiles with direct runtime evidence and profile-aware
+  level/audio/graphics/presentation authoring; the additive release boundary is
+  in [`docs/source_reconstruction_2_0.md`](docs/source_reconstruction_2_0.md).
+- **Source Reconstruction 2.1 is in development** as a compatible workflow,
+  editor-evidence, and repository-quality release. Its candidate boundary is
+  in [`docs/source_reconstruction_2_1.md`](docs/source_reconstruction_2_1.md).
 - The complete 65,552-byte iNES image assembles byte-for-byte.
 - `make verify` checks the header, PRG, CHR, complete payload, and complete file.
 - The complete PRG is assembled from registered semantic and classified-data
@@ -272,7 +276,11 @@ make trace-revision-runtimes # capture the complete USA and focused PAL matrices
 make source-2-release-audit # validate the additive 2.0 manifest and evidence bindings
 make source-2-static-check # check both profiles, codecs, studios, and symbols
 make source-2-regression-check # run published 1.0, then all technical 2.0 evidence
-make source-2-check # final clean-tree/tag-ready Source 2.0 release gate
+make source-2-check # historical clean-tree/pre-tag Source 2.0 gate
+make source-2-minor-audit # validate the compatible 2.1 delta and evidence
+make source-2-minor-check # run published 2.0 evidence, then all 2.1 checks
+make source-2-minor-pre-tag-check # validate the clean tag-ready 2.1 candidate
+make source-2-minor-tag-check # validate the checked-out published 2.1 tag
 make verify      # complete original-vs-build byte-identity contract
 make verify-prg  # compare only the 32 KiB PRG region
 make verify-chr  # compare only the 32 KiB CHR region in built/original ROMs

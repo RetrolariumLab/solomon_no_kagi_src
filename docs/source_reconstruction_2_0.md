@@ -6,11 +6,11 @@ changing its entrypoint, hashes, or release manifest, and adds a complete
 European source build, regional runtime evidence, and verified level, audio,
 CHR graphics, and title/demo presentation authoring models.
 
-The machine-readable contract is
-`config/source_reconstruction_2_0.json`. Its current status is `tag-ready`:
-the accepted technical scope and bounded exclusions have completed review, and
-the release tag is created only after `make source-2-check` passes on this exact
-clean release commit.
+The machine-readable contract is `config/source_reconstruction_2_0.json`. Its
+embedded status remains `tag-ready`, recording the state that was reviewed
+before the annotated `source-reconstruction-2.0` tag was published. The tag is
+immutable and identifies the exact clean commit on which `make source-2-check`
+passed.
 
 ## Predecessor and immutable baseline
 

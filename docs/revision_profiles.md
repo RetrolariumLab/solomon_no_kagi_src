@@ -18,6 +18,19 @@ USA and Europe are now both complete source profiles whose PRG and complete
 iNES images reproduce their references byte for byte. Japan is recorded as a
 verified research input and is not required by the minimum 2.0 scope.
 
+## Contents
+
+- [Known private images](#known-private-images)
+- [Commands](#commands)
+- [Room-data comparison](#room-data-comparison)
+- [Source and binary boundaries](#source-and-binary-boundaries)
+- [Planned build structure](#planned-build-structure)
+- [Level editor boundary](#level-editor-boundary)
+- [Audio authoring document](#audio-authoring-document)
+- [Graphics authoring document](#graphics-authoring-document)
+- [Presentation authoring document](#presentation-authoring-document)
+- [Source 2.0 release boundary](#source-20-release-boundary)
+
 ## Known private images
 
 | Profile | Timing | Complete SHA-256 | PRG SHA-256 | CHR relationship | Source status |
@@ -886,10 +899,10 @@ but exact console synthesis and subjective source-built emulator audition are
 not claimed. The direct ten-scenario USA and four-scenario PAL matrices are
 bounded evidence rather than exhaustive longplays.
 
-The manifest is `tag-ready`. Run `make source-2-check` on the exact clean
-release commit before creating the annotated tag. Japanese reconstruction,
-expanded ROMs, mapper changes, unclaimed studios, and rarer runtime paths remain
-later explicitly scoped work.
+The immutable 2.0 manifest records the `tag-ready` state that was accepted in
+the published annotated `source-reconstruction-2.0` tag. Japanese
+reconstruction, expanded ROMs, mapper changes, unclaimed studios, and rarer
+runtime paths remain later explicitly scoped work.
 
 Regional work must not weaken the byte-identical USA build or mutate the
 Source 1.0 manifest retroactively.
