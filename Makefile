@@ -8,6 +8,8 @@ VERIFY_ROM := scripts/verify_rom.py
 TOOLCHAIN_MANIFEST := config/toolchain.json
 SOURCE_2_RELEASE_MANIFEST := config/source_reconstruction_2_0.json
 SOURCE_2_RELEASE_TOOL := scripts/source_2_release.py
+SOURCE_2_MINOR_MANIFEST := config/source_reconstruction_2_1.json
+SOURCE_2_MINOR_TOOL := scripts/source_2_minor_release.py
 REVISION_MANIFEST := config/revision_profiles.json
 REVISION_TOOL := scripts/revision_profiles.py
 LEVEL_EDITOR := scripts/level_editor.py
@@ -101,6 +103,7 @@ ROMLESS_TEST_MODULES := \
 	tests.test_verify_rom \
 	tests.test_revision_profiles \
 	tests.test_reconstruction_status \
+	tests.test_source_2_minor_release \
 	tests.test_runtime_scenarios \
 	tests.test_debug_symbols \
 	tests.test_prg_layout \
@@ -118,6 +121,8 @@ ROMLESS_TEST_MODULES := \
 	source-1-regression-check source-2-profile-audits \
 	source-2-release-audit source-2-static-check source-2-regression-check \
 	source-2-pre-tag-audit source-2-post-tag-audit source-2-check \
+	source-2-minor-audit source-2-minor-check source-2-minor-pre-tag-check \
+	source-2-minor-tag-check \
 	validate-rooms room-data-audit chr-bank-report chr-bank-audit roundtrip-formats \
 	reconstruction-status reconstruction-audit \
 	prg-layout-report prg-layout-audit format-coverage-audit \

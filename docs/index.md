@@ -11,6 +11,8 @@ ASM module.
   USA scope and tag gate.
 - [Source Reconstruction 2.0](source_reconstruction_2_0.md) defines the
   additive USA/PAL source, runtime, authoring, and release-gate contract.
+- [Source Reconstruction 2.1 candidate](source_reconstruction_2_1.md) records
+  the compatible post-2.0 delta and repository-quality work.
 - [Revision profiles](revision_profiles.md) define the active 2.0 USA, Europe,
   and Japan identities, private-asset boundary, room comparisons, and planned
   regional build structure.

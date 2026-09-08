@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "release_line": "2.x",
+  "release": {
+    "name": "Source Reconstruction 2.1",
+    "version": "2.1"
+  },
+  "release_kind": "compatible_minor",
+  "tag": "source-reconstruction-2.1",
+  "status": "development",
+  "publish_remote": "origin",
+  "predecessor": {
+    "manifest": "config/source_reconstruction_2_0.json",
+    "tag": "source-reconstruction-2.0",
+    "commit": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9"
+  },
+  "delta_history": {
+    "from_exclusive": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
+    "through_inclusive": null,
+    "commit_count": 0,
+    "coverage_document": "docs/source_reconstruction_2_1.md"
+  },
+  "included_scope": [
+    "inherited-source-reconstruction-2.0-contract",
+    "audible-regional-sound-studio",
+    "native-level-preview-fidelity",
+    "procedural-bonus-room-authoring",
+    "maintainable-semantic-source-layout",
+    "public-repository-workflow"
+  ],
+  "excluded_scope": [
+    {
+      "id": "japanese-source-profile",
+      "status": "planned",
+      "reason": "The Japanese image still has no complete source build or direct runtime matrix."
+    },
+    {
+      "id": "systematic-relocation-or-expanded-rom",
+      "status": "unsupported",
+      "reason": "A new layout ABI belongs to a future major release rather than compatible Source 2.x."
+    },
+    {
+      "id": "sibling-or-later-engine",
+      "status": "unsupported",
+      "reason": "Other Solomon's Key engines require an independent architecture and release decision."
+    },
+    {
+      "id": "exhaustive-room-and-ending-runtime",
+      "status": "partial",
+      "reason": "The inherited direct critical-path matrix is retained without claiming a complete longplay."
+    }
+  ],
+  "delta": [
+    {
+      "id": "sound-studio-playback",
+      "kind": "tooling",
+      "summary": "Add channel-aware audible playback, music browsing, and corrected tonal timing to the regional Sound Studio.",
+      "evidence": ["scripts/sound_studio.py", "scripts/audio_preview.py", "check-sound-studio", "docs/audio_engine.md"]
+    },
+    {
+      "id": "level-preview-fidelity",
+      "kind": "tooling",
+      "summary": "Render native Dana, enemy, hidden-object, block, bat, and Solomon Seal presentation in the visual room editor.",
+      "evidence": ["scripts/level_studio.py", "scripts/level_preview.py", "check-level-studio"]
+    },
+    {
+      "id": "procedural-bonus-rooms",
+      "kind": "tooling",
+      "summary": "Decode and expose the quartet-dependent procedural bonus-room layouts and object variants.",
+      "evidence": ["scripts/level_editor.py", "scripts/level_studio.py", "roundtrip-level-profiles"]
+    },
+    {
+      "id": "semantic-source-layout",
+      "kind": "source",
+      "summary": "Consolidate address-contiguous assembly fragments into reviewable subsystem modules with enforced size exceptions.",
+      "evidence": ["src/main.asm", "config/source_organization.json", "docs/source_organization.md", "lint"]
+    },
+    {
+      "id": "repository-workflow",
+      "kind": "tooling",
+      "summary": "Split Make orchestration by responsibility and add categorized help plus a tested ROM-less scaffold gate.",
+      "evidence": ["Makefile", "mk/authoring.mk", "mk/profiles.mk", "mk/runtime.mk", "mk/validation.mk", "help", "scaffold-check"]
+    },
+    {
+      "id": "self-contained-release-metadata",
+      "kind": "release",
+      "summary": "Define a self-contained compatible Source Reconstruction 2.1 boundary using only project-owned metadata and evidence.",
+      "evidence": ["config/source_reconstruction_2_1.json", "scripts/source_2_minor_release.py", "tests/test_source_2_minor_release.py", "docs/source_reconstruction_2_1.md"]
+    }
+  ],
+  "requirements": {
+    "source_2_baseline_inheritance": {
+      "status": "satisfied",
+      "evidence": ["source-2-regression-check", "config/source_reconstruction_2_0.json"]
+    },
+    "self_contained_release_metadata": {
+      "status": "satisfied",
+      "evidence": ["config/source_reconstruction_2_1.json", "scripts/source_2_minor_release.py", "tests/test_source_2_minor_release.py"]
+    },
+    "repository_quality_hardening": {
+      "status": "development",
+      "evidence": ["help", "scaffold-check", "mk/validation.mk"]
+    },
+    "responsibility_package_layout": {
+      "status": "planned",
+      "evidence": ["docs/source_reconstruction_2_1.md"]
+    },
+    "aggregate_source_2_minor_gate": {
+      "status": "development",
+      "evidence": ["source-2-minor-check", "source-2-minor-audit"]
+    }
+  },
+  "inherited_sections": [
+    {"id": "profiles", "sha256": "d8badd6cbe6a03517ef8eecfbdbb1c5b006b8a88923bda681b80fc2ad5690163"},
+    {"id": "runtime_coverage", "sha256": "3596ac232baafda9012488293bb33e867150dac39561e70fe3e8ab242a72e3cc"},
+    {"id": "toolchain", "sha256": "73ce1613f958d065c33212751685e0bc7fea6d90e6f59f955c39e79426ab0190"},
+    {"id": "artifacts", "sha256": "2df25dffb17fd38de5271432760cd4f3ed2cb24af042945046b25d917969d4d9"},
+    {"id": "authoring", "sha256": "61ff8c70585778cf4ec11c661e64139c923f78c6f0735ac07487b03bbff99366"},
+    {"id": "structured_data_contracts", "sha256": "dd3d74f48257215e51fa680c2bbb92cdde0c338ce621c17d0cba5d1419b67adb"},
+    {"id": "licensing", "sha256": "91496d368288cc26a7d049dd87aa2b8a59207f0c00088b0d79cc0374f9c5d7db"},
+    {"id": "provenance", "sha256": "cb93223e8835210d064a0981a4960a5b86d22a808c248073cc4e349412f3176f"}
+  ],
+  "accepted_profiles": [
+    {"id": "usa", "identity": "byte-identical", "runtime": "direct", "artifact": "usa_nes_rom"},
+    {"id": "europe", "identity": "byte-identical", "runtime": "direct", "artifact": "europe_nes_rom"}
+  ],
+  "aggregate_gates": {
+    "pre_tag": ["make source-2-minor-pre-tag-check"],
+    "post_tag": ["make source-2-minor-tag-check"]
+  },
+  "required_documents": [
+    "README.md",
+    "CONTRIBUTING.md",
+    "docs/index.md",
+    "docs/source_reconstruction_1_0.md",
+    "docs/source_reconstruction_2_0.md",
+    "docs/source_reconstruction_2_1.md",
+    "docs/revision_profiles.md",
+    "docs/verification.md",
+    "docs/runtime_evidence.md",
+    "docs/data_formats.md",
+    "docs/source_organization.md",
+    "docs/licensing.md",
+    "docs/provenance.md",
+    "docs/unknowns.md"
+  ],
+  "required_files": [
+    "config/source_reconstruction_2_0.json",
+    "config/source_reconstruction_2_1.json",
+    "config/revision_profiles.json",
+    "scripts/source_2_minor_release.py",
+    "scripts/source_2_release.py",
+    "Makefile",
+    "mk/authoring.mk",
+    "mk/profiles.mk",
+    "mk/runtime.mk",
+    "mk/validation.mk"
+  ],
+  "release_commands": [
+    "help",
+    "format",
+    "lint",
+    "test",
+    "scaffold-check",
+    "verify",
+    "trace",
+    "release-check",
+    "source-2-regression-check",
+    "source-2-minor-audit",
+    "source-2-minor-check",
+    "source-2-minor-pre-tag-check",
+    "source-2-minor-tag-check"
+  ],
+  "layout_deviations": [
+    {
+      "rule_id": "flat-script-layout",
+      "actual_path": "scripts/*.py",
+      "reason": "Published Source 2.0 evidence still names stable top-level script paths while responsibility migration is in progress.",
+      "equivalent_control": "Every tool remains explicitly owned by Make and the release manifests until one vertical package migration updates all paths."
+    },
+    {
+      "rule_id": "flat-config-layout",
+      "actual_path": "config/*.json",
+      "reason": "Published profile, debugger, reconstruction, and authoring manifests currently share the config root.",
+      "equivalent_control": "Each file has one validator and is explicitly listed by its owning release or profile contract."
+    }
+  ],
+  "resolved_layout_deviations": [
+    {
+      "rule_id": "root-makefile-size",
+      "resolution": "The root Makefile is below 300 lines and independent workflows live in responsibility-named mk fragments.",
+      "evidence": ["Makefile", "mk/authoring.mk", "mk/profiles.mk", "mk/runtime.mk", "mk/validation.mk"]
+    },
+    {
+      "rule_id": "public-command-discovery",
+      "resolution": "A tested categorized make help page documents the stable public interface.",
+      "evidence": ["scripts/build/make_help.py", "tests/test_make_help.py", "help"]
+    },
+    {
+      "rule_id": "romless-public-validation",
+      "resolution": "The scaffold gate runs repository lint and synthetic contract tests without private images.",
+      "evidence": ["scaffold-check", "tests/test_project.py", "tests/test_revision_profiles.py"]
+    }
+  ],
+  "provenance": {
+    "private_inputs_tracked": false,
+    "generated_outputs_tracked": false,
+    "history_policy": {
+      "current_history_status": "development",
+      "predecessor_commit": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
+      "development_branch": "sound-studio-playback",
+      "reason": "Source 2.1 is developed as non-empty attributed commits after the immutable published Source 2.0 tag."
+    }
+  }
+}

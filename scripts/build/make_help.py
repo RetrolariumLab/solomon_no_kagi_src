@@ -63,7 +63,7 @@ TARGET_GROUPS = (
         ),
     ),
     (
-        "Source reconstruction releases",
+        "Published reconstruction releases",
         (
             ("source-1-regression-check", "re-run the published Source 1 gate"),
             ("source-2-release-audit", "reconcile the Source 2 manifest"),
@@ -71,6 +71,15 @@ TARGET_GROUPS = (
             ("source-2-regression-check", "re-run the published Source 2 gate"),
             ("source-2-pre-tag-audit", "check Source 2 tag readiness"),
             ("source-2-post-tag-audit", "validate the checked-out Source 2 tag"),
+        ),
+    ),
+    (
+        "Source Reconstruction 2.1 candidate",
+        (
+            ("source-2-minor-audit", "reconcile the compatible 2.1 delta"),
+            ("source-2-minor-check", "run the accepted 2.0 gate and 2.1 audit"),
+            ("source-2-minor-pre-tag-check", "validate a clean 2.1 candidate"),
+            ("source-2-minor-tag-check", "validate the checked-out 2.1 tag"),
         ),
     ),
 )

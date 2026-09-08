@@ -259,3 +259,18 @@ source-2-regression-check:
 source-2-check:
 	$(MAKE) source-2-regression-check
 	$(MAKE) source-2-pre-tag-audit
+
+source-2-minor-audit:
+	$(PYTHON) $(SOURCE_2_MINOR_TOOL) audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+
+source-2-minor-check:
+	$(MAKE) source-2-regression-check
+	$(MAKE) source-2-minor-audit
+
+source-2-minor-pre-tag-check:
+	$(MAKE) source-2-minor-check
+	$(PYTHON) $(SOURCE_2_MINOR_TOOL) pre-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+
+source-2-minor-tag-check:
+	$(MAKE) source-2-regression-check
+	$(PYTHON) $(SOURCE_2_MINOR_TOOL) post-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
