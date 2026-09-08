@@ -49,6 +49,7 @@ TARGET_GROUPS = (
             ("roundtrip-audio-profiles", "round-trip audio for both profiles"),
             ("roundtrip-graphics-profiles", "round-trip graphics for both profiles"),
             ("roundtrip-presentation-profiles", "round-trip presentation data"),
+            ("editor-ui-smoke-profiles", "exercise public actions in all editors"),
         ),
     ),
     (

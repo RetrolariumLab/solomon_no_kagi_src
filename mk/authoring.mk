@@ -161,3 +161,11 @@ check-presentation-studio:
 		--profile usa --check
 	$(RUN_TOOL) $(PRESENTATION_STUDIO) --profiles "$(REVISION_MANIFEST)" \
 		--profile europe --check
+
+editor-ui-smoke-profile:
+	$(RUN_TOOL) authoring.editor_workstation_smoke \
+		--profiles "$(REVISION_MANIFEST)" --profile "$(PROFILE)"
+
+editor-ui-smoke-profiles:
+	$(MAKE) editor-ui-smoke-profile PROFILE=usa
+	$(MAKE) editor-ui-smoke-profile PROFILE=europe

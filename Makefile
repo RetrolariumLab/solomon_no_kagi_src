@@ -152,6 +152,7 @@ ROMLESS_TEST_MODULES := \
 	export-levels validate-levels build-levels roundtrip-levels \
 	roundtrip-level-profiles level-summary level-studio check-level-studio \
 	check-level-block-reference smoke-level-playtest smoke-level-playtests \
+	editor-ui-smoke-profile editor-ui-smoke-profiles \
 	export-audio validate-audio build-audio roundtrip-audio \
 	roundtrip-audio-profiles audio-summary preview-audio sound-studio \
 	check-sound-studio \

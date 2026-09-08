@@ -26,7 +26,8 @@
     "native-level-preview-fidelity",
     "procedural-bonus-room-authoring",
     "maintainable-semantic-source-layout",
-    "public-repository-workflow"
+    "public-repository-workflow",
+    "editor-workstation-action-evidence"
   ],
   "excluded_scope": [
     {
@@ -92,6 +93,12 @@
       "kind": "evidence",
       "summary": "Execute the public lint workflow in a disposable tracked-only clone and reject stale paths, missing files, or worktree mutations.",
       "evidence": ["public-command-smoke", "scripts/validation/public_command_smoke.py", "tests/validation/test_public_command_smoke.py"]
+    },
+    {
+      "id": "editor-workstation-actions",
+      "kind": "evidence",
+      "summary": "Exercise Save, Build, Preview or Play, and dirty-close behavior through the public Level, Sound, Graphics, and Presentation Studio actions for both accepted profiles.",
+      "evidence": ["editor-ui-smoke-profiles", "scripts/authoring/editor_workstation_smoke.py", "tests/authoring/test_editor_workstation_smoke.py"]
     }
   ],
   "requirements": {
@@ -114,6 +121,10 @@
     "public_command_execution": {
       "status": "satisfied",
       "evidence": ["public-command-smoke", "scripts/validation/public_command_smoke.py", "tests/validation/test_public_command_smoke.py"]
+    },
+    "editor_interaction_evidence": {
+      "status": "satisfied",
+      "evidence": ["editor-ui-smoke-profiles", "scripts/authoring/editor_workstation_smoke.py", "tests/authoring/test_editor_workstation_smoke.py"]
     },
     "aggregate_source_2_minor_gate": {
       "status": "development",
@@ -159,6 +170,7 @@
     "config/source_reconstruction_2_1.json",
     "config/revision_profiles.json",
     "scripts/run.py",
+    "scripts/authoring/editor_workstation_smoke.py",
     "scripts/validation/public_command_smoke.py",
     "scripts/validation/source_2_minor_release.py",
     "scripts/validation/source_2_release.py",
@@ -175,6 +187,7 @@
     "test",
     "scaffold-check",
     "public-command-smoke",
+    "editor-ui-smoke-profiles",
     "verify",
     "trace",
     "release-check",

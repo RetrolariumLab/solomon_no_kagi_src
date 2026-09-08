@@ -268,6 +268,7 @@ public-command-smoke:
 
 source-2-minor-check:
 	$(MAKE) source-2-regression-check
+	$(MAKE) editor-ui-smoke-profiles
 	$(MAKE) public-command-smoke
 	$(MAKE) source-2-minor-audit
 

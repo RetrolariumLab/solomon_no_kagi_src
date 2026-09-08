@@ -97,6 +97,16 @@ files, and accidental writes without requiring either private ROM image.
 The Source Reconstruction 2.1 aggregate gate runs this smoke after the complete
 published 2.0 regression gate and before the compatible-minor audit.
 
+## Editor workstation actions
+
+`make editor-ui-smoke-profiles` opens each public studio in a disposable
+workspace for both accepted profiles. It invokes the real Save and Build
+handlers, renders a preview, exercises Level Studio Play through a mocked
+process boundary, produces and dispatches the Sound Studio WAV preview, and
+checks both reject and accept branches of dirty-close confirmation. Generated
+documents, ROMs, and previews must be nonempty and are removed with the
+temporary workspace.
+
 ## Failure diagnostics
 
 The comparison script reports the first different byte. PRG failures include

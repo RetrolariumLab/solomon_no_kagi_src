@@ -14,7 +14,10 @@ rooms, and a consolidated semantic assembly layout. Repository preparation adds
 responsibility-owned Make fragments, categorized command help, a ROM-less
 scaffold gate, mirrored tool/test responsibility packages behind
 `scripts/run.py`, and a self-contained release manifest whose claims resolve
-only to project-owned evidence.
+only to project-owned evidence. A separate workstation smoke now drives Save,
+Build, Preview
+or Play, and dirty-close behavior through all four public studios for both
+accepted profiles.
 
 The full commit interval starts immediately after the annotated 2.0 tag. While
 the manifest status is `development`, its terminal commit remains unset. It is
@@ -49,11 +52,16 @@ The complete compatible-minor gate first executes the accepted 2.0 regression
 gate, including the transitive Source 1.0 checks, and only then validates the
 2.1 delta. It also runs `make lint` as a real public command inside a disposable
 tracked-only clone, proving that the documented interface does not depend on
-untracked local files or mutate a clean checkout:
+untracked local files or mutate a clean checkout. Before that command smoke,
+the gate also exercises the editor workstation actions for USA and Europe:
 
 ```console
 make source-2-minor-check
 ```
+
+The editor interaction check is also available directly as
+`make editor-ui-smoke-profiles`; select one revision with
+`make editor-ui-smoke-profile PROFILE=usa|europe`.
 
 `source-2-minor-pre-tag-check` and `source-2-minor-tag-check` are intentionally
 reserved for the clean `tag-ready` candidate and its annotated published tag.
