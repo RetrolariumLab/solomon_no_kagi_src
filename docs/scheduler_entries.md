@@ -7,14 +7,14 @@ is always the stored word plus one.
 
 `scripts/validation/scheduler_data.py` extracts these tables from the built PRG and scans
 the assembly source for immediate `StartThread` calls. `make scheduler-audit`
-compares the decoded result with `config/scheduler_entries.json`, including
+compares the decoded result with `config/validation/scheduler_entries.json`, including
 entries independently reviewed behind dynamically selected calls. Any new
 code, changed pointer, stack partition, or static/dynamic call count must be
 reviewed before the manifest is updated.
 
 The table layout is profile-selected. USA stores the initial stack pointers at
 `$8E01` and context-table bases at `$8E09`; PAL stores them at `$8E10` and
-`$8E18`. `config/scheduler_entries_europe.json` independently records all 16
+`$8E18`. `config/validation/scheduler_entries_europe.json` independently records all 16
 static and seven reviewed dynamic codes at their native PAL slots and targets.
 `make scheduler-profile-audits` decodes both source-built ROMs while retaining
 the common context roles and call-site inventory.

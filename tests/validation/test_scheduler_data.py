@@ -20,8 +20,8 @@ from scripts.validation.scheduler_data import (
 class SchedulerDataTests(unittest.TestCase):
     def test_committed_profiles_preserve_codes_at_native_table_addresses(self) -> None:
         root = Path(__file__).resolve().parents[2]
-        usa = load_manifest(root / "config" / "scheduler_entries.json")
-        europe = load_manifest(root / "config" / "scheduler_entries_europe.json")
+        usa = load_manifest(root / "config" / "validation" / "scheduler_entries.json")
+        europe = load_manifest(root / "config" / "validation" / "scheduler_entries_europe.json")
         validate_manifest_profile(usa, "usa")
         validate_manifest_profile(europe, "europe")
         self.assertEqual(

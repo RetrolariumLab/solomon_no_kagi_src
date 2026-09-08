@@ -19,8 +19,8 @@ from scripts.validation.object_motion_data import (
 class ObjectMotionDataTests(unittest.TestCase):
     def test_committed_profiles_record_shared_selectors_and_distinct_vectors(self) -> None:
         root = Path(__file__).resolve().parents[2]
-        usa = load_manifest(root / "config" / "object_motion.json")
-        europe = load_manifest(root / "config" / "object_motion_europe.json")
+        usa = load_manifest(root / "config" / "validation" / "object_motion.json")
+        europe = load_manifest(root / "config" / "validation" / "object_motion_europe.json")
         validate_manifest_profile(usa, "usa")
         validate_manifest_profile(europe, "europe")
         self.assertEqual(usa["selector_sha1"], europe["selector_sha1"])

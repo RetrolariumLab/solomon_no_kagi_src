@@ -600,7 +600,7 @@ def main() -> int:
     default_manifest = (
         "audio_data.json" if args.profile == "usa" else "audio_data_europe.json"
     )
-    manifest_path = args.manifest or root / "config" / default_manifest
+    manifest_path = args.manifest or root / "config" / "authoring" / default_manifest
     layout = AUDIO_LAYOUTS[args.profile]
     try:
         prg = extract_prg(args.image.read_bytes())

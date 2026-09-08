@@ -72,8 +72,8 @@ REVISION_RUNTIME_SCENARIOS_europe = scenarios/runtime_scenarios_europe.json
 REVISION_RUNTIME_SCENARIOS = $(REVISION_RUNTIME_SCENARIOS_$(PROFILE))
 REVISION_RUNTIME_TRACE_DIR = $(REVISION_BUILD_DIR)/runtime
 DEBUG_SYMBOLS := $(RUN_TOOL) validation.debug_symbols --debug "$(DEBUG)" --map "$(MAP)" \
-	--labels "$(LABELS)" --breakpoints config/debugger_breakpoints.json \
-	--watches config/debugger_watches.json --output-dir "$(SYMBOL_DIR)" \
+	--labels "$(LABELS)" --breakpoints config/debugger/breakpoints.json \
+	--watches config/debugger/watches.json --output-dir "$(SYMBOL_DIR)" \
 	--rom-name "$(notdir $(ROM))" --summary "$(SYMBOL_SUMMARY)"
 SOURCE_FILES := src/main.asm \
 	src/system/boot_and_frame.asm src/system/thread_runtime.asm \

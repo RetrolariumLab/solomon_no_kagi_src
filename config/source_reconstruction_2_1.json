@@ -73,13 +73,13 @@
       "id": "semantic-source-layout",
       "kind": "source",
       "summary": "Consolidate address-contiguous assembly fragments into reviewable subsystem modules with enforced size exceptions.",
-      "evidence": ["src/main.asm", "config/source_organization.json", "docs/source_organization.md", "lint"]
+      "evidence": ["src/main.asm", "config/reconstruction/source_organization.json", "docs/source_organization.md", "lint"]
     },
     {
       "id": "repository-workflow",
       "kind": "tooling",
       "summary": "Split Make orchestration, tools, and tests by responsibility behind a stable runner, categorized help, and a tested ROM-less scaffold gate.",
-      "evidence": ["Makefile", "mk/authoring.mk", "mk/profiles.mk", "mk/runtime.mk", "mk/validation.mk", "scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "help", "scaffold-check"]
+      "evidence": ["Makefile", "mk/authoring.mk", "mk/profiles.mk", "mk/runtime.mk", "mk/validation.mk", "scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "config/authoring", "config/debugger", "config/reconstruction", "config/validation", "help", "scaffold-check"]
     },
     {
       "id": "self-contained-release-metadata",
@@ -172,14 +172,7 @@
     "source-2-minor-pre-tag-check",
     "source-2-minor-tag-check"
   ],
-  "layout_deviations": [
-    {
-      "rule_id": "flat-config-layout",
-      "actual_path": "config/*.json",
-      "reason": "Published profile, debugger, reconstruction, and authoring manifests currently share the config root.",
-      "equivalent_control": "Each file has one validator and is explicitly listed by its owning release or profile contract."
-    }
-  ],
+  "layout_deviations": [],
   "resolved_layout_deviations": [
     {
       "rule_id": "root-makefile-size",
@@ -200,6 +193,11 @@
       "rule_id": "responsibility-package-layout",
       "resolution": "Python tools and tests use mirrored responsibility packages exposed through the stable scripts/run.py entry point.",
       "evidence": ["scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "tests/build/test_script_runner.py"]
+    },
+    {
+      "rule_id": "owned-config-layout",
+      "resolution": "Authoring, debugger, reconstruction, and validation configuration files live under responsibility-named directories; only shared profile, toolchain, and release contracts remain at config root.",
+      "evidence": ["config/authoring", "config/debugger", "config/reconstruction", "config/validation", "tests/build/test_project.py", "lint"]
     }
   ],
   "provenance": {

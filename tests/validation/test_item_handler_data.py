@@ -15,8 +15,8 @@ from scripts.validation.item_handler_data import (
 class ItemHandlerDataTests(unittest.TestCase):
     def test_committed_profiles_preserve_selectors_at_relocated_handlers(self) -> None:
         root = Path(__file__).resolve().parents[2]
-        usa = load_manifest(root / "config" / "item_handlers.json")
-        europe = load_manifest(root / "config" / "item_handlers_europe.json")
+        usa = load_manifest(root / "config" / "validation" / "item_handlers.json")
+        europe = load_manifest(root / "config" / "validation" / "item_handlers_europe.json")
         validate_manifest_profile(usa, "usa")
         validate_manifest_profile(europe, "europe")
         self.assertEqual(

@@ -327,7 +327,7 @@ def main() -> int:
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     manifest_path = args.manifest or (
-        root / "config" / OBJECT_MOTION_MANIFESTS[args.profile]
+        root / "config" / "validation" / OBJECT_MOTION_MANIFESTS[args.profile]
     )
     try:
         manifest = load_manifest(manifest_path)

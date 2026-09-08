@@ -350,12 +350,12 @@ bin/                       local ca65/ld65 toolchain and license
 config/toolchain.json      pinned build/runtime/private input identities
 config/source_reconstruction_1_0.json revision-3 release contract
 config/linker/cnrom.cfg    complete iNES/PRG/CHR linker layout
-config/reconstruction.json machine-checked module inventory and progress floors
-config/scheduler_entries.json reviewed scheduler-entry inventory
-config/enemy_ai_handlers.json reviewed enemy AI handler pointer inventory
-config/enemy_record_pointers.json reviewed record-pool pointer layouts
-config/ppu_update_streams.json reviewed static PPU stream inventory
-config/ppu_update_streams_europe.json reviewed PAL static PPU stream inventory
+config/reconstruction/reconstruction.json machine-checked module inventory and progress floors
+config/validation/scheduler_entries.json reviewed scheduler-entry inventory
+config/validation/enemy_ai_handlers.json reviewed enemy AI handler pointer inventory
+config/validation/enemy_record_pointers.json reviewed record-pool pointer layouts
+config/validation/ppu_update_streams.json reviewed static PPU stream inventory
+config/validation/ppu_update_streams_europe.json reviewed PAL static PPU stream inventory
 docs/                      architecture and reverse-engineering notes
 docs/special_room_scripts.md context-six room dispatch and trigger evidence
 docs/ending_sequence.md      room-index 49 ending choreography

@@ -36,7 +36,7 @@ def profile_manifest(profile: dict[str, Any]) -> dict[str, Any]:
         raise PresentationEditorError(
             f"profile {profile_id!r} has no presentation manifest"
         )
-    manifest = title_data.load_manifest(ROOT / "config" / filename)
+    manifest = title_data.load_manifest(ROOT / "config" / "authoring" / filename)
     title_data.validate_manifest_profile(manifest, str(profile_id))
     return manifest
 

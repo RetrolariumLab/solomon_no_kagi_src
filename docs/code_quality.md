@@ -41,7 +41,7 @@ reference.
 
 Assembly modules normally contain 300–700 lines. `make lint` requires every
 shorter or longer file to have a concrete architectural justification in
-`config/source_organization.json`, limits each directory to six ASM files, and
+`config/reconstruction/source_organization.json`, limits each directory to six ASM files, and
 rejects repeated underscore-delimited filename prefixes within one directory.
 This keeps compact fixed tables and generated-asset boundaries possible without
 allowing subsystem code to drift back into a flat collection of tiny files.

@@ -272,7 +272,7 @@ segment is possible, but gives no semantic benefit until the PRG and CHR data
 are divided into stable modules.
 
 Every source split must remain address-ordered and pass `make verify` after
-each boundary is introduced. `config/reconstruction.json` records accepted
+each boundary is introduced. `config/reconstruction/reconstruction.json` records accepted
 module ranges and non-regression thresholds; `make reconstruction-audit`
 checks those declarations against the linker map and label file. Tables that
 cross a round-number address should not be split merely to create visually

@@ -67,10 +67,10 @@ The reconstruction preserves repeated pointers instead of inventing wrapper
 routines for item types that intentionally share behavior.
 `make item-handler-audit` independently decodes the built ROM and checks every
 selector, semantic name, address, and the complete table SHA-1 against
-`config/item_handlers.json`.
+`config/validation/item_handlers.json`.
 
 The European item block moves `$80` bytes earlier, including all 20 unique
-handler targets. `config/item_handlers_europe.json` records those native PAL
+handler targets. `config/validation/item_handlers_europe.json` records those native PAL
 addresses and its independently hashed 58-byte table while preserving the
 same selector, map-tile, and semantic-name sequence. Run
 `make item-handler-profile-audits` to validate both source-built layouts.

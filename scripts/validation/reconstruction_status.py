@@ -25,6 +25,28 @@ LABEL_FILE_RE = re.compile(r"^al\s+([0-9A-Fa-f]{6})\s+\.?([^\s]+)\s*$")
 MAKE_TARGET_RE = re.compile(r"^([A-Za-z0-9_.-]+)(?:\s+[^:]*)?:")
 CONFIDENCE_LEVELS = {"confirmed", "high", "tentative", "unknown"}
 HISTORICAL_TOOL_PATHS = {
+    "config/audio_data.json": "config/authoring/audio_data.json",
+    "config/audio_data_europe.json": "config/authoring/audio_data_europe.json",
+    "config/title_data.json": "config/authoring/title_data.json",
+    "config/title_data_europe.json": "config/authoring/title_data_europe.json",
+    "config/debugger_breakpoints.json": "config/debugger/breakpoints.json",
+    "config/debugger_watches.json": "config/debugger/watches.json",
+    "config/reconstruction.json": "config/reconstruction/reconstruction.json",
+    "config/prg_layout.json": "config/reconstruction/prg_layout.json",
+    "config/source_organization.json": "config/reconstruction/source_organization.json",
+    "config/enemy_ai_handlers.json": "config/validation/enemy_ai_handlers.json",
+    "config/enemy_record_pointers.json": "config/validation/enemy_record_pointers.json",
+    "config/enemy_record_pointers_europe.json": "config/validation/enemy_record_pointers_europe.json",
+    "config/item_handlers.json": "config/validation/item_handlers.json",
+    "config/item_handlers_europe.json": "config/validation/item_handlers_europe.json",
+    "config/object_animations.json": "config/validation/object_animations.json",
+    "config/object_animations_europe.json": "config/validation/object_animations_europe.json",
+    "config/object_motion.json": "config/validation/object_motion.json",
+    "config/object_motion_europe.json": "config/validation/object_motion_europe.json",
+    "config/ppu_update_streams.json": "config/validation/ppu_update_streams.json",
+    "config/ppu_update_streams_europe.json": "config/validation/ppu_update_streams_europe.json",
+    "config/scheduler_entries.json": "config/validation/scheduler_entries.json",
+    "config/scheduler_entries_europe.json": "config/validation/scheduler_entries_europe.json",
     "scripts/project.py": "scripts/build/project.py",
     "scripts/reconstruction_status.py": "scripts/validation/reconstruction_status.py",
     "scripts/source_2_release.py": "scripts/validation/source_2_release.py",
@@ -972,7 +994,9 @@ def main() -> int:
     parser.add_argument("--release", type=Path)
     args = parser.parse_args()
     root = args.project_root.resolve()
-    manifest_path = args.manifest or root / "config" / "reconstruction.json"
+    manifest_path = (
+        args.manifest or root / "config" / "reconstruction" / "reconstruction.json"
+    )
     ledger_path = args.ledger or root / "docs" / "provenance" / "label_renames.json"
     map_path = args.map_path or root / "build" / "native" / "solomons_key.map"
     labels_path = args.labels or root / "build" / "native" / "solomons_key.lbl"

@@ -64,8 +64,8 @@ verify-revisions:
 revision-symbols: build-revision
 	$(RUN_TOOL) validation.debug_symbols --debug "$(REVISION_DEBUG)" \
 		--map "$(REVISION_MAP)" --labels "$(REVISION_LABELS)" \
-		--breakpoints config/debugger_breakpoints.json \
-		--watches config/debugger_watches.json --profile "$(PROFILE)" \
+		--breakpoints config/debugger/breakpoints.json \
+		--watches config/debugger/watches.json --profile "$(PROFILE)" \
 		--output-dir "$(REVISION_BUILD_DIR)" \
 		--rom-name "$(notdir $(REVISION_ROM))" \
 		--summary "$(REVISION_SYMBOL_SUMMARY)"
@@ -73,8 +73,8 @@ revision-symbols: build-revision
 validate-revision-symbols: revision-symbols
 	$(RUN_TOOL) validation.debug_symbols --debug "$(REVISION_DEBUG)" \
 		--map "$(REVISION_MAP)" --labels "$(REVISION_LABELS)" \
-		--breakpoints config/debugger_breakpoints.json \
-		--watches config/debugger_watches.json --profile "$(PROFILE)" \
+		--breakpoints config/debugger/breakpoints.json \
+		--watches config/debugger/watches.json --profile "$(PROFILE)" \
 		--output-dir "$(REVISION_BUILD_DIR)" \
 		--rom-name "$(notdir $(REVISION_ROM))" \
 		--summary "$(REVISION_SYMBOL_SUMMARY)" --check

@@ -90,7 +90,7 @@ def main() -> int:
     parser.add_argument("--manifest", type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
-    manifest_path = args.manifest or root / "config" / "enemy_ai_handlers.json"
+    manifest_path = args.manifest or root / "config" / "validation" / "enemy_ai_handlers.json"
     try:
         manifest = load_manifest(manifest_path)
         report = collect_report(extract_prg(args.image.read_bytes()), manifest)

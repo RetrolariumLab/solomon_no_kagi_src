@@ -30,11 +30,12 @@ tools. Historical 1.0 and 2.0 manifests remain byte-for-byte unchanged;
 current validators resolve their former script paths through an explicit
 compatibility map.
 
-Configuration manifests still share one directory. The release manifest keeps
-this as an audited deviation because the files already have explicit owners,
-validators, and release-contract references; moving them would add path churn
-without strengthening the Source 2.1 preservation claim. The published 2.0
-tag and its recorded tree remain immutable throughout this work.
+Configuration follows the same ownership model: authoring, debugger,
+reconstruction, and validation manifests live in named subdirectories, while
+shared revision, toolchain, and release contracts stay at `config/` root.
+`make lint` rejects a new uncategorized JSON file. The published 2.0 tag and
+its recorded manifest remain immutable; current validators resolve its former
+paths through the same compatibility map used for moved tools.
 
 ## Gates
 

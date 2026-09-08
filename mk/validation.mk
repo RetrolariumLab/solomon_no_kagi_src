@@ -62,13 +62,13 @@ source-1-post-tag-audit: $(ROM)
 		--release config/source_reconstruction_1_0.json
 
 prg-layout-report: $(ROM)
-	$(RUN_TOOL) validation.prg_layout report --debug "$(DEBUG)" --config config/prg_layout.json
+	$(RUN_TOOL) validation.prg_layout report --debug "$(DEBUG)" --config config/reconstruction/prg_layout.json
 
 prg-layout-audit: $(ROM)
-	$(RUN_TOOL) validation.prg_layout audit --debug "$(DEBUG)" --config config/prg_layout.json
+	$(RUN_TOOL) validation.prg_layout audit --debug "$(DEBUG)" --config config/reconstruction/prg_layout.json
 
 format-coverage-audit: $(ROM)
-	$(RUN_TOOL) validation.prg_layout format-audit --debug "$(DEBUG)" --config config/prg_layout.json
+	$(RUN_TOOL) validation.prg_layout format-audit --debug "$(DEBUG)" --config config/reconstruction/prg_layout.json
 
 scheduler-report: $(ROM)
 	$(RUN_TOOL) validation.scheduler_data report --image "$(ROM)"

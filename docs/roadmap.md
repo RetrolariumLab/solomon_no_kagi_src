@@ -19,7 +19,7 @@
 
 ### 1. Measured reconstruction inventory - Complete
 
-`config/reconstruction.json` records semantic module ranges and monotonic
+`config/reconstruction/reconstruction.json` records semantic module ranges and monotonic
 cleanup thresholds. `make reconstruction-status` reports current progress;
 `make reconstruction-audit` checks module ranges against the linker map and
 accepted names against `docs/provenance/label_renames.json` and the ld65 label

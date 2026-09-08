@@ -380,7 +380,7 @@ def main() -> int:
     root = args.project_root.resolve()
     try:
         manifest_path = args.manifest or (
-            root / "config" / SCHEDULER_MANIFESTS[args.profile]
+            root / "config" / "validation" / SCHEDULER_MANIFESTS[args.profile]
         )
         manifest = load_manifest(manifest_path)
         validate_manifest_profile(manifest, args.profile)

@@ -65,4 +65,4 @@ single final wait before exit without indexing another controller value.
 `make title-data-audit` decodes all 34 entries into inclusive durations and
 named button sets, checks that boundary alias, and re-encodes both parallel
 tables byte-for-byte. Their independent and aggregate SHA-1 fingerprints live
-in `config/title_data.json`.
+in `config/authoring/title_data.json`.

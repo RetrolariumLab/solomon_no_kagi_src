@@ -20,12 +20,12 @@ the public indices, while stream labels remain in physical ROM order.
 
 `make ppu-update-report` emits the decoded pointers, commands, PPU addresses,
 increments, modes, counts, and payloads. `make ppu-update-audit` binds the
-tables and complete payload range to `config/ppu_update_streams.json`, checks
+tables and complete payload range to `config/validation/ppu_update_streams.json`, checks
 that the 18 programs cover every byte exactly once, and re-encodes each stream
 byte-for-byte. The audit is part of `make release-check`.
 
 Source Reconstruction 2.0 adds an independent PAL manifest at
-`config/ppu_update_streams_europe.json`. PAL decodes 25 commands in 349
+`config/validation/ppu_update_streams_europe.json`. PAL decodes 25 commands in 349
 encoded bytes, versus 26 commands in 367 bytes for USA: two text streams
 select a regional tile value, and stream 17 uses the shorter European license
 message. Run

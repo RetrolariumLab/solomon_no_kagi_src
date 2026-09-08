@@ -544,20 +544,42 @@ def validate_tool_layout(root: Path) -> None:
             raise ProjectError(f"missing mirrored test package: tests/{category}")
 
 
+def validate_config_layout(root: Path) -> None:
+    """Keep shared release/profile contracts at root and group owned configs."""
+    allowed_root_json = {
+        "revision_profiles.json",
+        "source_reconstruction_1_0.json",
+        "source_reconstruction_2_0.json",
+        "source_reconstruction_2_1.json",
+        "toolchain.json",
+    }
+    config_root = root / "config"
+    unexpected = sorted(
+        path.name
+        for path in config_root.glob("*.json")
+        if path.name not in allowed_root_json
+    )
+    if unexpected:
+        raise ProjectError("uncategorized config files: " + ", ".join(unexpected))
+    for owner in ("authoring", "debugger", "reconstruction", "validation"):
+        if not (config_root / owner).is_dir():
+            raise ProjectError(f"missing config owner directory: config/{owner}")
+
+
 def command_lint(_args: argparse.Namespace) -> None:
     required = (
         "README.md",
         "Makefile",
         "assets/manifest.json",
-        "config/reconstruction.json",
-        "config/prg_layout.json",
-        "config/title_data.json",
-        "config/enemy_ai_handlers.json",
-        "config/item_handlers.json",
-        "config/enemy_record_pointers.json",
-        "config/scheduler_entries.json",
+        "config/reconstruction/reconstruction.json",
+        "config/reconstruction/prg_layout.json",
+        "config/authoring/title_data.json",
+        "config/validation/enemy_ai_handlers.json",
+        "config/validation/item_handlers.json",
+        "config/validation/enemy_record_pointers.json",
+        "config/validation/scheduler_entries.json",
         "config/toolchain.json",
-        "config/source_organization.json",
+        "config/reconstruction/source_organization.json",
         "scenarios/runtime_scenarios.json",
         "config/linker/cnrom.cfg",
         "docs/code_quality.md",
@@ -635,23 +657,24 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_python_files(ROOT)
     lint_markdown_links(ROOT)
     validate_tool_layout(ROOT)
+    validate_config_layout(ROOT)
     try:
         organization = json.loads(
-            (ROOT / "config/source_organization.json").read_text(encoding="utf-8")
+            (ROOT / "config/reconstruction/source_organization.json").read_text(encoding="utf-8")
         )
     except (OSError, json.JSONDecodeError) as exc:
         raise ProjectError(f"cannot read source organization policy: {exc}") from exc
     validate_source_organization(ROOT, organization)
     for relative in (
-        "config/debugger_watches.json",
-        "config/debugger_breakpoints.json",
-        "config/reconstruction.json",
-        "config/prg_layout.json",
-        "config/title_data.json",
-        "config/enemy_ai_handlers.json",
-        "config/item_handlers.json",
-        "config/enemy_record_pointers.json",
-        "config/scheduler_entries.json",
+        "config/debugger/watches.json",
+        "config/debugger/breakpoints.json",
+        "config/reconstruction/reconstruction.json",
+        "config/reconstruction/prg_layout.json",
+        "config/authoring/title_data.json",
+        "config/validation/enemy_ai_handlers.json",
+        "config/validation/item_handlers.json",
+        "config/validation/enemy_record_pointers.json",
+        "config/validation/scheduler_entries.json",
         "scenarios/runtime_scenarios.json",
         "docs/provenance/label_renames.json",
     ):

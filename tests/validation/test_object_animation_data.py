@@ -23,8 +23,8 @@ class ObjectAnimationDataTests(unittest.TestCase):
         self,
     ) -> None:
         root = Path(__file__).resolve().parents[2]
-        usa = load_manifest(root / "config" / "object_animations.json")
-        europe = load_manifest(root / "config" / "object_animations_europe.json")
+        usa = load_manifest(root / "config" / "validation" / "object_animations.json")
+        europe = load_manifest(root / "config" / "validation" / "object_animations_europe.json")
         validate_manifest_profile(usa, "usa")
         validate_manifest_profile(europe, "europe")
         self.assertNotEqual(usa["pointer_sha1"], europe["pointer_sha1"])

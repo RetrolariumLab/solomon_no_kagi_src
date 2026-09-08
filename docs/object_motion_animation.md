@@ -38,10 +38,10 @@ selector outside the vector table and checks independent SHA-1 values for all
 three regions. Its encoder additionally reconstructs all 524 bytes from the
 decoded pointer, selector, and vector records and compares them byte-for-byte.
 `make object-motion-report` emits the decoded JSON view from the built ROM
-using `config/object_motion.json`.
+using `config/validation/object_motion.json`.
 
 Source Reconstruction 2.0 adds the independent
-`config/object_motion_europe.json` contract. The 66-byte pointer table and
+`config/validation/object_motion_europe.json` contract. The 66-byte pointer table and
 388-byte selector region move `$80` bytes earlier; selectors are semantically
 and byte-identical after relocation, while all 35 paired PAL vectors are
 profile-selected values with their own hash. Run
@@ -89,11 +89,11 @@ vector families are source-owned in `src/data/objects/motion.asm`.
 
 The corresponding JSON report is available through
 `make object-animation-report`. The manifest lives at
-`config/object_animations.json`; it records structural facts, not speculative
+`config/validation/object_animations.json`; it records structural facts, not speculative
 enemy names.
 
 Source Reconstruction 2.0 gives the relocated PAL layout its own reviewed
-`config/object_animations_europe.json` contract. The entire descriptor and
+`config/validation/object_animations_europe.json` contract. The entire descriptor and
 frame region moves `$80` bytes earlier. Relocated type, descriptor, variant,
 and frame pointers therefore give the pointer and definition regions distinct
 hashes, while the 825 raw frame bytes remain identical. Run

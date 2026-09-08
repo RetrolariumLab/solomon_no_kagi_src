@@ -23,12 +23,12 @@ layout while making the pool relationship reviewable.
 
 `make enemy-pointer-report` decodes the four byte planes from the built PRG.
 `make enemy-pointer-audit` compares the reconstructed 16-bit pointers with
-`config/enemy_record_pointers.json`; the audit is part of `make release-check`.
+`config/validation/enemy_record_pointers.json`; the audit is part of `make release-check`.
 Bisqwit's map independently classifies the same ranges as the enemy AI and
 object pointer tables.
 
 PAL keeps all four byte planes at the same PRG addresses but moves both RAM
-pools one byte higher. `config/enemy_record_pointers_europe.json` therefore
+pools one byte higher. `config/validation/enemy_record_pointers_europe.json` therefore
 records native bases `$04F8` and `$0580`; the strides and counts remain shared.
 `make enemy-pointer-profile-audits` validates all 38 reconstructed pointers
 against both regional source builds.

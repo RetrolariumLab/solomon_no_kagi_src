@@ -28,11 +28,11 @@ valid evidence.
    1.0 path or `build/revisions/PROFILE/solomons_key.lbl` for Source 2.0).
    FCEUX automatically finds the generated `.nl` files next to the ROM in
    `build/native/`.
-3. Add the starting watches from `config/debugger_watches.json`. Every entry
+3. Add the starting watches from `config/debugger/watches.json`. Every entry
    names the RAM symbol anchoring the range; `make validate-symbols` rejects a
    stale address.
 4. Add only the breakpoints needed for the current question from
-   `config/debugger_breakpoints.json`; every breakpoint is checked against both
+   `config/debugger/breakpoints.json`; every breakpoint is checked against both
    the ld65 debug database and VICE label file. The scheduler breakpoint is
    extremely hot and should normally log conditionally rather than pause.
 5. Record ROM SHA-1, room, input frame, PC, context index, SP, and affected RAM

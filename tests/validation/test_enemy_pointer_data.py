@@ -14,9 +14,9 @@ from scripts.validation.enemy_pointer_data import (
 class EnemyPointerDataTests(unittest.TestCase):
     def test_committed_profiles_record_one_byte_shifted_ram_pools(self) -> None:
         root = Path(__file__).resolve().parents[2]
-        usa = load_manifest(root / "config" / "enemy_record_pointers.json")
+        usa = load_manifest(root / "config" / "validation" / "enemy_record_pointers.json")
         europe = load_manifest(
-            root / "config" / "enemy_record_pointers_europe.json"
+            root / "config" / "validation" / "enemy_record_pointers_europe.json"
         )
         validate_manifest_profile(usa, "usa")
         validate_manifest_profile(europe, "europe")

@@ -12,7 +12,7 @@ the table contains 28 entries but only 14 unique handler addresses.
 
 `make enemy-ai-report` prints the decoded table from the built PRG.
 `make enemy-ai-audit` compares every pointer with
-`config/enemy_ai_handlers.json`; the audit is part of `make release-check`.
+`config/validation/enemy_ai_handlers.json`; the audit is part of `make release-check`.
 An assembly assertion independently fixes the source table at 28 entries.
 The table and all 14 unique target addresses are physically identical in USA
 and PAL. `make enemy-ai-profile-audits` verifies that shared contract against

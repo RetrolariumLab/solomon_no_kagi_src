@@ -278,5 +278,28 @@ class ToolLayoutTests(unittest.TestCase):
                 project.validate_tool_layout(root)
 
 
+class ConfigLayoutTests(unittest.TestCase):
+    def make_layout(self, root: Path) -> None:
+        for owner in ("authoring", "debugger", "reconstruction", "validation"):
+            (root / "config" / owner).mkdir(parents=True, exist_ok=True)
+        (root / "config" / "revision_profiles.json").write_text("{}", encoding="utf-8")
+
+    def test_accepts_owned_config_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_layout(root)
+
+            project.validate_config_layout(root)
+
+    def test_rejects_uncategorized_config(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_layout(root)
+            (root / "config" / "orphan.json").write_text("{}", encoding="utf-8")
+
+            with self.assertRaisesRegex(project.ProjectError, "uncategorized config"):
+                project.validate_config_layout(root)
+
+
 if __name__ == "__main__":
     unittest.main()

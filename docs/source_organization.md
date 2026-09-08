@@ -3,7 +3,7 @@
 The source tree groups code by subsystem rather than by the order in which the
 original bytes appeared in the ROM. The linker configuration remains the
 authority for physical PRG order: each consolidated source can contain several
-named segments, while `config/reconstruction.json` continues to bind every
+named segments, while `config/reconstruction/reconstruction.json` continues to bind every
 segment to its original address range and required labels.
 
 The main directories have distinct responsibilities:
@@ -24,7 +24,7 @@ keep a behavior family together and small enough for focused review. It is a
 design target, not an excuse to mix unrelated code: a complete subsystem may
 remain shorter, and a tightly coupled data bank may remain slightly longer.
 
-`config/source_organization.json` records every exception with its reason.
+`config/reconstruction/source_organization.json` records every exception with its reason.
 `make lint` checks that:
 
 - every ASM file outside the preferred range has a reviewed exception;

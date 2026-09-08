@@ -61,7 +61,7 @@ exact adjacency and sizes.
 cursor commands and literal runs, reproduces the carry-dependent PPU address
 calculation, and re-encodes all 402 bytes. The reviewed manifest records 25
 commands, 17 literal runs, 377 literal tiles, exact boundaries, and SHA-1
-fingerprints in `config/title_data.json`. `make title-data-report` exposes the
+fingerprints in `config/authoring/title_data.json`. `make title-data-report` exposes the
 decoded commands, target PPU addresses, and tiles as JSON.
 
 The same adjacent-data audit includes the attract demo's 34 duration and
@@ -72,6 +72,6 @@ semantics.
 The European layout moves both packed streams and the demo tables `$70` bytes
 earlier: title data occupies `$CCEF-$CE80` and demo input occupies
 `$CE81-$CEC4`. Their hashes and decoded records are identical to USA. The
-separate `config/title_data_europe.json` manifest makes that conclusion an
+separate `config/authoring/title_data_europe.json` manifest makes that conclusion an
 independent ROM-backed contract. `make title-data-profile-audits` round-trips
 all 470 bytes from both source-built images.
