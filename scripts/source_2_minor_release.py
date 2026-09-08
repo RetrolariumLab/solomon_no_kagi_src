@@ -12,9 +12,11 @@ import sys
 from typing import Any
 
 try:
-    from .reconstruction_status import parse_make_targets
+    from .reconstruction_status import parse_make_targets, remote_tag_lines, run_git
+    from .validation import release_history
 except ImportError:  # Direct ``python scripts/source_2_minor_release.py`` execution.
-    from reconstruction_status import parse_make_targets
+    from reconstruction_status import parse_make_targets, remote_tag_lines, run_git
+    from validation import release_history
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,6 +32,10 @@ INHERITED_SECTION_IDS = {
 }
 VALID_STATUSES = {"development", "tag-ready", "tagged"}
 VALID_REQUIREMENT_STATUSES = {"planned", "development", "satisfied"}
+MINOR_METADATA_PATHS = {
+    "config/source_reconstruction_2_1.json",
+    "docs/source_reconstruction_2_1.md",
+}
 
 
 class Source2MinorReleaseError(ValueError):
@@ -148,20 +154,6 @@ def validate_inheritance(
     return errors
 
 
-def validate_nonempty_history(project_root: Path, commits: list[str]) -> list[str]:
-    errors: list[str] = []
-    for commit in commits:
-        tree = git_lines(project_root, "rev-parse", f"{commit}^{{tree}}")[0]
-        parents = git_lines(project_root, "show", "-s", "--format=%P", commit)[0].split()
-        parent_trees = [
-            git_lines(project_root, "rev-parse", f"{parent}^{{tree}}")[0]
-            for parent in parents
-        ]
-        if parent_trees and all(tree == parent_tree for parent_tree in parent_trees):
-            errors.append(f"empty commit is forbidden after predecessor: {commit[:12]}")
-    return errors
-
-
 def validate_delta_history(
     project_root: Path, release: dict[str, Any]
 ) -> list[str]:
@@ -175,8 +167,7 @@ def validate_delta_history(
     through = history.get("through_inclusive")
     count = history.get("commit_count")
     if through is None and release.get("status") == "development":
-        commits = git_lines(project_root, "rev-list", "--reverse", f"{predecessor}..HEAD")
-        errors.extend(validate_nonempty_history(project_root, commits))
+        errors.extend(release_history.validate_release_history(project_root, predecessor))
         return errors
     if not isinstance(through, str) or not re.fullmatch(r"[0-9a-f]{40}", through):
         return errors + ["delta_history has no valid terminal commit"]
@@ -185,7 +176,22 @@ def validate_delta_history(
         errors.append(f"delta_history covers {len(commits)} commits, expected {count}")
     if not commits or commits[-1] != through:
         errors.append("delta_history terminal commit is not reachable from predecessor")
-    errors.extend(validate_nonempty_history(project_root, commits))
+    errors.extend(release_history.validate_release_history(project_root, predecessor, through))
+    trailing = git_lines(project_root, "rev-list", "--reverse", f"{through}..HEAD")
+    for commit in trailing:
+        changed = set(
+            git_lines(
+                project_root,
+                "diff-tree",
+                "--no-commit-id",
+                "--name-only",
+                "-r",
+                commit,
+            )
+        )
+        if not changed or not changed.issubset(MINOR_METADATA_PATHS):
+            errors.append(f"delta_history does not cover substantive commit {commit[:12]}")
+    errors.extend(release_history.validate_release_history(project_root, through))
     return errors
 
 
@@ -273,8 +279,16 @@ def validate_lifecycle(
         return [f"{command} requires status tag-ready"]
     if command == "pre-tag-audit":
         errors = []
-        if git_lines(project_root, "status", "--porcelain"):
+        if git_lines(project_root, "status", "--porcelain", "--untracked-files=all"):
             errors.append("pre-tag audit requires a clean worktree")
+        requirements = release.get("requirements", {})
+        if any(
+            not isinstance(value, dict) or value.get("status") != "satisfied"
+            for value in requirements.values()
+        ):
+            errors.append("pre-tag audit requires every requirement to be satisfied")
+        if release.get("delta_history", {}).get("through_inclusive") is None:
+            errors.append("pre-tag audit requires a pinned delta terminal")
         tag = release["tag"]
         result = subprocess.run(
             ["git", "show-ref", "--verify", "--quiet", f"refs/tags/{tag}"],
@@ -283,15 +297,30 @@ def validate_lifecycle(
         )
         if result.returncode == 0:
             errors.append("future release tag already exists")
+        remote = str(release.get("publish_remote", ""))
+        lines, remote_error = remote_tag_lines(project_root, remote, tag)
+        if remote_error:
+            errors.append(f"cannot verify publish remote tag state: {remote_error}")
+        elif lines:
+            errors.append(f"future release tag already exists on {remote}: {tag}")
         return errors
     tag_ref = f"refs/tags/{release['tag']}"
-    if git_lines(project_root, "cat-file", "-t", tag_ref) != ["tag"]:
+    tag_type = run_git(project_root, "cat-file", "-t", tag_ref)
+    if tag_type.returncode or tag_type.stdout.strip() != "tag":
         return ["release tag is not annotated"]
-    if git_lines(project_root, "rev-parse", f"{tag_ref}^{{commit}}") != git_lines(
-        project_root, "rev-parse", "HEAD"
-    ):
+    head = git_lines(project_root, "rev-parse", "HEAD")[0]
+    if git_lines(project_root, "rev-parse", f"{tag_ref}^{{commit}}") != [head]:
         return ["release tag does not point at HEAD"]
-    return []
+    remote = str(release.get("publish_remote", ""))
+    lines, remote_error = remote_tag_lines(project_root, remote, release["tag"])
+    if remote_error:
+        return [f"cannot verify published tag: {remote_error}"]
+    peeled = [
+        line.split()[0]
+        for line in lines
+        if line.endswith(f"refs/tags/{release['tag']}^{{}}")
+    ]
+    return [] if peeled == [head] else [f"published tag on {remote} does not peel to HEAD"]
 
 
 def main() -> int:

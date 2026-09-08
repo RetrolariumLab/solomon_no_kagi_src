@@ -104,6 +104,7 @@ ROMLESS_TEST_MODULES := \
 	tests.test_revision_profiles \
 	tests.test_reconstruction_status \
 	tests.test_source_2_minor_release \
+	tests.test_release_history \
 	tests.test_runtime_scenarios \
 	tests.test_debug_symbols \
 	tests.test_prg_layout \

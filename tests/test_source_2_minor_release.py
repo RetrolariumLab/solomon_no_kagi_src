@@ -49,10 +49,28 @@ class Source2MinorReleaseTests(unittest.TestCase):
                 "commit_count": 0,
             },
         }
-        with patch.object(audit, "git_lines", return_value=["commit"]), patch.object(
-            audit, "validate_nonempty_history", return_value=[]
-        ):
+        with patch.object(audit.release_history, "validate_release_history", return_value=[]):
             self.assertEqual(audit.validate_delta_history(ROOT, release), [])
+
+    def test_pinned_history_rejects_uncovered_substantive_commit(self) -> None:
+        release = {
+            "status": "development",
+            "predecessor": {"commit": "base"},
+            "delta_history": {
+                "from_exclusive": "base",
+                "through_inclusive": "1" * 40,
+                "commit_count": 1,
+            },
+        }
+        responses = [["1" * 40], ["2" * 40], ["scripts/tool.py"]]
+        with patch.object(audit, "git_lines", side_effect=responses), patch.object(
+            audit.release_history, "validate_release_history", return_value=[]
+        ):
+            errors = audit.validate_delta_history(ROOT, release)
+        self.assertEqual(
+            errors,
+            ["delta_history does not cover substantive commit " + "2" * 12],
+        )
 
     def test_project_release_boundary_and_predecessor_are_current(self) -> None:
         release = audit.load_json(ROOT / "config/source_reconstruction_2_1.json")
