@@ -55,19 +55,19 @@
       "id": "sound-studio-playback",
       "kind": "tooling",
       "summary": "Add channel-aware audible playback, music browsing, and corrected tonal timing to the regional Sound Studio.",
-      "evidence": ["scripts/sound_studio.py", "scripts/audio_preview.py", "check-sound-studio", "docs/audio_engine.md"]
+      "evidence": ["scripts/authoring/sound_studio.py", "scripts/authoring/audio_preview.py", "check-sound-studio", "docs/audio_engine.md"]
     },
     {
       "id": "level-preview-fidelity",
       "kind": "tooling",
       "summary": "Render native Dana, enemy, hidden-object, block, bat, and Solomon Seal presentation in the visual room editor.",
-      "evidence": ["scripts/level_studio.py", "scripts/level_preview.py", "check-level-studio"]
+      "evidence": ["scripts/authoring/level_studio.py", "scripts/authoring/level_preview.py", "check-level-studio"]
     },
     {
       "id": "procedural-bonus-rooms",
       "kind": "tooling",
       "summary": "Decode and expose the quartet-dependent procedural bonus-room layouts and object variants.",
-      "evidence": ["scripts/level_editor.py", "scripts/level_studio.py", "roundtrip-level-profiles"]
+      "evidence": ["scripts/authoring/level_editor.py", "scripts/authoring/level_studio.py", "roundtrip-level-profiles"]
     },
     {
       "id": "semantic-source-layout",
@@ -78,8 +78,8 @@
     {
       "id": "repository-workflow",
       "kind": "tooling",
-      "summary": "Split Make orchestration by responsibility and add categorized help plus a tested ROM-less scaffold gate.",
-      "evidence": ["Makefile", "mk/authoring.mk", "mk/profiles.mk", "mk/runtime.mk", "mk/validation.mk", "help", "scaffold-check"]
+      "summary": "Split Make orchestration, tools, and tests by responsibility behind a stable runner, categorized help, and a tested ROM-less scaffold gate.",
+      "evidence": ["Makefile", "mk/authoring.mk", "mk/profiles.mk", "mk/runtime.mk", "mk/validation.mk", "scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "help", "scaffold-check"]
     },
     {
       "id": "self-contained-release-metadata",
@@ -98,12 +98,12 @@
       "evidence": ["config/source_reconstruction_2_1.json", "scripts/source_2_minor_release.py", "tests/test_source_2_minor_release.py"]
     },
     "repository_quality_hardening": {
-      "status": "development",
+      "status": "satisfied",
       "evidence": ["help", "scaffold-check", "mk/validation.mk"]
     },
     "responsibility_package_layout": {
-      "status": "planned",
-      "evidence": ["docs/source_reconstruction_2_1.md"]
+      "status": "satisfied",
+      "evidence": ["scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "tests/authoring", "tests/build", "tests/runtime", "tests/validation"]
     },
     "aggregate_source_2_minor_gate": {
       "status": "development",
@@ -148,8 +148,9 @@
     "config/source_reconstruction_2_0.json",
     "config/source_reconstruction_2_1.json",
     "config/revision_profiles.json",
-    "scripts/source_2_minor_release.py",
-    "scripts/source_2_release.py",
+    "scripts/run.py",
+    "scripts/validation/source_2_minor_release.py",
+    "scripts/validation/source_2_release.py",
     "Makefile",
     "mk/authoring.mk",
     "mk/profiles.mk",
@@ -173,12 +174,6 @@
   ],
   "layout_deviations": [
     {
-      "rule_id": "flat-script-layout",
-      "actual_path": "scripts/*.py",
-      "reason": "Published Source 2.0 evidence still names stable top-level script paths while responsibility migration is in progress.",
-      "equivalent_control": "Every tool remains explicitly owned by Make and the release manifests until one vertical package migration updates all paths."
-    },
-    {
       "rule_id": "flat-config-layout",
       "actual_path": "config/*.json",
       "reason": "Published profile, debugger, reconstruction, and authoring manifests currently share the config root.",
@@ -194,12 +189,17 @@
     {
       "rule_id": "public-command-discovery",
       "resolution": "A tested categorized make help page documents the stable public interface.",
-      "evidence": ["scripts/build/make_help.py", "tests/test_make_help.py", "help"]
+      "evidence": ["scripts/build/make_help.py", "tests/build/test_make_help.py", "help"]
     },
     {
       "rule_id": "romless-public-validation",
       "resolution": "The scaffold gate runs repository lint and synthetic contract tests without private images.",
-      "evidence": ["scaffold-check", "tests/test_project.py", "tests/test_revision_profiles.py"]
+      "evidence": ["scaffold-check", "tests/build/test_project.py", "tests/build/test_revision_profiles.py"]
+    },
+    {
+      "rule_id": "responsibility-package-layout",
+      "resolution": "Python tools and tests use mirrored responsibility packages exposed through the stable scripts/run.py entry point.",
+      "evidence": ["scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "tests/build/test_script_runner.py"]
     }
   ],
   "provenance": {

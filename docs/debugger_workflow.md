@@ -55,7 +55,7 @@ readers, and visible effect agree.
 ## Room-loader trace
 
 Break on writes beginning at `$0304` during a room transition. Correlate each
-write with the decoded JSON from `scripts/room_data.py --room N`. This separates
+write with the decoded JSON from `scripts/authoring/room_data.py --room N`. This separates
 fixed room input from later runtime mutations such as revealed items, broken
 blocks, key state, and door state.
 

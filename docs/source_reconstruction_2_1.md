@@ -12,27 +12,29 @@ The current development history adds audible and channel-selectable Sound
 Studio playback, more faithful native level previews, decoded procedural bonus
 rooms, and a consolidated semantic assembly layout. Repository preparation adds
 responsibility-owned Make fragments, categorized command help, a ROM-less
-scaffold gate, and a self-contained release manifest whose claims resolve only
-to project-owned evidence.
+scaffold gate, mirrored tool/test responsibility packages behind
+`scripts/run.py`, and a self-contained release manifest whose claims resolve
+only to project-owned evidence.
 
 The full commit interval starts immediately after the annotated 2.0 tag. While
 the manifest status is `development`, its terminal commit remains unset. It is
 pinned after each accepted vertical slice and must cover every substantive
 commit before the status can become `tag-ready`.
 
-## Remaining repository work
+## Repository layout
 
-Two temporary layout deviations remain explicit:
+Python tools and tests now occupy mirrored `authoring`, `build`, `runtime`, and
+`validation` packages. Public Make targets dispatch them through the stable
+`scripts/run.py` entry point, and `make lint` rejects new uncategorized Python
+tools. Historical 1.0 and 2.0 manifests remain byte-for-byte unchanged;
+current validators resolve their former script paths through an explicit
+compatibility map.
 
-- Python tools and tests still occupy flat roots rather than mirrored
-  responsibility packages;
-- configuration manifests still share one directory rather than owner-based
-  `authoring`, `debugger`, and `reconstruction` groups.
-
-They will be migrated as complete vertical slices, updating imports,
-`Path(__file__)` roots, Make commands, subprocess paths, manifests, tests, and
-documentation together. The published 2.0 tag and its recorded tree remain
-immutable throughout this work.
+Configuration manifests still share one directory. The release manifest keeps
+this as an audited deviation because the files already have explicit owners,
+validators, and release-contract references; moving them would add path churn
+without strengthening the Source 2.1 preservation claim. The published 2.0
+tag and its recorded tree remain immutable throughout this work.
 
 ## Gates
 

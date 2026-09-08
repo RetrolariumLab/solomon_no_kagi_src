@@ -135,7 +135,7 @@ entry reachable through descriptor and `$F2/$F3` command pointers. All 2,664
 bytes at `$F592-$FFF9` must be reachable and every decoded path must re-encode
 byte-for-byte.
 
-`python scripts/audio_data.py source --image <rom>` reproduces the reviewed
+`python scripts/run.py authoring.audio_data source --image <rom>` reproduces the reviewed
 ASM representation from a matching image.
 
 Source Reconstruction 2.0 gives the codec explicit USA and Europe layouts.

@@ -120,13 +120,13 @@ subsystems.
 - `make reconstruction-status` reports monotonic cleanup metrics, while
   `make reconstruction-audit` binds module ranges and renamed labels to linker
   output.
-- `scripts/room_data.py` decodes the block planes, enemy streams, item streams,
+- `scripts/authoring/room_data.py` decodes the block planes, enemy streams, item streams,
   and ten-byte metadata headers for all 53 room records.
-- `scripts/object_animation_data.py` validates all 33 type pointers, 340
+- `scripts/validation/object_animation_data.py` validates all 33 type pointers, 340
   action descriptors, four variant selectors, and 275 animation frame records.
-- `scripts/object_motion_data.py` validates all 33 motion-table pointers, 20
+- `scripts/validation/object_motion_data.py` validates all 33 motion-table pointers, 20
   selector groups, 388 action selectors, and 35 paired Y/X vectors.
-- `scripts/audio_data.py` validates the period/duration/envelope tables, 26
+- `scripts/authoring/audio_data.py` validates the period/duration/envelope tables, 26
   effect descriptors, and complete reachability of the audio bytecode range.
 - Architecture, RAM, room formats, provenance, naming policy, and unknowns are
   recorded under `docs/`.
@@ -318,10 +318,10 @@ make chr-bank-report # list the gameplay rooms assigned to each CHR bank
 make chr-bank-audit # verify the complete 53-room CHR-bank profile
 make roundtrip-formats # aggregate every byte-level format round trip
 make format-coverage-audit # prove every classified stream byte has one codec owner
-python scripts/room_data.py --image "Solomon's Key (U) [!].nes" --source-enemies # regenerate room enemy ASM
-python scripts/room_data.py --image "Solomon's Key (U) [!].nes" --source-blocks # regenerate room block ASM
-python scripts/room_data.py --image "Solomon's Key (U) [!].nes" --source-items # regenerate room item ASM
-python scripts/audio_data.py source --image "Solomon's Key (U) [!].nes" # regenerate audio ASM
+python scripts/run.py authoring.room_data --image "Solomon's Key (U) [!].nes" --source-enemies # regenerate room enemy ASM
+python scripts/run.py authoring.room_data --image "Solomon's Key (U) [!].nes" --source-blocks # regenerate room block ASM
+python scripts/run.py authoring.room_data --image "Solomon's Key (U) [!].nes" --source-items # regenerate room item ASM
+python scripts/run.py authoring.audio_data source --image "Solomon's Key (U) [!].nes" # regenerate audio ASM
 make check       # complete static development gate without emulator capture
 make release-check # clean Source 1.0 pre-tag gate, including fresh runtime
 make source-1-audit # compatibility alias for release-check
@@ -338,7 +338,7 @@ Focused identity targets also include `verify-reference`, `verify-built`,
 To inspect one room without emitting all room records:
 
 ```bash
-python scripts/room_data.py --image build/native/solomons_key.nes --room 1 --pretty
+python scripts/run.py authoring.room_data --image build/native/solomons_key.nes --room 1 --pretty
 ```
 
 ## Repository structure
@@ -370,25 +370,25 @@ docs/chr_bank_policy.md      complete CNROM request and screen/room bank policy
 docs/room_map_tiles.md       RoomMap byte classes, collision, and rendering
 docs/dana_action_states.md   Dana action pairs, facing, Y motion, and cast state
 docs/title_screen.md         packed title renderer and record presentation
-scripts/project.py         split, verify, lint, and safe build helpers
-scripts/asm_style.py       shared ca65 formatter and style checker
-scripts/verify_rom.py      original/build/asset comparison and ROM reports
-scripts/room_data.py       room-format decoder
-scripts/revision_profiles.py regional verification, split, and room comparison
-scripts/level_editor.py    deterministic level document import/build pipeline
-scripts/level_studio.py    visual room editor with build and FCEUX play actions
-scripts/audio_editor.py    deterministic audio document import/build pipeline
-scripts/audio_preview.py   sequencer trace and APU-like WAV preview renderer
-scripts/sound_studio.py    visual audio-bank editor over the shared codec
-scripts/graphics_editor.py deterministic CHR and palette document codec
-scripts/graphics_studio.py visual tile-atlas and NES palette editor
-scripts/presentation_editor.py packed title and attract-demo document codec
-scripts/presentation_studio.py visual title-layer and attract-demo editor
-scripts/reconstruction_status.py semantic coverage and provenance audit
-scripts/scheduler_data.py scheduler-table decoder and source-call audit
-scripts/enemy_ai_data.py enemy AI handler-table decoder and audit
-scripts/enemy_pointer_data.py split record-pointer decoder and audit
-scripts/ppu_update_data.py static PPU stream decoder and round-trip audit
+scripts/build/project.py         split, verify, lint, and safe build helpers
+scripts/validation/asm_style.py       shared ca65 formatter and style checker
+scripts/build/verify_rom.py      original/build/asset comparison and ROM reports
+scripts/authoring/room_data.py       room-format decoder
+scripts/build/revision_profiles.py regional verification, split, and room comparison
+scripts/authoring/level_editor.py    deterministic level document import/build pipeline
+scripts/authoring/level_studio.py    visual room editor with build and FCEUX play actions
+scripts/authoring/audio_editor.py    deterministic audio document import/build pipeline
+scripts/authoring/audio_preview.py   sequencer trace and APU-like WAV preview renderer
+scripts/authoring/sound_studio.py    visual audio-bank editor over the shared codec
+scripts/authoring/graphics_editor.py deterministic CHR and palette document codec
+scripts/authoring/graphics_studio.py visual tile-atlas and NES palette editor
+scripts/authoring/presentation_editor.py packed title and attract-demo document codec
+scripts/authoring/presentation_studio.py visual title-layer and attract-demo editor
+scripts/validation/reconstruction_status.py semantic coverage and provenance audit
+scripts/validation/scheduler_data.py scheduler-table decoder and source-call audit
+scripts/validation/enemy_ai_data.py enemy AI handler-table decoder and audit
+scripts/validation/enemy_pointer_data.py split record-pointer decoder and audit
+scripts/validation/ppu_update_data.py static PPU stream decoder and round-trip audit
 src/main.asm              revision selection, iNES header, and composition root
 src/audio/                audio engine, shared data, and PAL stream alternative
 src/system/               reset/NMI/input and cooperative thread runtime

@@ -75,7 +75,7 @@ top-to-bottom, MSB-first logical ordering while filling RoomMap indices
 `$10-$CF`; indices `$00-$0F` and `$D0-$DF` are sentinel rows.
 
 All 2,544 encoded bytes are source-owned in `src/data/rooms/blocks.asm` and can
-be regenerated from a reviewed ROM with `scripts/room_data.py --source-blocks`.
+be regenerated from a reviewed ROM with `scripts/authoring/room_data.py --source-blocks`.
 The existing `make room-data-audit` check independently decodes and re-encodes
 every bitplane.
 
@@ -134,7 +134,7 @@ modifiers, four timer speeds, 32 special-room positions, and 16 special-room
 item types. The fourth timer-speed byte intentionally overlaps the first
 special-room position at `$99C2`.
 
-The tested codec is `scripts/room_data.py`. Its JSON keeps raw type values and
+The tested codec is `scripts/authoring/room_data.py`. Its JSON keeps raw type values and
 the original item command grouping so that naming uncertainty or RLE expansion
 does not corrupt the lossless structural result.
 
@@ -142,7 +142,7 @@ The 53-entry split pointer table at `$EA1C-$EA85` and every metadata/command
 stream at `$EA86-$EFC3` are source-owned in `src/data/rooms/items.asm`. Named
 macros preserve header, individual-item, repeated-item, constellation, and
 terminator boundaries. The reviewed source can be regenerated with
-`scripts/room_data.py --source-items`.
+`scripts/authoring/room_data.py --source-items`.
 
 `make room-data-audit` decodes and re-encodes all 53 block-plane records,
 enemy streams, item metadata/command streams, and both 53-entry split-pointer

@@ -310,7 +310,7 @@ unit tests.
 
 ### Authoring document workflow
 
-The command-line document model is implemented in `scripts/level_editor.py`.
+The command-line document model is implemented in `scripts/authoring/level_editor.py`.
 Create a private, ignored workspace from either required profile:
 
 ```console
@@ -599,8 +599,8 @@ The aggregate smoke enters USA Room 1 and Europe Room 30, requires an observed
 diagnostic result under ignored `build/content/`, and terminates only the
 bounded smoke process.
 
-The UI delegates every binary operation to `scripts/level_editor.py`; it has no
-private serializer or ROM patch path. `scripts/level_preview.py` is likewise a
+The UI delegates every binary operation to `scripts/authoring/level_editor.py`; it has no
+private serializer or ROM patch path. `scripts/authoring/level_preview.py` is likewise a
 read-only projection of that authored document and the verified private CHR,
 not a second level decoder. This keeps GUI edits subject to the same pointer,
 capacity, coordinate, and decode-after-build checks used by Make and the unit
@@ -644,7 +644,7 @@ and combined-block handling through a source independent of this repository.
 ## Audio authoring document
 
 Sound Studio is backed by the deterministic document codec in
-`scripts/audio_editor.py`. Export either complete regional audio bank to an
+`scripts/authoring/audio_editor.py`. Export either complete regional audio bank to an
 ignored workspace with:
 
 ```console
@@ -782,7 +782,7 @@ track list.
 ## Graphics authoring document
 
 The graphics-authoring layer is the deterministic schema-2 codec in
-`scripts/graphics_editor.py`. It exports all four 8 KiB CNROM banks as 2,048
+`scripts/authoring/graphics_editor.py`. It exports all four 8 KiB CNROM banks as 2,048
 indexed NES tiles. Every tile is represented by eight strings of eight values
 from `0` through `3`; the encoder reconstructs the original pair of bitplanes
 instead of retaining an opaque copy of the tile bytes. The same document owns
@@ -831,7 +831,7 @@ serialization path.
 
 ## Presentation authoring document
 
-`scripts/presentation_editor.py` combines the two packed title-screen graphics
+`scripts/authoring/presentation_editor.py` combines the two packed title-screen graphics
 streams and the complete attract-demo controller program in one profile-bound
 schema. The `record` and `logo` streams expose cursor commands and 377 literal
 tile values; the demo exposes all 34 duration/button steps with named NES

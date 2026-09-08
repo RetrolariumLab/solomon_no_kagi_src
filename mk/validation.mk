@@ -1,83 +1,83 @@
 # Static quality, format contracts, and release gates.
 
 format:
-	$(PYTHON) scripts/asm_style.py --fix src
+	$(RUN_TOOL) validation.asm_style --fix src
 	$(MAKE) lint
 
 format-check: lint-asm
 
 lint-asm:
-	$(PYTHON) scripts/asm_style.py src
+	$(RUN_TOOL) validation.asm_style src
 
 lint-source:
-	$(PYTHON) scripts/project.py lint
+	$(RUN_TOOL) build.project lint
 
 lint-project: lint-source
 
 lint: lint-asm lint-source
 
 test:
-	$(PYTHON) -m unittest discover -s tests -v
+	$(PYTHON) -m unittest discover -s tests -t . -v
 
 scaffold-check: lint
 	$(PYTHON) -m unittest $(ROMLESS_TEST_MODULES) -v
 
 rooms: $(ROM)
-	$(PYTHON) scripts/room_data.py --image "$(ROM)" --pretty
+	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --pretty
 
 validate-rooms: $(ROM)
-	$(PYTHON) scripts/room_data.py --image "$(ROM)" --validate
+	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --validate
 
 room-data-audit: $(ROM)
-	$(PYTHON) scripts/room_data.py --image "$(ROM)" --roundtrip
+	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --roundtrip
 
 chr-bank-report: $(ROM)
-	$(PYTHON) scripts/room_data.py --image "$(ROM)" --chr-bank-report --pretty
+	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --chr-bank-report --pretty
 
 chr-bank-audit: $(ROM)
-	$(PYTHON) scripts/room_data.py --image "$(ROM)" --chr-bank-audit
+	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --chr-bank-audit
 
 roundtrip-formats: room-data-audit ppu-update-audit object-animation-audit \
 	object-motion-audit title-data-audit audio-data-audit format-coverage-audit
 
 reconstruction-status:
-	$(PYTHON) scripts/reconstruction_status.py report
+	$(RUN_TOOL) validation.reconstruction_status report
 
 reconstruction-audit: $(ROM)
-	$(PYTHON) scripts/reconstruction_status.py audit --map "$(MAP)" --labels "$(LABELS)"
+	$(RUN_TOOL) validation.reconstruction_status audit --map "$(MAP)" --labels "$(LABELS)"
 
 release-audit: $(ROM)
-	$(PYTHON) scripts/reconstruction_status.py release-audit \
+	$(RUN_TOOL) validation.reconstruction_status release-audit \
 		--map "$(MAP)" --labels "$(LABELS)" \
 		--release config/source_reconstruction_1_0.json
 
 pre-tag-audit: $(ROM)
-	$(PYTHON) scripts/reconstruction_status.py pre-tag-audit \
+	$(RUN_TOOL) validation.reconstruction_status pre-tag-audit \
 		--map "$(MAP)" --labels "$(LABELS)" \
 		--release config/source_reconstruction_1_0.json
 
 source-1-post-tag-audit: $(ROM)
-	$(PYTHON) scripts/reconstruction_status.py post-tag-audit \
+	$(RUN_TOOL) validation.reconstruction_status post-tag-audit \
 		--map "$(MAP)" --labels "$(LABELS)" \
 		--release config/source_reconstruction_1_0.json
 
 prg-layout-report: $(ROM)
-	$(PYTHON) scripts/prg_layout.py report --debug "$(DEBUG)" --config config/prg_layout.json
+	$(RUN_TOOL) validation.prg_layout report --debug "$(DEBUG)" --config config/prg_layout.json
 
 prg-layout-audit: $(ROM)
-	$(PYTHON) scripts/prg_layout.py audit --debug "$(DEBUG)" --config config/prg_layout.json
+	$(RUN_TOOL) validation.prg_layout audit --debug "$(DEBUG)" --config config/prg_layout.json
 
 format-coverage-audit: $(ROM)
-	$(PYTHON) scripts/prg_layout.py format-audit --debug "$(DEBUG)" --config config/prg_layout.json
+	$(RUN_TOOL) validation.prg_layout format-audit --debug "$(DEBUG)" --config config/prg_layout.json
 
 scheduler-report: $(ROM)
-	$(PYTHON) scripts/scheduler_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.scheduler_data report --image "$(ROM)"
 
 scheduler-audit: $(ROM)
-	$(PYTHON) scripts/scheduler_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.scheduler_data audit --image "$(ROM)"
 
 scheduler-profile-audit: build-revision
-	$(PYTHON) scripts/scheduler_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.scheduler_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 scheduler-profile-audits:
@@ -85,26 +85,26 @@ scheduler-profile-audits:
 	$(MAKE) scheduler-profile-audit PROFILE=europe
 
 enemy-ai-report: $(ROM)
-	$(PYTHON) scripts/enemy_ai_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.enemy_ai_data report --image "$(ROM)"
 
 enemy-ai-audit: $(ROM)
-	$(PYTHON) scripts/enemy_ai_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.enemy_ai_data audit --image "$(ROM)"
 
 enemy-ai-profile-audit: build-revision
-	$(PYTHON) scripts/enemy_ai_data.py audit --image "$(REVISION_ROM)"
+	$(RUN_TOOL) validation.enemy_ai_data audit --image "$(REVISION_ROM)"
 
 enemy-ai-profile-audits:
 	$(MAKE) enemy-ai-profile-audit PROFILE=usa
 	$(MAKE) enemy-ai-profile-audit PROFILE=europe
 
 item-handler-report: $(ROM)
-	$(PYTHON) scripts/item_handler_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.item_handler_data report --image "$(ROM)"
 
 item-handler-audit: $(ROM)
-	$(PYTHON) scripts/item_handler_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.item_handler_data audit --image "$(ROM)"
 
 item-handler-profile-audit: build-revision
-	$(PYTHON) scripts/item_handler_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.item_handler_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 item-handler-profile-audits:
@@ -112,13 +112,13 @@ item-handler-profile-audits:
 	$(MAKE) item-handler-profile-audit PROFILE=europe
 
 enemy-pointer-report: $(ROM)
-	$(PYTHON) scripts/enemy_pointer_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.enemy_pointer_data report --image "$(ROM)"
 
 enemy-pointer-audit: $(ROM)
-	$(PYTHON) scripts/enemy_pointer_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.enemy_pointer_data audit --image "$(ROM)"
 
 enemy-pointer-profile-audit: build-revision
-	$(PYTHON) scripts/enemy_pointer_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.enemy_pointer_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 enemy-pointer-profile-audits:
@@ -126,13 +126,13 @@ enemy-pointer-profile-audits:
 	$(MAKE) enemy-pointer-profile-audit PROFILE=europe
 
 ppu-update-report: $(ROM)
-	$(PYTHON) scripts/ppu_update_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.ppu_update_data report --image "$(ROM)"
 
 ppu-update-audit: $(ROM)
-	$(PYTHON) scripts/ppu_update_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.ppu_update_data audit --image "$(ROM)"
 
 ppu-update-profile-audit: build-revision
-	$(PYTHON) scripts/ppu_update_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.ppu_update_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 ppu-update-profile-audits:
@@ -140,13 +140,13 @@ ppu-update-profile-audits:
 	$(MAKE) ppu-update-profile-audit PROFILE=europe
 
 object-animation-report: $(ROM)
-	$(PYTHON) scripts/object_animation_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.object_animation_data report --image "$(ROM)"
 
 object-animation-audit: $(ROM)
-	$(PYTHON) scripts/object_animation_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.object_animation_data audit --image "$(ROM)"
 
 object-animation-profile-audit: build-revision
-	$(PYTHON) scripts/object_animation_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.object_animation_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 object-animation-profile-audits:
@@ -154,13 +154,13 @@ object-animation-profile-audits:
 	$(MAKE) object-animation-profile-audit PROFILE=europe
 
 object-motion-report: $(ROM)
-	$(PYTHON) scripts/object_motion_data.py report --image "$(ROM)"
+	$(RUN_TOOL) validation.object_motion_data report --image "$(ROM)"
 
 object-motion-audit: $(ROM)
-	$(PYTHON) scripts/object_motion_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) validation.object_motion_data audit --image "$(ROM)"
 
 object-motion-profile-audit: build-revision
-	$(PYTHON) scripts/object_motion_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.object_motion_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 object-motion-profile-audits:
@@ -168,13 +168,13 @@ object-motion-profile-audits:
 	$(MAKE) object-motion-profile-audit PROFILE=europe
 
 title-data-report: $(ROM)
-	$(PYTHON) scripts/title_data.py report --image "$(ROM)"
+	$(RUN_TOOL) authoring.title_data report --image "$(ROM)"
 
 title-data-audit: $(ROM)
-	$(PYTHON) scripts/title_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) authoring.title_data audit --image "$(ROM)"
 
 title-data-profile-audit: build-revision
-	$(PYTHON) scripts/title_data.py audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) authoring.title_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 title-data-profile-audits:
@@ -182,14 +182,14 @@ title-data-profile-audits:
 	$(MAKE) title-data-profile-audit PROFILE=europe
 
 audio-data-report: $(ROM)
-	$(PYTHON) scripts/audio_data.py report --image "$(ROM)"
+	$(RUN_TOOL) authoring.audio_data report --image "$(ROM)"
 
 audio-data-audit: $(ROM)
-	$(PYTHON) scripts/audio_data.py audit --image "$(ROM)"
+	$(RUN_TOOL) authoring.audio_data audit --image "$(ROM)"
 
 audio-profile-audit:
 	$(MAKE) verify-revision-reference PROFILE=$(PROFILE)
-	$(PYTHON) scripts/audio_data.py audit --profile "$(PROFILE)" \
+	$(RUN_TOOL) authoring.audio_data audit --profile "$(PROFILE)" \
 		--image "$(AUDIO_PROFILE_IMAGE)"
 
 audio-profile-audits:
@@ -205,15 +205,15 @@ source-2-profile-audits:
 		audio-profile-audits
 
 source-2-release-audit:
-	$(PYTHON) "$(SOURCE_2_RELEASE_TOOL)" audit \
+	$(RUN_TOOL) $(SOURCE_2_RELEASE_TOOL) audit \
 		--release "$(SOURCE_2_RELEASE_MANIFEST)"
 
 source-2-pre-tag-audit:
-	$(PYTHON) "$(SOURCE_2_RELEASE_TOOL)" pre-tag-audit \
+	$(RUN_TOOL) $(SOURCE_2_RELEASE_TOOL) pre-tag-audit \
 		--release "$(SOURCE_2_RELEASE_MANIFEST)"
 
 source-2-post-tag-audit:
-	$(PYTHON) "$(SOURCE_2_RELEASE_TOOL)" post-tag-audit \
+	$(RUN_TOOL) $(SOURCE_2_RELEASE_TOOL) post-tag-audit \
 		--release "$(SOURCE_2_RELEASE_MANIFEST)"
 
 quality-check: lint test
@@ -261,7 +261,7 @@ source-2-check:
 	$(MAKE) source-2-pre-tag-audit
 
 source-2-minor-audit:
-	$(PYTHON) $(SOURCE_2_MINOR_TOOL) audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) audit --release "$(SOURCE_2_MINOR_MANIFEST)"
 
 source-2-minor-check:
 	$(MAKE) source-2-regression-check
@@ -269,8 +269,8 @@ source-2-minor-check:
 
 source-2-minor-pre-tag-check:
 	$(MAKE) source-2-minor-check
-	$(PYTHON) $(SOURCE_2_MINOR_TOOL) pre-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) pre-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
 
 source-2-minor-tag-check:
 	$(MAKE) source-2-regression-check
-	$(PYTHON) $(SOURCE_2_MINOR_TOOL) post-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) post-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"

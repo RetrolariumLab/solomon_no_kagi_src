@@ -1,26 +1,27 @@
 PYTHON ?= python
+RUN_TOOL := $(PYTHON) scripts/run.py
 CA65 ?= bin/ca65.exe
 LD65 ?= bin/ld65.exe
 REFERENCE_ROM ?= Solomon's Key (U) [!].nes
 EUROPE_REFERENCE_ROM ?= Solomon's Key (E) [!].nes
 MANIFEST := assets/manifest.json
-VERIFY_ROM := scripts/verify_rom.py
+VERIFY_ROM := build.verify_rom
 TOOLCHAIN_MANIFEST := config/toolchain.json
 SOURCE_2_RELEASE_MANIFEST := config/source_reconstruction_2_0.json
-SOURCE_2_RELEASE_TOOL := scripts/source_2_release.py
+SOURCE_2_RELEASE_TOOL := validation.source_2_release
 SOURCE_2_MINOR_MANIFEST := config/source_reconstruction_2_1.json
-SOURCE_2_MINOR_TOOL := scripts/source_2_minor_release.py
+SOURCE_2_MINOR_TOOL := validation.source_2_minor_release
 REVISION_MANIFEST := config/revision_profiles.json
-REVISION_TOOL := scripts/revision_profiles.py
-LEVEL_EDITOR := scripts/level_editor.py
-LEVEL_STUDIO := scripts/level_studio.py
-AUDIO_EDITOR := scripts/audio_editor.py
-SOUND_STUDIO := scripts/sound_studio.py
-AUDIO_PREVIEW_TOOL := scripts/audio_preview.py
-GRAPHICS_EDITOR := scripts/graphics_editor.py
-GRAPHICS_STUDIO := scripts/graphics_studio.py
-PRESENTATION_EDITOR := scripts/presentation_editor.py
-PRESENTATION_STUDIO := scripts/presentation_studio.py
+REVISION_TOOL := build.revision_profiles
+LEVEL_EDITOR := authoring.level_editor
+LEVEL_STUDIO := authoring.level_studio
+AUDIO_EDITOR := authoring.audio_editor
+SOUND_STUDIO := authoring.sound_studio
+AUDIO_PREVIEW_TOOL := authoring.audio_preview
+GRAPHICS_EDITOR := authoring.graphics_editor
+GRAPHICS_STUDIO := authoring.graphics_studio
+PRESENTATION_EDITOR := authoring.presentation_editor
+PRESENTATION_STUDIO := authoring.presentation_studio
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
@@ -64,13 +65,13 @@ SYMBOL_DIR := $(BUILD_DIR)
 SYMBOL_SUMMARY := $(BUILD_DIR)/debug_symbols.json
 FCEUX ?= ../fceux_automation/vc/x64/Release/fceux64.exe
 RUNTIME_SCENARIOS := scenarios/runtime_scenarios.json
-RUNTIME_LUA := scripts/capture_runtime_scenario.lua
+RUNTIME_LUA := scripts/runtime/capture_runtime_scenario.lua
 RUNTIME_TRACE_DIR := $(BUILD_DIR)/runtime
 REVISION_RUNTIME_SCENARIOS_usa = scenarios/runtime_scenarios.json
 REVISION_RUNTIME_SCENARIOS_europe = scenarios/runtime_scenarios_europe.json
 REVISION_RUNTIME_SCENARIOS = $(REVISION_RUNTIME_SCENARIOS_$(PROFILE))
 REVISION_RUNTIME_TRACE_DIR = $(REVISION_BUILD_DIR)/runtime
-DEBUG_SYMBOLS := $(PYTHON) scripts/debug_symbols.py --debug "$(DEBUG)" --map "$(MAP)" \
+DEBUG_SYMBOLS := $(RUN_TOOL) validation.debug_symbols --debug "$(DEBUG)" --map "$(MAP)" \
 	--labels "$(LABELS)" --breakpoints config/debugger_breakpoints.json \
 	--watches config/debugger_watches.json --output-dir "$(SYMBOL_DIR)" \
 	--rom-name "$(notdir $(ROM))" --summary "$(SYMBOL_SUMMARY)"
@@ -97,18 +98,19 @@ SOURCE_FILES := src/main.asm \
 	src/memory/hardware.inc src/memory/ram.inc
 MAKE_FRAGMENTS := mk/authoring.mk mk/profiles.mk mk/runtime.mk mk/validation.mk
 ROMLESS_TEST_MODULES := \
-	tests.test_make_help \
-	tests.test_asm_style \
-	tests.test_project \
-	tests.test_verify_rom \
-	tests.test_revision_profiles \
-	tests.test_reconstruction_status \
-	tests.test_source_2_minor_release \
-	tests.test_release_history \
-	tests.test_runtime_scenarios \
-	tests.test_debug_symbols \
-	tests.test_prg_layout \
-	tests.test_room_data
+	tests.build.test_make_help \
+	tests.build.test_project \
+	tests.build.test_script_runner \
+	tests.build.test_verify_rom \
+	tests.build.test_revision_profiles \
+	tests.authoring.test_room_data \
+	tests.runtime.test_runtime_scenarios \
+	tests.validation.test_asm_style \
+	tests.validation.test_debug_symbols \
+	tests.validation.test_prg_layout \
+	tests.validation.test_reconstruction_status \
+	tests.validation.test_release_history \
+	tests.validation.test_source_2_minor_release
 
 .PHONY: all help build split verify verify-reference verify-built verify-header \
 	verify-prg verify-chr verify-payload verify-rom verify-assets check-assets \
@@ -168,10 +170,10 @@ help:
 	@$(PYTHON) -m scripts.build.make_help
 
 $(BUILD_DIR):
-	$(PYTHON) scripts/project.py mkdir --path "$(BUILD_DIR)"
+	$(RUN_TOOL) build.project mkdir --path "$(BUILD_DIR)"
 
 $(CHR_ASSET):
-	$(PYTHON) scripts/project.py require --path "$@" --hint "run 'make split' first"
+	$(RUN_TOOL) build.project require --path "$@" --hint "run 'make split' first"
 
 $(OBJECT): $(SOURCE_FILES) $(CHR_ASSET) Makefile $(MAKE_FRAGMENTS) | $(BUILD_DIR) verify-build-toolchain
 	$(CA65) --debug-info -g -o "$@" -l "$(BUILD_DIR)/solomons_key.lst" "src/main.asm"
@@ -182,60 +184,60 @@ $(ROM): $(OBJECT) config/linker/cnrom.cfg | verify-build-toolchain
 build: verify-build-toolchain $(ROM)
 
 verify-build-toolchain:
-	$(PYTHON) scripts/project.py toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
+	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
 		--scope build --component-path "assembler=$(CA65)" \
 		--component-path "linker=$(LD65)"
 
 verify-runtime-toolchain:
-	$(PYTHON) scripts/project.py toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
+	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
 		--scope runtime --component-path "runtime_emulator=$(FCEUX)"
 
 verify-private-input:
-	$(PYTHON) scripts/project.py toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
+	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
 		--scope private --component-path "usa_reference_rom=$(REFERENCE_ROM)"
 
 verify-host:
-	$(PYTHON) scripts/project.py toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
+	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
 		--scope host
 
 verify-toolchain: verify-build-toolchain verify-runtime-toolchain verify-private-input verify-host
 
 verify-reference: verify-private-input
-	$(PYTHON) scripts/project.py verify --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
+	$(RUN_TOOL) build.project verify --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
 
 verify-built: $(ROM)
-	$(PYTHON) scripts/project.py verify --image "$(ROM)" --manifest "$(MANIFEST)"
+	$(RUN_TOOL) build.project verify --image "$(ROM)" --manifest "$(MANIFEST)"
 
 verify-header: $(ROM)
-	$(PYTHON) "$(VERIFY_ROM)" compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region header
+	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region header
 
 verify-prg: $(ROM)
-	$(PYTHON) "$(VERIFY_ROM)" compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region prg
+	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region prg
 
 verify-chr: $(ROM)
-	$(PYTHON) "$(VERIFY_ROM)" compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
+	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
 
 verify-payload: $(ROM)
-	$(PYTHON) "$(VERIFY_ROM)" compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region payload
+	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region payload
 
 verify-rom: $(ROM)
-	$(PYTHON) "$(VERIFY_ROM)" compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region rom
+	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region rom
 
 verify-assets: $(CHR_ASSET)
-	$(PYTHON) "$(VERIFY_ROM)" asset --asset "$(CHR_ASSET)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
+	$(RUN_TOOL) $(VERIFY_ROM) asset --asset "$(CHR_ASSET)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
 
 check-assets: verify-assets
 
 verify: verify-reference verify-built verify-header verify-prg verify-chr verify-payload verify-rom verify-assets
 
 split: verify-private-input
-	$(PYTHON) scripts/project.py split --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --output-dir "$(GENERATED_ASSET_DIR)"
+	$(RUN_TOOL) build.project split --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --output-dir "$(GENERATED_ASSET_DIR)"
 
 rom-info-reference:
-	$(PYTHON) "$(VERIFY_ROM)" report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
+	$(RUN_TOOL) $(VERIFY_ROM) report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
 
 rom-info-built: $(ROM)
-	$(PYTHON) "$(VERIFY_ROM)" report --image "$(ROM)" --manifest "$(MANIFEST)"
+	$(RUN_TOOL) $(VERIFY_ROM) report --image "$(ROM)" --manifest "$(MANIFEST)"
 
 rom-info: rom-info-reference rom-info-built
 
@@ -244,4 +246,4 @@ include $(MAKE_FRAGMENTS)
 check: release-static-check
 
 clean:
-	$(PYTHON) scripts/project.py clean --path build
+	$(RUN_TOOL) build.project clean --path build

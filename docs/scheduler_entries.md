@@ -5,7 +5,7 @@ stack contexts and the low nibble selects a two-byte entry in that context's
 table. The table word is an RTS return address, so the first executed address
 is always the stored word plus one.
 
-`scripts/scheduler_data.py` extracts these tables from the built PRG and scans
+`scripts/validation/scheduler_data.py` extracts these tables from the built PRG and scans
 the assembly source for immediate `StartThread` calls. `make scheduler-audit`
 compares the decoded result with `config/scheduler_entries.json`, including
 entries independently reviewed behind dynamically selected calls. Any new

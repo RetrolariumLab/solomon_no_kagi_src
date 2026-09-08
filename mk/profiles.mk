@@ -1,42 +1,42 @@
 # Revision discovery, source builds, and profile identity checks.
 
 list-revisions:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" list
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" list
 
 identify-revision:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" identify \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" identify \
 		--image "$(REVISION_ROM)"
 
 verify-revision-reference:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" verify \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" verify \
 		--profile "$(PROFILE)"
 
 verify-revision-references:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" verify
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" verify
 
 split-revision-assets:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" split \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" split \
 		--profile "$(PROFILE)" --output-dir "$(GENERATED_ASSET_DIR)"
 
 split-all:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" split \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" split \
 		--output-dir "$(GENERATED_ASSET_DIR)"
 
 revision-room-report:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" room-report \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" room-report \
 		--profile "$(PROFILE)"
 
 revision-room-audit:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" audit-rooms
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" audit-rooms
 
 compare-revision-rooms:
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" compare-rooms \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" compare-rooms \
 		--left "$(LEFT_PROFILE)" --right "$(RIGHT_PROFILE)"
 
 build-revision: $(CHR_ASSET) verify-build-toolchain
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" \
 		source-check --profile "$(PROFILE)"
-	$(PYTHON) scripts/project.py mkdir --path "$(REVISION_BUILD_DIR)"
+	$(RUN_TOOL) build.project mkdir --path "$(REVISION_BUILD_DIR)"
 	$(CA65) -D SolomonRevision=$(REVISION_DEFINE) --debug-info -g \
 		-o "$(REVISION_OBJECT)" -l "$(REVISION_BUILD_DIR)/solomons_key.lst" \
 		"src/main.asm"
@@ -46,7 +46,7 @@ build-revision: $(CHR_ASSET) verify-build-toolchain
 		--dbgfile "$(REVISION_BUILD_DIR)/solomons_key.dbg"
 
 verify-revision-source: build-revision
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" \
 		verify-source --profile "$(PROFILE)" --built "$(REVISION_ROM)"
 
 verify-revision-sources:
@@ -54,7 +54,7 @@ verify-revision-sources:
 	$(MAKE) verify-revision-source PROFILE=europe
 
 verify-revision: build-revision
-	$(PYTHON) "$(REVISION_TOOL)" --manifest "$(REVISION_MANIFEST)" \
+	$(RUN_TOOL) $(REVISION_TOOL) --manifest "$(REVISION_MANIFEST)" \
 		verify-built --profile "$(PROFILE)" --built "$(REVISION_ROM)"
 
 verify-revisions:
@@ -62,7 +62,7 @@ verify-revisions:
 	$(MAKE) verify-revision PROFILE=europe
 
 revision-symbols: build-revision
-	$(PYTHON) scripts/debug_symbols.py --debug "$(REVISION_DEBUG)" \
+	$(RUN_TOOL) validation.debug_symbols --debug "$(REVISION_DEBUG)" \
 		--map "$(REVISION_MAP)" --labels "$(REVISION_LABELS)" \
 		--breakpoints config/debugger_breakpoints.json \
 		--watches config/debugger_watches.json --profile "$(PROFILE)" \
@@ -71,7 +71,7 @@ revision-symbols: build-revision
 		--summary "$(REVISION_SYMBOL_SUMMARY)"
 
 validate-revision-symbols: revision-symbols
-	$(PYTHON) scripts/debug_symbols.py --debug "$(REVISION_DEBUG)" \
+	$(RUN_TOOL) validation.debug_symbols --debug "$(REVISION_DEBUG)" \
 		--map "$(REVISION_MAP)" --labels "$(REVISION_LABELS)" \
 		--breakpoints config/debugger_breakpoints.json \
 		--watches config/debugger_watches.json --profile "$(PROFILE)" \
