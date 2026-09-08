@@ -1,4 +1,4 @@
-# Source Reconstruction 2.1 candidate
+# Source Reconstruction 2.1 release candidate
 
 Source Reconstruction 2.1 is the compatible follow-up to the published 2.0
 tag. It does not redefine the USA/European preservation profiles, their ROM
@@ -8,7 +8,7 @@ manifest hashes every inherited section and rejects silent baseline drift.
 
 ## Accepted delta
 
-The current development history adds audible and channel-selectable Sound
+The accepted compatible delta adds audible and channel-selectable Sound
 Studio playback, more faithful native level previews, decoded procedural bonus
 rooms, and a consolidated semantic assembly layout. Repository preparation adds
 responsibility-owned Make fragments, categorized command help, a ROM-less
@@ -31,7 +31,7 @@ remain inherited. It repeats the effective profile inventory, direct runtime
 matrix, toolchain reference, artifact identities, and licensing declarations
 from the immutable 2.0 manifest. Every requirement uses structured
 `targets`, `files`, `scenarios`, and `artifacts` evidence; the minor aggregate
-remains `partial` only until the final clean pre-tag run is recorded.
+is satisfied by the complete compatible-minor gate.
 
 Important authoring and evidence outputs are now atomically published through
 a shared same-directory temporary writer. The same policy covers runtime Lua
@@ -81,7 +81,7 @@ The editor interaction check is also available directly as
 `make editor-ui-smoke-profiles`; select one revision with
 `make editor-ui-smoke-profile PROFILE=usa|europe`.
 
-`source-2-minor-pre-tag-check` and `source-2-minor-tag-check` are intentionally
-reserved for the clean `tag-ready` candidate and its annotated published tag.
+`source-2-minor-pre-tag-check` validates the clean `tag-ready` candidate;
+`source-2-minor-tag-check` is reserved for its future annotated published tag.
 The Japanese profile, systematic relocation, expanded ROMs, and sibling
 engines remain outside this compatible release.

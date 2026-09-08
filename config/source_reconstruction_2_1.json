@@ -7,7 +7,7 @@
   },
   "release_kind": "compatible_minor",
   "tag": "source-reconstruction-2.1",
-  "status": "development",
+  "status": "tag-ready",
   "publish_remote": "origin",
   "predecessor": {
     "manifest": "config/source_reconstruction_2_0.json",
@@ -200,7 +200,7 @@
       }
     },
     "aggregate_source_2_minor_gate": {
-      "status": "partial",
+      "status": "satisfied",
       "evidence": {
         "targets": ["source-2-minor-audit", "source-2-minor-check", "source-2-minor-pre-tag-check", "source-2-minor-tag-check"],
         "files": ["Makefile", "mk/validation.mk", "docs/verification.md"],
@@ -378,10 +378,10 @@
     "private_inputs_tracked": false,
     "generated_outputs_tracked": false,
     "history_policy": {
-      "current_history_status": "development",
+      "current_history_status": "tag-ready",
       "predecessor_commit": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
       "development_branch": "rewrite/source-2.1-modernization",
-      "reason": "Source 2.1 is developed as non-empty attributed commits after the immutable published Source 2.0 tag."
+      "reason": "The complete compatible-minor gate passed for the pinned non-empty commit interval after the immutable published Source 2.0 tag."
     }
   }
 }
