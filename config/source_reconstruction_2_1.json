@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "release_line": "2.x",
   "release": {
     "name": "Source Reconstruction 2.1",
@@ -27,7 +27,8 @@
     "procedural-bonus-room-authoring",
     "maintainable-semantic-source-layout",
     "public-repository-workflow",
-    "editor-workstation-action-evidence"
+    "editor-workstation-action-evidence",
+    "english-public-history"
   ],
   "excluded_scope": [
     {
@@ -113,6 +114,12 @@
       "evidence": ["scripts/build/atomic_io.py", "tests/build/test_atomic_io.py", "scripts/build/project.py", "lint"]
     },
     {
+      "id": "english-public-history",
+      "kind": "evidence",
+      "summary": "Reject non-Latin letters in tracked public text, paths, commit metadata, and public-text blobs reachable from the candidate branch.",
+      "evidence": ["validate-public-text", "scripts/validation/public_text.py", "tests/validation/test_public_text.py"]
+    },
+    {
       "id": "current-release-documentation",
       "kind": "documentation",
       "summary": "Distinguish published 1.0/2.0 tags from the 2.1 candidate, refresh open and resolved unknowns, and provide task-oriented navigation for the complete release document set.",
@@ -179,6 +186,15 @@
       "evidence": {
         "targets": ["lint", "source-2-minor-audit"],
         "files": ["README.md", "CONTRIBUTING.md", "docs/index.md", "docs/architecture.md", "docs/source_layout.md", "docs/verification.md", "docs/data_formats.md", "docs/revision_profiles.md", "docs/licensing.md", "docs/provenance.md", "docs/unknowns.md", "docs/roadmap.md"],
+        "scenarios": [],
+        "artifacts": []
+      }
+    },
+    "english_public_history": {
+      "status": "satisfied",
+      "evidence": {
+        "targets": ["validate-public-text", "lint"],
+        "files": ["scripts/validation/public_text.py", "tests/validation/test_public_text.py"],
         "scenarios": [],
         "artifacts": []
       }
@@ -301,6 +317,7 @@
     "scripts/authoring/editor_workstation_smoke.py",
     "scripts/build/atomic_io.py",
     "scripts/validation/public_command_smoke.py",
+    "scripts/validation/public_text.py",
     "scripts/validation/source_2_minor_release.py",
     "scripts/validation/source_2_release.py",
     "tests/build/test_atomic_io.py",
@@ -315,6 +332,7 @@
     "help",
     "format",
     "lint",
+    "validate-public-text",
     "test",
     "scaffold-check",
     "public-command-smoke",

@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+from typing import Callable
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,8 +23,9 @@ def run_disposable_make(
     target: str = "lint",
     *,
     make_executable: str | None = None,
+    prepare_clone: Callable[[Path], None] | None = None,
 ) -> str:
-    """Clone tracked content, run one public target, and require no mutations."""
+    """Clone tracked content, optionally prepare it, and run one public target."""
     make = make_executable or shutil.which("make")
     if not make:
         raise PublicCommandSmokeError("make executable not found")
@@ -50,6 +52,9 @@ def run_disposable_make(
             raise PublicCommandSmokeError(
                 f"cannot create disposable clone: {clone_result.stderr.strip()}"
             )
+
+        if prepare_clone is not None:
+            prepare_clone(clone)
 
         result = subprocess.run(
             [make, target],

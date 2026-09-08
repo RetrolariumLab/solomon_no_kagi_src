@@ -356,7 +356,7 @@ assets/manifest.json       exact reference identity
 config/revision_profiles.json regional ROM, asset, and room-data identities
 bin/                       local ca65/ld65 toolchain and license
 config/toolchain.json      pinned build/runtime/private input identities
-config/source_reconstruction_1_0.json revision-3 release contract
+config/source_reconstruction_1_0.json preservation release manifest
 config/linker/cnrom.cfg    complete iNES/PRG/CHR linker layout
 config/reconstruction/reconstruction.json machine-checked module inventory and progress floors
 config/validation/scheduler_entries.json reviewed scheduler-entry inventory

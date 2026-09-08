@@ -21,6 +21,7 @@ TARGET_GROUPS = (
             ("format", "normalize authored assembly source"),
             ("format-check", "check formatting without changing files"),
             ("lint", "check source, metadata, links, and policy"),
+            ("validate-public-text", "check English text in the tree and history"),
             ("scaffold-check", "run the ROM-less public gate"),
             ("quality-check", "run lint and the complete unit-test suite"),
             ("check", "run the complete static Source 1 gate"),

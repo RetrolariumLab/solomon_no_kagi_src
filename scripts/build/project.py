@@ -581,19 +581,6 @@ def validate_atomic_output_policy(root: Path) -> None:
             raise ProjectError(f"runtime output is not atomically published: {name}")
 
 
-def validate_atomic_output_policy(root: Path) -> None:
-    """Reject direct important-output writes outside the shared atomic helper."""
-    offenders: list[str] = []
-    for path in sorted((root / "scripts").rglob("*.py")):
-        if path.name == "atomic_io.py":
-            continue
-        source = path.read_text(encoding="utf-8")
-        if re.search(r"\.write_(?:text|bytes)\s*\(", source):
-            offenders.append(path.relative_to(root).as_posix())
-    if offenders:
-        raise ProjectError("direct non-atomic output writes: " + ", ".join(offenders))
-
-
 def command_lint(_args: argparse.Namespace) -> None:
     required = (
         "README.md",
@@ -686,7 +673,6 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_markdown_links(ROOT)
     validate_tool_layout(ROOT)
     validate_config_layout(ROOT)
-    validate_atomic_output_policy(ROOT)
     validate_atomic_output_policy(ROOT)
     try:
         organization = json.loads(

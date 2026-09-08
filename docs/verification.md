@@ -57,7 +57,8 @@ the iNES header, PRG, CHR, headerless payload, full image, and extracted CHR.
 | `title-data-audit` | round-trip packed title streams and the adjacent attract-demo tables |
 | `title-data-profile-audits` | independently round-trip relocated USA/PAL title graphics and demo input |
 | `audio-data-audit` | check audio pointers, reachability, hashes, and byte round trips |
-| `release-audit` | cross-check the revision-3 manifest, identity, scope, evidence, toolchain, profiles, and artifacts |
+| `release-audit` | cross-check the preservation manifest, identity, scope, evidence, toolchain, profiles, and artifacts |
+| `validate-public-text` | reject non-Latin letters in tracked public text and candidate-reachable public history |
 | `pre-tag-audit` | check clean tree, commit policy, release title, and local/remote tag absence |
 | `release-check` | clean rebuild and complete Source 1.0 pre-tag contract, including fresh runtime capture |
 | `source-1-audit` | compatibility alias for `release-check` |

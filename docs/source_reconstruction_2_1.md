@@ -35,21 +35,26 @@ Important authoring and evidence outputs are now atomically published through
 a shared same-directory temporary writer. The same policy covers runtime Lua
 results, and `make lint` prevents a new Python tool from bypassing the writer.
 
+Public text is also checked as a repository boundary. `make
+validate-public-text` scans tracked text and candidate-reachable commit metadata,
+paths, and historical public-text blobs so removed drafts cannot silently leave
+non-English material in the release history.
+
 ## Repository layout
 
 Python tools and tests now occupy mirrored `authoring`, `build`, `runtime`, and
 `validation` packages. Public Make targets dispatch them through the stable
 `scripts/run.py` entry point, and `make lint` rejects new uncategorized Python
-tools. Historical 1.0 and 2.0 manifests remain byte-for-byte unchanged;
-current validators resolve their former script paths through an explicit
-compatibility map.
+tools. Historical 1.0 and 2.0 tagged trees remain immutable; the current
+project-owned manifest snapshots use neutral release-line metadata and resolve
+former script paths through an explicit compatibility map.
 
 Configuration follows the same ownership model: authoring, debugger,
 reconstruction, and validation manifests live in named subdirectories, while
 shared revision, toolchain, and release contracts stay at `config/` root.
 `make lint` rejects a new uncategorized JSON file. The published 2.0 tag and
-its recorded manifest remain immutable; current validators resolve its former
-paths through the same compatibility map used for moved tools.
+its recorded tagged manifest remain immutable; current validators compare its
+project-owned fields through the same compatibility map used for moved tools.
 
 ## Gates
 

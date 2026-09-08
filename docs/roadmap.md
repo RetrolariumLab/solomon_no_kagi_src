@@ -454,6 +454,6 @@ fixed-layout capacity. Its compatible delta adds audible Sound Studio playback,
 native level-preview improvements, procedural bonus-room authoring, consolidated
 semantic source modules, responsibility-owned tooling/configuration, a stable
 public launcher and help surface, disposable public-command evidence, complete
-editor workstation actions, structured revision-5 release evidence, and atomic
+editor workstation actions, structured release evidence, and atomic
 output publication. Final release status is set only after the aggregate gate
 passes from a clean build and the complete delta is pinned.

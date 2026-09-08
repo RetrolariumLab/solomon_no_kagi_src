@@ -14,7 +14,10 @@ lint-source:
 
 lint-project: lint-source
 
-lint: lint-asm lint-source
+validate-public-text:
+	$(RUN_TOOL) validation.public_text --project-root . --history-ref HEAD
+
+lint: lint-asm lint-source validate-public-text
 
 test:
 	$(PYTHON) -m unittest discover -s tests -t . -v

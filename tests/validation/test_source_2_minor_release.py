@@ -13,12 +13,27 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Source2MinorReleaseTests(unittest.TestCase):
     def test_release_header_is_project_owned(self) -> None:
-        release = {"schema_version": 1, "release_line": "2.x"}
+        release = {"schema_version": 2, "release_line": "2.x"}
         self.assertEqual(audit.validate_release_header(release), [])
         release["contract"] = {"source": "external"}
         self.assertIn(
             "release manifest must contain only project-owned metadata",
             audit.validate_release_header(release),
+        )
+
+    def test_project_release_view_ignores_review_metadata(self) -> None:
+        tagged = {
+            "schema_version": 1,
+            "contract": {"schema": "legacy", "version": 1},
+            "release": {"version": "2.0"},
+        }
+        working = {
+            "schema_version": 2,
+            "release_line": "2.0",
+            "release": {"version": "2.0"},
+        }
+        self.assertEqual(
+            audit.project_release_view(tagged), audit.project_release_view(working)
         )
 
     def test_inherited_section_hash_rejects_baseline_drift(self) -> None:

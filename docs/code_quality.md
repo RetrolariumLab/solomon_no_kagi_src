@@ -27,7 +27,7 @@ Super Mario Bros. preservation projects.
   subsystem contract without launching the emulator
 - `make release-check` starts from an empty build directory, verifies the
   pinned toolchain and private input, runs the static gate, freshly captures all
-  ten runtime scenarios, validates the revision-3 release manifest, then checks
+  ten runtime scenarios, validates the preservation release manifest, then checks
   commit history, worktree cleanliness, and tag absence
 - `make source-1-audit` is a compatibility alias for `make release-check`
 - `make source-1-post-tag-audit` validates annotated local and published tag

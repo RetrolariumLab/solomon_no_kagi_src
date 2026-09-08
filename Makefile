@@ -111,6 +111,7 @@ ROMLESS_TEST_MODULES := \
 	tests.validation.test_prg_layout \
 	tests.validation.test_reconstruction_status \
 	tests.validation.test_release_history \
+	tests.validation.test_public_text \
 	tests.validation.test_public_command_smoke \
 	tests.validation.test_source_2_minor_release
 
@@ -120,7 +121,7 @@ ROMLESS_TEST_MODULES := \
 	verify-private-input \
 	rom-info rom-info-reference rom-info-built symbols validate-symbols \
 	trace trace-runtime validate-runtime \
-	format format-check lint lint-asm \
+	format format-check lint lint-asm validate-public-text \
 	lint-source lint-project test scaffold-check quality-check check release-audit pre-tag-audit \
 	release-static-check release-check source-1-audit source-1-post-tag-audit rooms \
 	source-1-regression-check source-2-profile-audits \

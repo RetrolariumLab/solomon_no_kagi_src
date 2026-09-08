@@ -84,7 +84,7 @@ def git_lines(project_root: Path, *arguments: str) -> list[str]:
 
 def validate_release_header(release: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    if release.get("schema_version") != 1:
+    if release.get("schema_version") != 2:
         errors.append("unsupported Source Reconstruction 2.1 manifest schema")
     if release.get("release_line") != "2.x":
         errors.append("release_line must be 2.x")

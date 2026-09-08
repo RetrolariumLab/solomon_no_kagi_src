@@ -7,8 +7,7 @@ that present names are the historical names used by Tecmo; it guarantees that
 names and comments are evidence-backed, uncertainty is explicit, and the game
 can be rebuilt, inspected, traced, and changed at source level.
 
-This is the mandatory `preservation` release line under revision 3 of
-`retrolarium.source_reconstruction_release_contract`. Its semantic depth exceeds
+This is the project's `preservation` release line. Its semantic depth exceeds
 the minimum Preservation Source milestone, but the accepted artifact remains the
 unaltered USA image; modified builds and additional regional profiles are not
 part of 1.0.
@@ -83,7 +82,7 @@ make release-check
 It deletes the build directory, checks every pinned build/runtime/private input,
 runs lint and all tests, rebuilds and byte-compares the ROM, executes every
 format and subsystem audit, regenerates debugger symbols, freshly captures all
-ten runtime scenarios, validates the revision-3 manifest, checks commit-history
+ten runtime scenarios, validates the preservation manifest, checks commit-history
 policy and worktree cleanliness, and proves that the future tag is absent both
 locally and on `origin`. `make source-1-audit` is a compatibility alias for this
 same aggregate gate; `make trace` is the stable runtime-capture entrypoint.
