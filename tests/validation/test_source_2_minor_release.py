@@ -39,6 +39,60 @@ class Source2MinorReleaseTests(unittest.TestCase):
             )
         )
 
+    def test_explicit_release_surface_must_match_the_predecessor(self) -> None:
+        predecessor = {
+            **{field: [] for field in audit.EXPLICIT_INHERITED_FIELDS},
+            "revision_manifest": "profiles.json",
+        }
+        release = dict(predecessor)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "profiles.json").write_text("{}\n", encoding="utf-8")
+            (root / "toolchain.json").write_text(
+                '{"components": [], "hosts": [{"id": "host"}]}\n',
+                encoding="utf-8",
+            )
+            predecessor["toolchain"] = {
+                "manifest": "toolchain.json",
+                "components": [],
+                "host": "host",
+            }
+            release["toolchain"] = dict(predecessor["toolchain"])
+            self.assertEqual(
+                audit.validate_explicit_inheritance(root, predecessor, release), []
+            )
+            release["profiles"] = [{"id": "different"}]
+            self.assertIn(
+                "compatible minor must explicitly inherit Source 2.0 profiles",
+                audit.validate_explicit_inheritance(root, predecessor, release),
+            )
+
+    def test_requirements_use_structured_evidence(self) -> None:
+        release = {
+            "requirements": {
+                "contract": {
+                    "status": "satisfied",
+                    "evidence": {
+                        "targets": ["audit"],
+                        "files": ["evidence.txt"],
+                        "scenarios": ["scenario"],
+                        "artifacts": ["rom"],
+                    },
+                }
+            },
+            "runtime_coverage": [{"scenarios": ["scenario"]}],
+            "artifacts": [{"id": "rom"}],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "evidence.txt").write_text("evidence\n", encoding="utf-8")
+            self.assertEqual(audit.validate_requirements(root, release, {"audit"}), [])
+            release["requirements"]["contract"]["evidence"] = ["evidence.txt"]
+            self.assertIn(
+                "requirement contract evidence must use structured fields",
+                audit.validate_requirements(root, release, {"audit"}),
+            )
+
     def test_development_history_accepts_an_unpinned_terminal(self) -> None:
         release = {
             "status": "development",

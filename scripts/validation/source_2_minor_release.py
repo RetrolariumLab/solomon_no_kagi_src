@@ -31,7 +31,21 @@ INHERITED_SECTION_IDS = {
     "provenance",
 }
 VALID_STATUSES = {"development", "tag-ready", "tagged"}
-VALID_REQUIREMENT_STATUSES = {"planned", "development", "satisfied"}
+VALID_REQUIREMENT_STATUSES = {
+    "satisfied",
+    "not_applicable",
+    "partial",
+    "unsupported",
+    "planned",
+}
+EVIDENCE_FIELDS = {"targets", "files", "scenarios", "artifacts"}
+EXPLICIT_INHERITED_FIELDS = {
+    "profiles",
+    "runtime_coverage",
+    "toolchain",
+    "artifacts",
+    "licensing",
+}
 MINOR_METADATA_PATHS = {
     "config/source_reconstruction_2_1.json",
     "docs/source_reconstruction_2_1.md",
@@ -148,19 +162,100 @@ def validate_inheritance(
         item = by_id.get(identifier)
         if item and item.get("sha256") != section_digest(predecessor.get(identifier)):
             errors.append(f"inherited Source 2.0 section changed: {identifier}")
-    profiles = release.get("accepted_profiles", [])
-    expected_profiles = [
-        {
-            "id": item["id"],
-            "identity": item["identity"],
-            "runtime": item["runtime"],
-            "artifact": item["artifact"],
+    return errors
+
+
+def validate_explicit_inheritance(
+    project_root: Path,
+    predecessor: dict[str, Any],
+    release: dict[str, Any],
+) -> list[str]:
+    """Require the compatible manifest to expose its effective 2.0 surface."""
+    errors: list[str] = []
+    for field in sorted(EXPLICIT_INHERITED_FIELDS):
+        if release.get(field) != predecessor.get(field):
+            errors.append(f"compatible minor must explicitly inherit Source 2.0 {field}")
+    revision_manifest = release.get("revision_manifest")
+    if revision_manifest != predecessor.get("revision_manifest"):
+        errors.append("compatible minor must explicitly inherit revision_manifest")
+    elif not (project_root / str(revision_manifest)).is_file():
+        errors.append(f"revision manifest is missing: {revision_manifest}")
+
+    toolchain = release.get("toolchain", {})
+    toolchain_path = project_root / str(toolchain.get("manifest", ""))
+    if not toolchain_path.is_file():
+        errors.append(f"toolchain manifest is missing: {toolchain.get('manifest')}")
+    else:
+        details = load_json(toolchain_path)
+        component_ids = [
+            item.get("id")
+            for item in details.get("components", [])
+            if isinstance(item, dict)
+        ]
+        host_ids = {
+            item.get("id")
+            for item in details.get("hosts", [])
+            if isinstance(item, dict)
         }
-        for item in predecessor.get("profiles", [])
-        if isinstance(item, dict) and item.get("status") == "supported"
-    ]
-    if profiles != expected_profiles:
-        errors.append("accepted profiles differ from the Source 2.0 baseline")
+        if toolchain.get("components") != component_ids:
+            errors.append("toolchain component inventory disagrees with its manifest")
+        if toolchain.get("host") not in host_ids:
+            errors.append("toolchain host is absent from its manifest")
+    return errors
+
+
+def validate_requirements(
+    project_root: Path,
+    release: dict[str, Any],
+    targets: set[str],
+) -> list[str]:
+    """Validate the structured evidence attached to requirements."""
+    errors: list[str] = []
+    requirements = release.get("requirements", {})
+    if not isinstance(requirements, dict) or not requirements:
+        return ["requirements must be a non-empty object"]
+
+    artifact_ids = {
+        item.get("id")
+        for item in release.get("artifacts", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    scenario_ids = {
+        scenario
+        for coverage in release.get("runtime_coverage", [])
+        if isinstance(coverage, dict)
+        for scenario in coverage.get("scenarios", [])
+    }
+    for identifier, requirement in requirements.items():
+        if not isinstance(requirement, dict):
+            errors.append(f"requirement {identifier} must be an object")
+            continue
+        status = requirement.get("status")
+        if status not in VALID_REQUIREMENT_STATUSES:
+            errors.append(f"requirement {identifier} has invalid status")
+        evidence = requirement.get("evidence")
+        if not isinstance(evidence, dict) or set(evidence) != EVIDENCE_FIELDS:
+            errors.append(f"requirement {identifier} evidence must use structured fields")
+            continue
+        if any(not isinstance(evidence[field], list) for field in EVIDENCE_FIELDS):
+            errors.append(f"requirement {identifier} evidence fields must be lists")
+            continue
+        if not any(evidence.values()):
+            errors.append(f"requirement {identifier} has no evidence")
+        for target in evidence["targets"]:
+            if target not in targets:
+                errors.append(f"requirement {identifier} names missing target: {target}")
+        for relative in evidence["files"]:
+            if not (project_root / str(relative)).is_file():
+                errors.append(f"requirement {identifier} names missing file: {relative}")
+        for scenario in evidence["scenarios"]:
+            if scenario not in scenario_ids and not (project_root / str(scenario)).is_file():
+                errors.append(f"requirement {identifier} names missing scenario: {scenario}")
+        for artifact in evidence["artifacts"]:
+            if artifact not in artifact_ids:
+                errors.append(f"requirement {identifier} names missing artifact: {artifact}")
+        if status == "not_applicable" and not requirement.get("reason"):
+            errors.append(f"requirement {identifier} is not_applicable without a reason")
     return errors
 
 
@@ -228,6 +323,7 @@ def validate_paths_and_commands(
     }
     if gates != expected_gates:
         errors.append("aggregate gates differ from the Source 2.1 interface")
+    errors.extend(validate_requirements(project_root, release, targets))
     for item in release.get("delta", []):
         if not isinstance(item, dict) or not all(
             item.get(field) for field in ("id", "kind", "summary", "evidence")
@@ -257,19 +353,9 @@ def validate_manifest(project_root: Path, release: dict[str, Any]) -> list[str]:
     errors.extend(predecessor_errors)
     if predecessor:
         errors.extend(validate_inheritance(predecessor, release))
+        errors.extend(validate_explicit_inheritance(project_root, predecessor, release))
     if not release.get("included_scope") or not release.get("excluded_scope"):
         errors.append("included_scope and excluded_scope must both be non-empty")
-    requirements = release.get("requirements", {})
-    if not isinstance(requirements, dict) or not requirements:
-        errors.append("requirements must be a non-empty object")
-    else:
-        for identifier, requirement in requirements.items():
-            if not isinstance(requirement, dict) or requirement.get(
-                "status"
-            ) not in VALID_REQUIREMENT_STATUSES:
-                errors.append(f"requirement {identifier} has invalid status")
-            elif not requirement.get("evidence"):
-                errors.append(f"requirement {identifier} has no evidence")
     errors.extend(validate_delta_history(project_root, release))
     errors.extend(validate_paths_and_commands(project_root, release))
     provenance = release.get("provenance", {})
@@ -358,7 +444,7 @@ def main() -> int:
         return 1
     print(
         "[OK] Source Reconstruction 2.1 contract, predecessor, inherited "
-        "sections, delta history, and command surface agree"
+        "sections, profiles, evidence, delta history, and command surface agree"
     )
     return 0
 

@@ -19,10 +19,17 @@ Build, Preview
 or Play, and dirty-close behavior through all four public studios for both
 accepted profiles.
 
-The full commit interval starts immediately after the annotated 2.0 tag. While
-the manifest status is `development`, its terminal commit remains unset. It is
-pinned after each accepted vertical slice and must cover every substantive
-commit before the status can become `tag-ready`.
+The full commit interval starts immediately after the annotated 2.0 tag. During
+development its terminal commit is advanced after each accepted vertical slice
+and must cover every substantive commit before the status can become
+`tag-ready`.
+
+The compatible manifest is self-describing even though its preservation facts
+remain inherited. It repeats the effective profile inventory, direct runtime
+matrix, toolchain reference, artifact identities, and licensing declarations
+from the immutable 2.0 manifest. Every requirement uses structured
+`targets`, `files`, `scenarios`, and `artifacts` evidence; the minor aggregate
+remains `partial` only until the final clean pre-tag run is recorded.
 
 ## Repository layout
 

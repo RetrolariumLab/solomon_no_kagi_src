@@ -97,6 +97,12 @@ files, and accidental writes without requiring either private ROM image.
 The Source Reconstruction 2.1 aggregate gate runs this smoke after the complete
 published 2.0 regression gate and before the compatible-minor audit.
 
+`make source-2-minor-audit` also checks that the 2.1 manifest explicitly repeats
+the accepted 2.0 profiles, direct runtime coverage, toolchain owner, artifact
+hashes, and licensing surface. Its requirement evidence is resolved by type:
+Make targets must exist, files and scenario manifests must be present, and
+artifact IDs must name declared byte-identical outputs.
+
 ## Editor workstation actions
 
 `make editor-ui-smoke-profiles` opens each public studio in a disposable

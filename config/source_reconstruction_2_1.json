@@ -99,36 +99,77 @@
       "kind": "evidence",
       "summary": "Exercise Save, Build, Preview or Play, and dirty-close behavior through the public Level, Sound, Graphics, and Presentation Studio actions for both accepted profiles.",
       "evidence": ["editor-ui-smoke-profiles", "scripts/authoring/editor_workstation_smoke.py", "tests/authoring/test_editor_workstation_smoke.py"]
+    },
+    {
+      "id": "machine-readable-release-surface",
+      "kind": "release",
+      "summary": "Expose the effective profiles, runtime matrix, toolchain, artifacts, licensing, and structured requirement evidence directly in the compatible-minor manifest.",
+      "evidence": ["config/source_reconstruction_2_1.json", "scripts/validation/source_2_minor_release.py", "tests/validation/test_source_2_minor_release.py"]
     }
   ],
   "requirements": {
     "source_2_baseline_inheritance": {
       "status": "satisfied",
-      "evidence": ["source-2-regression-check", "config/source_reconstruction_2_0.json"]
+      "evidence": {
+        "targets": ["source-2-regression-check"],
+        "files": ["config/source_reconstruction_2_0.json"],
+        "scenarios": ["scenarios/runtime_scenarios.json", "scenarios/runtime_scenarios_europe.json"],
+        "artifacts": ["usa_nes_rom", "europe_nes_rom"]
+      }
     },
     "self_contained_release_metadata": {
       "status": "satisfied",
-      "evidence": ["config/source_reconstruction_2_1.json", "scripts/source_2_minor_release.py", "tests/test_source_2_minor_release.py"]
+      "evidence": {
+        "targets": ["source-2-minor-audit"],
+        "files": ["config/source_reconstruction_2_1.json", "scripts/validation/source_2_minor_release.py", "tests/validation/test_source_2_minor_release.py", "docs/source_reconstruction_2_1.md"],
+        "scenarios": [],
+        "artifacts": []
+      }
     },
     "repository_quality_hardening": {
       "status": "satisfied",
-      "evidence": ["help", "scaffold-check", "mk/validation.mk"]
+      "evidence": {
+        "targets": ["help", "lint", "scaffold-check"],
+        "files": ["Makefile", "mk/validation.mk", "scripts/build/project.py", "docs/verification.md"],
+        "scenarios": [],
+        "artifacts": []
+      }
     },
     "responsibility_package_layout": {
       "status": "satisfied",
-      "evidence": ["scripts/run.py", "scripts/authoring", "scripts/build", "scripts/runtime", "scripts/validation", "tests/authoring", "tests/build", "tests/runtime", "tests/validation"]
+      "evidence": {
+        "targets": ["lint", "test"],
+        "files": ["scripts/run.py", "scripts/authoring/__init__.py", "scripts/build/__init__.py", "scripts/runtime/__init__.py", "scripts/validation/__init__.py", "tests/build/test_script_runner.py", "tests/build/test_project.py"],
+        "scenarios": [],
+        "artifacts": []
+      }
     },
     "public_command_execution": {
       "status": "satisfied",
-      "evidence": ["public-command-smoke", "scripts/validation/public_command_smoke.py", "tests/validation/test_public_command_smoke.py"]
+      "evidence": {
+        "targets": ["public-command-smoke"],
+        "files": ["scripts/validation/public_command_smoke.py", "tests/validation/test_public_command_smoke.py"],
+        "scenarios": [],
+        "artifacts": []
+      }
     },
     "editor_interaction_evidence": {
       "status": "satisfied",
-      "evidence": ["editor-ui-smoke-profiles", "scripts/authoring/editor_workstation_smoke.py", "tests/authoring/test_editor_workstation_smoke.py"]
+      "evidence": {
+        "targets": ["editor-ui-smoke-profiles"],
+        "files": ["scripts/authoring/editor_workstation_smoke.py", "tests/authoring/test_editor_workstation_smoke.py"],
+        "scenarios": [],
+        "artifacts": ["usa_nes_rom", "europe_nes_rom"]
+      }
     },
     "aggregate_source_2_minor_gate": {
-      "status": "development",
-      "evidence": ["source-2-minor-check", "source-2-minor-audit"]
+      "status": "partial",
+      "evidence": {
+        "targets": ["source-2-minor-audit", "source-2-minor-check", "source-2-minor-pre-tag-check", "source-2-minor-tag-check"],
+        "files": ["Makefile", "mk/validation.mk", "docs/verification.md"],
+        "scenarios": ["scenarios/runtime_scenarios.json", "scenarios/runtime_scenarios_europe.json"],
+        "artifacts": ["usa_nes_rom", "europe_nes_rom"]
+      }
     }
   },
   "inherited_sections": [
@@ -141,9 +182,70 @@
     {"id": "licensing", "sha256": "91496d368288cc26a7d049dd87aa2b8a59207f0c00088b0d79cc0374f9c5d7db"},
     {"id": "provenance", "sha256": "cb93223e8835210d064a0981a4960a5b86d22a808c248073cc4e349412f3176f"}
   ],
-  "accepted_profiles": [
-    {"id": "usa", "identity": "byte-identical", "runtime": "direct", "artifact": "usa_nes_rom"},
-    {"id": "europe", "identity": "byte-identical", "runtime": "direct", "artifact": "europe_nes_rom"}
+  "revision_manifest": "config/revision_profiles.json",
+  "profiles": [
+    {"id": "usa", "status": "supported", "source": "complete", "identity": "byte-identical", "runtime": "direct", "artifact": "usa_nes_rom"},
+    {"id": "europe", "status": "supported", "source": "complete", "identity": "byte-identical", "runtime": "direct", "artifact": "europe_nes_rom"},
+    {"id": "japan", "status": "planned", "excluded_scope": "japanese_release_profile"}
+  ],
+  "runtime_coverage": [
+    {
+      "profile_id": "usa",
+      "mode": "direct",
+      "manifest": "scenarios/runtime_scenarios.json",
+      "scenarios": ["cold-boot-idle", "start-room-1", "room-1-walk-right", "room-1-pause-resume", "room-1-life-loss-reload", "room-1-cast-block", "room-1-cast-fireball", "audio-channel-priority", "attract-demo-scheduler", "room-1-door-transition"]
+    },
+    {
+      "profile_id": "europe",
+      "mode": "direct",
+      "manifest": "scenarios/runtime_scenarios_europe.json",
+      "scenarios": ["cold-boot-idle", "start-room-1", "room-1-pause-resume", "audio-channel-priority"]
+    }
+  ],
+  "toolchain": {
+    "manifest": "config/toolchain.json",
+    "components": ["assembler", "linker", "runtime_emulator"],
+    "host": "windows-x64-powershell",
+    "private_profile_inputs": ["usa", "europe"],
+    "private_input_owner": "config/revision_profiles.json"
+  },
+  "artifacts": [
+    {
+      "id": "usa_nes_rom",
+      "profile": "usa",
+      "build_target": "verify-revision",
+      "size": 65552,
+      "sha1": "18102689fd35c7d531a5e6241b06b748accab2f6",
+      "sha256": "3d9f3bee199a3fbc04bab38e1d9d5cdeae1c6691dcca463a13c25e42f77bb03d",
+      "regions": {
+        "header": {"size": 16, "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690", "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"},
+        "prg": {"size": 32768, "sha1": "4e8c6c33897e6c0dc6297f67e8f5699b1b5ca4e6", "sha256": "d86d94cd13a7199b9a58cfa0e372ea05ffeabee8ce301639e5d9f52ca860d6b7"},
+        "chr": {"size": 32768, "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf", "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"},
+        "payload": {"size": 65536, "sha1": "222e19511d64872e0b47a47d77ecc9bb3ebc52dc", "sha256": "842478f0d9f01c6c547672a7e4dc4a33ed2c900f92e4b318f4d5941ba548b355"}
+      }
+    },
+    {
+      "id": "europe_nes_rom",
+      "profile": "europe",
+      "build_target": "verify-revision",
+      "size": 65552,
+      "sha1": "89ab8f53154c9dcddafe46c16b31df7e00fe2538",
+      "sha256": "e8dc7ad587133869eaf6101018be676e9c14c3b97b988d2e96f7e398b5c33acb",
+      "regions": {
+        "header": {"size": 16, "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690", "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"},
+        "prg": {"size": 32768, "sha1": "80b6514e06f480bfc8ba18a70645516a96aed5c1", "sha256": "3652cf993e369165774e2329062a90ee0167372d77c4dd3d81dc2bc874b5a051"},
+        "chr": {"size": 32768, "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf", "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"},
+        "payload": {"size": 65536, "sha1": "d849dee00fcebfbb17f207089ef36f224a20b023", "sha256": "3ce8d763c2919911e769b71ff79e0551a56f0b6fd9c8eb0d16b1601a01574415"}
+      }
+    }
+  ],
+  "licensing": [
+    {"component": "project_tools_and_documentation", "category": "project_authored", "origin": "repository contributors", "license_id_or_status": "license_not_granted", "redistribution": "no project-wide grant declared", "notes": "Does not grant rights to game material."},
+    {"component": "regional_reconstructed_game_source", "category": "reconstructed_game_source", "origin": "Solomon's Key USA and European binaries", "license_id_or_status": "license_not_granted", "redistribution": "copyrighted game material", "notes": "Source reconstruction and regional comparison do not grant a license."},
+    {"component": "research_references", "category": "imported_material", "origin": "ninespaces disassembly, kaimitai/skchain, and the levelBlocks.csv research export", "license_id_or_status": "external_unbundled", "redistribution": "not distributed by this project", "notes": "Ignored references inform research; accepted claims are independently verified against private ROMs."},
+    {"component": "bundled_cc65_tools", "category": "bundled_external_tools", "origin": "cc65 revision 0fca835", "license_id_or_status": "Zlib", "redistribution": "permitted with included notice", "notes": "See bin/cc65-LICENSE.txt."},
+    {"component": "fceux_automation", "category": "external_tool", "origin": "oranguthang/fceux_automation ec507d86c57acd8979547bc35e9627fb199fac9a", "license_id_or_status": "external_unbundled", "redistribution": "not distributed by this project", "notes": "The external checkout's license governs it."},
+    {"component": "regional_reference_roms_and_extracted_chr", "category": "private_input", "origin": "legally obtained user copies", "license_id_or_status": "private_user_supplied", "redistribution": "prohibited by project policy", "notes": "Ignored; filenames and hashes are owned by the revision profile manifest."}
   ],
   "aggregate_gates": {
     "pre_tag": ["make source-2-minor-pre-tag-check"],
@@ -174,6 +276,7 @@
     "scripts/validation/public_command_smoke.py",
     "scripts/validation/source_2_minor_release.py",
     "scripts/validation/source_2_release.py",
+    "tests/validation/test_source_2_minor_release.py",
     "Makefile",
     "mk/authoring.mk",
     "mk/profiles.mk",
