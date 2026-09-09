@@ -36,6 +36,21 @@ class Source2MinorReleaseTests(unittest.TestCase):
             audit.project_release_view(tagged), audit.project_release_view(working)
         )
 
+    def test_project_release_view_normalizes_document_owners(self) -> None:
+        tagged = {
+            "required_documents": ["docs/object_record.md", "docs/room_map_tiles.md"],
+            "provenance": {"references": ["docs/provenance/label_renames.json"]},
+        }
+        working = {
+            "required_documents": ["docs/object_system.md", "docs/room_data_pipeline.md"],
+            "provenance": {
+                "references": ["config/reconstruction/label_renames.json"]
+            },
+        }
+        self.assertEqual(
+            audit.project_release_view(tagged), audit.project_release_view(working)
+        )
+
     def test_inherited_section_hash_rejects_baseline_drift(self) -> None:
         predecessor = {identifier: [] for identifier in audit.INHERITED_SECTION_IDS}
         release = {
@@ -52,6 +67,14 @@ class Source2MinorReleaseTests(unittest.TestCase):
                 "inherited Source 2.0 section changed" in error
                 for error in audit.validate_inheritance(predecessor, release)
             )
+        )
+
+    def test_inherited_provenance_hash_preserves_accepted_path(self) -> None:
+        accepted = {"references": ["docs/provenance/label_renames.json"]}
+        current = {"references": ["config/reconstruction/label_renames.json"]}
+        self.assertEqual(
+            audit.section_digest(accepted),
+            audit.inherited_section_digest("provenance", current),
         )
 
     def test_explicit_release_surface_must_match_the_predecessor(self) -> None:

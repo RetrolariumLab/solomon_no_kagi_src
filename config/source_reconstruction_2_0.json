@@ -370,7 +370,7 @@
     {"component": "regional_reference_roms_and_extracted_chr", "category": "private_input", "origin": "legally obtained user copies", "license_id_or_status": "private_user_supplied", "redistribution": "prohibited by project policy", "notes": "Ignored; filenames and hashes are owned by the revision profile manifest."}
   ],
   "provenance": {
-    "references": ["docs/provenance.md", "docs/provenance/label_renames.json", "docs/revision_profiles.md"],
+    "references": ["docs/provenance.md", "config/reconstruction/label_renames.json", "docs/revision_profiles.md"],
     "private_inputs_tracked": false,
     "generated_outputs_tracked": false
   },

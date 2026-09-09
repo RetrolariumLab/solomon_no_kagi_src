@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "index": "docs/index.md",
+  "review": "docs/documentation_review.md",
+  "recommended_max_lines": 600,
+  "rename_registry": "config/reconstruction/label_renames.json",
+  "documents": [
+    "docs/architecture.md",
+    "docs/attract_demo_flow.md",
+    "docs/audio_engine.md",
+    "docs/chr_bank_policy.md",
+    "docs/code_quality.md",
+    "docs/data_formats.md",
+    "docs/debugger_workflow.md",
+    "docs/demon_mirror_runtime.md",
+    "docs/documentation_review.md",
+    "docs/ending_system.md",
+    "docs/enemy_system.md",
+    "docs/gameplay_runtime.md",
+    "docs/index.md",
+    "docs/item_system.md",
+    "docs/licensing.md",
+    "docs/map_interactions.md",
+    "docs/naming.md",
+    "docs/nmi_runtime.md",
+    "docs/object_system.md",
+    "docs/player_actions.md",
+    "docs/ppu_pipeline.md",
+    "docs/provenance.md",
+    "docs/ram_map.md",
+    "docs/revision_profiles.md",
+    "docs/roadmap.md",
+    "docs/room_data_pipeline.md",
+    "docs/room_lifecycle.md",
+    "docs/runtime_evidence.md",
+    "docs/scheduler.md",
+    "docs/scheduler_entries.md",
+    "docs/sound_effect_queue.md",
+    "docs/source_layout.md",
+    "docs/source_organization.md",
+    "docs/source_reconstruction_1_0.md",
+    "docs/source_reconstruction_2_0.md",
+    "docs/source_reconstruction_2_1.md",
+    "docs/special_room_scripts.md",
+    "docs/startup.md",
+    "docs/title_screen.md",
+    "docs/toolchain.md",
+    "docs/unknowns.md",
+    "docs/verification.md"
+  ],
+  "size_exceptions": {
+    "docs/revision_profiles.md": "The contiguous three-region comparison keeps address tables, identity evidence, and profile limitations reviewable together."
+  },
+  "retained_prefixes": {
+    "room": {
+      "paths": [
+        "docs/room_data_pipeline.md",
+        "docs/room_lifecycle.md"
+      ],
+      "reason": "Room lifecycle owns thread transitions while room data pipeline owns codecs, map updates, and rendering."
+    },
+    "scheduler": {
+      "paths": [
+        "docs/scheduler.md",
+        "docs/scheduler_entries.md"
+      ],
+      "reason": "The runtime overview serves implementers while the machine-checked entry table is maintained as evidence."
+    },
+    "source": {
+      "paths": [
+        "docs/source_layout.md",
+        "docs/source_organization.md",
+        "docs/source_reconstruction_1_0.md",
+        "docs/source_reconstruction_2_0.md",
+        "docs/source_reconstruction_2_1.md"
+      ],
+      "reason": "Layout, repository policy, and immutable release boundaries have different audiences and maintenance lifecycles."
+    }
+  },
+  "consolidations": [
+    {
+      "destination": "docs/enemy_system.md",
+      "sources": [
+        "docs/enemy_ai_record.md",
+        "docs/enemy_initialization.md",
+        "docs/enemy_type_configuration.md",
+        "docs/enemy_slot_allocation.md",
+        "docs/enemy_pointers.md",
+        "docs/enemy_record_pointers.md",
+        "docs/enemy_position.md",
+        "docs/enemy_movement.md",
+        "docs/enemy_lifetime.md",
+        "docs/enemy_ai_dispatch.md",
+        "docs/enemy_ai_handlers.md",
+        "docs/early_enemy_ai.md",
+        "docs/mid_enemy_ai.md",
+        "docs/late_enemy_ai.md",
+        "docs/linked_enemy_ai.md",
+        "docs/pathfinding_enemy_ai.md",
+        "docs/collision_enemy_ai.md",
+        "docs/enemy_deactivation.md",
+        "docs/current_enemy_deactivation.md"
+      ],
+      "reason": "Enemy records and behavior form one runtime subsystem and are reviewed through one dispatch flow."
+    },
+    {
+      "destination": "docs/object_system.md",
+      "sources": [
+        "docs/object_record.md",
+        "docs/object_update_pipeline.md",
+        "docs/object_motion_animation.md",
+        "docs/object_collision_response.md",
+        "docs/object_pointer.md",
+        "docs/object_pool_maintenance.md",
+        "docs/object_x_left_clamp.md",
+        "docs/object_x_right_clamp.md",
+        "docs/object_y_clamp.md"
+      ],
+      "reason": "Object layout, updates, motion, collision, and pool services share one record owner."
+    },
+    {
+      "destination": "docs/room_lifecycle.md",
+      "sources": [
+        "docs/room_transition_pipeline.md",
+        "docs/room_transition_reset.md",
+        "docs/room_intro_and_orbit.md",
+        "docs/room_nametable_frame.md"
+      ],
+      "reason": "These routines form the state transition from one playable room to the next."
+    },
+    {
+      "destination": "docs/room_data_pipeline.md",
+      "sources": [
+        "docs/room_block_decode.md",
+        "docs/room_item_decode.md",
+        "docs/room_enemy_load.md",
+        "docs/room_map_tiles.md",
+        "docs/room_map_render.md",
+        "docs/room_map_cell_update.md"
+      ],
+      "reason": "Room codecs, tiles, rendering, and cell updates form one data-to-screen pipeline."
+    },
+    {
+      "destination": "docs/ppu_pipeline.md",
+      "sources": [
+        "docs/ppu_address.md",
+        "docs/direct_ppu_transfer.md",
+        "docs/ppu_data_writers.md",
+        "docs/ppu_update_buffer.md",
+        "docs/ppu_update_stream.md",
+        "docs/static_ppu_update_queue.md",
+        "docs/nametable_clear.md"
+      ],
+      "reason": "Direct and buffered PPU writers share one publication and execution pipeline."
+    },
+    {
+      "destination": "docs/nmi_runtime.md",
+      "sources": [
+        "docs/nmi.md",
+        "docs/nmi_gameplay_interactions.md",
+        "docs/nmi_dana_and_sprites.md"
+      ],
+      "reason": "The dispatcher and its gameplay and sprite services execute as one vertical-blank path."
+    },
+    {
+      "destination": "docs/player_actions.md",
+      "sources": [
+        "docs/dana_actions.md",
+        "docs/dana_action_states.md",
+        "docs/coordinate_conversion.md",
+        "docs/coordinate_delta.md",
+        "docs/jump_with_params.md"
+      ],
+      "reason": "Player action states consume the coordinate and inline-dispatch helpers documented here."
+    },
+    {
+      "destination": "docs/item_system.md",
+      "sources": [
+        "docs/item_interactions.md",
+        "docs/inventory_item_effects.md",
+        "docs/item_score_tables.md",
+        "docs/timer.md",
+        "docs/timer_item_effects.md",
+        "docs/score.md",
+        "docs/fireball_inventory_display.md",
+        "docs/fireball_lifetime.md",
+        "docs/auxiliary_effect.md"
+      ],
+      "reason": "Item effects converge on inventory, timer, score, and player projectile state."
+    },
+    {
+      "destination": "docs/gameplay_runtime.md",
+      "sources": [
+        "docs/main_gameplay_thread.md",
+        "docs/controller_input.md",
+        "docs/pause_thread.md",
+        "docs/counter_wait.md",
+        "docs/masked_ram_wait.md",
+        "docs/secondary_thread_reset.md",
+        "docs/gameplay_hud.md",
+        "docs/gameplay_exit_transition.md"
+      ],
+      "reason": "The main thread, waits, pause state, HUD, input, and exit are one gameplay lifecycle."
+    },
+    {
+      "destination": "docs/ending_system.md",
+      "sources": [
+        "docs/ending_sequence.md",
+        "docs/ending_and_special_room_support.md"
+      ],
+      "reason": "The ending sequence and its special-room support share the same terminal game flow."
+    }
+  ]
+}

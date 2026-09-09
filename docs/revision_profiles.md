@@ -525,7 +525,7 @@ visual identity from the hidden and embedded-in-block flags; constellation
 opcodes are named only when they occupy the terminating command position, not
 when the same byte appears as the payload of a repeat command. Names are
 cross-checked against `skchain`, while gameplay-effect wording follows this
-reconstruction's handler analysis in `docs/room_map_tiles.md`.
+reconstruction's handler analysis in `docs/room_data_pipeline.md#roommap-tile-byte-contract`.
 
 The `Browse...` controls turn those lists into searchable visual catalogs. All
 108 encoder-accepted enemy values are projected through their native initial

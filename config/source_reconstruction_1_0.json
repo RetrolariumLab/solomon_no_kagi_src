@@ -73,7 +73,7 @@
       "id": "semantic_reconstruction",
       "kind": "source",
       "summary": "Replace the address-ordered preservation listing with complete subsystem-owned semantic PRG source.",
-      "evidence": ["config/reconstruction.json", "docs/source_layout.md", "docs/provenance/label_renames.json"]
+      "evidence": ["config/reconstruction.json", "docs/source_layout.md", "config/reconstruction/label_renames.json"]
     },
     {
       "id": "format_contracts",
@@ -109,7 +109,7 @@
     },
     "provenance_and_unknowns": {
       "status": "satisfied",
-      "evidence": {"targets": ["reconstruction-audit"], "files": ["docs/provenance.md", "docs/provenance/label_renames.json", "docs/unknowns.md"], "scenarios": [], "artifacts": []}
+      "evidence": {"targets": ["reconstruction-audit"], "files": ["docs/provenance.md", "config/reconstruction/label_renames.json", "docs/unknowns.md"], "scenarios": [], "artifacts": []}
     },
     "baseline_documentation": {
       "status": "satisfied",
@@ -243,7 +243,7 @@
     {"component": "usa_reference_rom_and_chr", "category": "private_input", "origin": "legally obtained user copy", "license_id_or_status": "private_user_supplied", "redistribution": "prohibited by project policy", "notes": "Ignored and hash-verified only."}
   ],
   "provenance": {
-    "references": ["docs/provenance.md", "docs/provenance/label_renames.json"],
+    "references": ["docs/provenance.md", "config/reconstruction/label_renames.json"],
     "private_inputs_tracked": false,
     "generated_outputs_tracked": false
   },
@@ -296,8 +296,8 @@
     "docs/runtime_evidence.md",
     "docs/debugger_workflow.md",
     "docs/audio_engine.md",
-    "docs/object_record.md",
-    "docs/room_map_tiles.md",
+    "docs/object_system.md",
+    "docs/room_data_pipeline.md",
     "docs/naming.md",
     "docs/code_quality.md",
     "docs/provenance.md",

@@ -81,7 +81,7 @@ renaming.
 Dana's byte 3 at `$0582` is the action-state selector. Bit 0 is right/left
 facing; paired states cover jump startup, surface contact, crouching, walking,
 airborne movement, casting, and death presentation. The full encoding and its
-source evidence are in `docs/dana_action_states.md`.
+source evidence are in `docs/player_actions.md#dana-action-state-encoding`.
 
 Across shared object helpers, byte 5 is signed Y motion, byte 6 is the Y
 fraction, and byte 7 is integer Y. The surface clamp aligns byte 7 to 16 pixels
@@ -94,7 +94,7 @@ The per-frame sampler stores six RoomMap solidity tests in collision-mask byte
 11. Bits 0-5 are upper-left, upper-right, lower-right, lower-left, below-left,
 and below-right. The animation sequencer writes its selected three-byte sprite
 frame to bytes 17-19. The complete record is tabulated in
-`docs/object_record.md`.
+`docs/object_system.md#gameplay-object-record-layout`.
 For records in state `$E0+`, collision byte 11's low nibble indexes the
 response table at `$8806`; upper bits also participate in the mask-0/F handler.
 The shared auxiliary record at `$05BB` uses the same confirmed integer Y/X

@@ -31,16 +31,16 @@ not missing binary ownership.
   context 7's permanently idle reservation; `make scheduler-audit` enforces
   the complete map.
 - Dana record byte 3 is a facing-preserving action selector through `$23`, and
-  byte 5 is signed Y motion. `docs/dana_action_states.md` records every proven
+  byte 5 is signed Y motion. `docs/player_actions.md#dana-action-state-encoding` records every proven
   pair. Fireball bytes `$0430-$0431` are the current and alternate four-way
   path directions consumed through the shared synthetic AI-record pointer.
 - All eight bytes of the parallel enemy AI record have shared offset names.
   Bytes 1 and 2-3 are distinct phase and lifetime accumulators, bytes 4-5 are
   Dana-relative deltas, and bytes 6-7 are family-specific linked-slot or path-
-  direction fields. See `docs/enemy_ai_record.md`.
+  direction fields. See `docs/enemy_system.md#enemy-ai-record-layout`.
 - All 20 bytes of the gameplay object record have established roles. Its six
   collision bits are geometrically mapped from upper-left through below-right,
-  with bits 0-3 selecting the response table. See `docs/object_record.md`.
+  with bits 0-3 selecting the response table. See `docs/object_system.md#gameplay-object-record-layout`.
 - Special-room selectors `$10/$20/$30` map to the Page of Time, Page of Space,
   and constellation bonus rooms. Internal rooms 48/49 are the Princess and
   Solomon ending rooms; the room 17/39 Mighty Bomb Jack and room 20/38 Tecmo
@@ -55,13 +55,13 @@ not missing binary ownership.
   stored rows, with a 16x12 playable range at indices `$10-$CF` and sentinel
   rows at `$00-$0F` and `$D0-$DF`.
 - Every `RoomMap` byte is structurally classified by
-  `docs/room_map_tiles.md`: low six identity bits, decoration bit 6, collision
+  `docs/room_data_pipeline.md#roommap-tile-byte-contract`: low six identity bits, decoration bit 6, collision
   bit 7, and the immutable `$F8-$FF` range.
 - The gameplay vocabulary for every `RoomMap` identity used by stock room
   scripts is now explicit. The source distinguishes encoded map values from
   incremental-render-only patterns, identifies the two modifiable item
   quartets, and preserves the unreachable `$23/$24` handler-table overflow as
-  original behavior. See `docs/room_map_tiles.md`.
+  original behavior. See `docs/room_data_pipeline.md#roommap-tile-byte-contract`.
 - Audio mailbox and channel priority are now runtime-proven. Commands are
   consumed from slot 2 down to slot 0, so a lower occupied slot wins an
   overlapping virtual record; even virtual channels 0/2/4/6 temporarily own
@@ -72,7 +72,7 @@ not missing binary ownership.
   `GameplayUpdateCount` is now proven to preserve every serviced gameplay NMI
   tick across delayed main-thread passes. The internal timer catches up, HUD
   publication may be deferred, and NMI stack-safety skips can still make game
-  time lag wall time. See `docs/timer.md`.
+  time lag wall time. See `docs/item_system.md#countdown-timer`.
 
 Unknowns stay here until evidence resolves them; they are not silently removed
 when a plausible name appears.

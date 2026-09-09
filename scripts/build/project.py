@@ -523,6 +523,119 @@ def validate_source_organization(root: Path, policy: dict[str, object]) -> None:
         raise ProjectError("source organization: " + "; ".join(errors))
 
 
+def validate_documentation_corpus(root: Path, policy: dict[str, object]) -> None:
+    """Require an exact, reviewed inventory of the reader-facing documents."""
+    if policy.get("schema_version") != 1:
+        raise ProjectError("unsupported documentation corpus schema")
+    documents = policy.get("documents")
+    maximum = policy.get("recommended_max_lines")
+    exceptions = policy.get("size_exceptions")
+    retained = policy.get("retained_prefixes")
+    consolidations = policy.get("consolidations")
+    if not isinstance(documents, list) or not all(
+        isinstance(path, str) for path in documents
+    ):
+        raise ProjectError("documentation corpus must contain document paths")
+    if len(documents) != len(set(documents)):
+        raise ProjectError("documentation corpus contains duplicate paths")
+    if not isinstance(maximum, int) or maximum <= 0:
+        raise ProjectError("documentation line limit must be a positive integer")
+    if not isinstance(exceptions, dict) or not isinstance(retained, dict):
+        raise ProjectError("documentation corpus is missing review decisions")
+    if not isinstance(consolidations, list):
+        raise ProjectError("documentation consolidations must be a list")
+
+    actual = sorted(
+        path.relative_to(root).as_posix() for path in (root / "docs").rglob("*.md")
+    )
+    expected = sorted(documents)
+    errors: list[str] = []
+    if actual != expected:
+        missing = sorted(set(actual) - set(expected))
+        stale = sorted(set(expected) - set(actual))
+        if missing:
+            errors.append("unreviewed documents: " + ", ".join(missing))
+        if stale:
+            errors.append("missing inventoried documents: " + ", ".join(stale))
+
+    for relative in actual:
+        line_count = len((root / relative).read_text(encoding="utf-8").splitlines())
+        reason = exceptions.get(relative)
+        if line_count > maximum and not isinstance(reason, str):
+            errors.append(
+                f"{relative} has {line_count} lines without a reviewed exception"
+            )
+        elif line_count > maximum and len(reason.strip()) < 24:
+            errors.append(f"{relative} has an insufficient size exception")
+        elif line_count <= maximum and reason is not None:
+            errors.append(f"{relative} has a stale size exception")
+    for relative in exceptions:
+        if relative not in actual:
+            errors.append(f"documentation size exception is stale: {relative}")
+
+    prefix_members: dict[str, list[str]] = {}
+    for relative in actual:
+        prefix = Path(relative).stem.split("_", 1)[0]
+        prefix_members.setdefault(prefix, []).append(relative)
+    repeated = {
+        prefix: sorted(paths)
+        for prefix, paths in prefix_members.items()
+        if len(paths) > 1
+    }
+    if set(retained) != set(repeated):
+        errors.append("retained documentation prefix inventory is incomplete or stale")
+    for prefix, paths in repeated.items():
+        decision = retained.get(prefix)
+        if not isinstance(decision, dict):
+            continue
+        if decision.get("paths") != paths:
+            errors.append(f"retained prefix paths disagree for {prefix}")
+        reason = decision.get("reason")
+        if not isinstance(reason, str) or len(reason.strip()) < 24:
+            errors.append(f"retained prefix {prefix} has no substantive reason")
+
+    removed_sources: set[str] = set()
+    for record in consolidations:
+        if not isinstance(record, dict):
+            errors.append("documentation consolidation record must be an object")
+            continue
+        destination = record.get("destination")
+        sources = record.get("sources")
+        reason = record.get("reason")
+        if destination not in actual:
+            errors.append(f"documentation consolidation destination is missing: {destination}")
+        if not isinstance(sources, list) or not sources or not all(
+            isinstance(path, str) for path in sources
+        ):
+            errors.append(f"documentation consolidation has invalid sources: {destination}")
+            continue
+        for source in sources:
+            if source in removed_sources:
+                errors.append(f"documentation consolidation source is duplicated: {source}")
+            removed_sources.add(source)
+            if (root / source).exists():
+                errors.append(f"consolidated documentation source still exists: {source}")
+        if not isinstance(reason, str) or len(reason.strip()) < 24:
+            errors.append(f"documentation consolidation has no substantive reason: {destination}")
+
+    for field in ("index", "review"):
+        relative = policy.get(field)
+        if relative not in actual:
+            errors.append(f"documentation corpus {field} is missing: {relative}")
+    registry = policy.get("rename_registry")
+    if registry != "config/reconstruction/label_renames.json":
+        errors.append("label rename registry is not at its canonical path")
+    candidates = sorted(
+        path.relative_to(root).as_posix()
+        for base in (root / "config", root / "docs")
+        for path in base.rglob("label_renames.json")
+    )
+    if candidates != ["config/reconstruction/label_renames.json"]:
+        errors.append("label rename registry must be unique and canonical")
+    if errors:
+        raise ProjectError("documentation corpus: " + "; ".join(errors))
+
+
 def validate_tool_layout(root: Path) -> None:
     """Require mirrored responsibility packages around the stable script runner."""
     categories = {"authoring", "build", "runtime", "validation"}
@@ -595,40 +708,19 @@ def command_lint(_args: argparse.Namespace) -> None:
         "config/validation/scheduler_entries.json",
         "config/toolchain.json",
         "config/reconstruction/source_organization.json",
+        "config/reconstruction/documentation_corpus.json",
         "scenarios/runtime_scenarios.json",
         "config/linker/cnrom.cfg",
         "docs/code_quality.md",
-        "docs/enemy_movement.md",
-        "docs/enemy_initialization.md",
-        "docs/enemy_type_configuration.md",
-        "docs/enemy_ai_dispatch.md",
-        "docs/enemy_ai_handlers.md",
-        "docs/enemy_position.md",
-        "docs/enemy_pointers.md",
-        "docs/enemy_record_pointers.md",
-        "docs/enemy_deactivation.md",
-        "docs/enemy_slot_allocation.md",
-        "docs/current_enemy_deactivation.md",
-        "docs/coordinate_conversion.md",
-        "docs/jump_with_params.md",
-        "docs/ppu_update_buffer.md",
-        "docs/sound_effect_queue.md",
-        "docs/fireball_lifetime.md",
-        "docs/main_gameplay_thread.md",
-        "docs/nmi.md",
-        "docs/object_pointer.md",
-        "docs/object_pool_maintenance.md",
-        "docs/object_x_left_clamp.md",
-        "docs/object_y_clamp.md",
-        "docs/pause_thread.md",
+        "docs/documentation_review.md",
+        "docs/index.md",
         "docs/scheduler.md",
         "docs/runtime_evidence.md",
         "docs/licensing.md",
         "docs/scheduler_entries.md",
         "docs/startup.md",
-        "docs/timer.md",
         "docs/toolchain.md",
-        "docs/provenance/label_renames.json",
+        "config/reconstruction/label_renames.json",
         "scripts/run.py",
         "scripts/validation/asm_style.py",
         "scripts/validation/debug_symbols.py",
@@ -681,6 +773,15 @@ def command_lint(_args: argparse.Namespace) -> None:
     except (OSError, json.JSONDecodeError) as exc:
         raise ProjectError(f"cannot read source organization policy: {exc}") from exc
     validate_source_organization(ROOT, organization)
+    try:
+        corpus = json.loads(
+            (ROOT / "config/reconstruction/documentation_corpus.json").read_text(
+                encoding="utf-8"
+            )
+        )
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProjectError(f"cannot read documentation corpus: {exc}") from exc
+    validate_documentation_corpus(ROOT, corpus)
     for relative in (
         "config/debugger/watches.json",
         "config/debugger/breakpoints.json",
@@ -692,7 +793,8 @@ def command_lint(_args: argparse.Namespace) -> None:
         "config/validation/enemy_record_pointers.json",
         "config/validation/scheduler_entries.json",
         "scenarios/runtime_scenarios.json",
-        "docs/provenance/label_renames.json",
+        "config/reconstruction/documentation_corpus.json",
+        "config/reconstruction/label_renames.json",
     ):
         try:
             debug_config = json.loads((ROOT / relative).read_text(encoding="utf-8"))
@@ -810,7 +912,7 @@ def command_lint(_args: argparse.Namespace) -> None:
     lint_tracked_outputs(ROOT)
     print(
         "[OK] project structure, manifests, source contract, Python/JSON syntax, "
-        "documentation links, atomic outputs, source organization, and "
+        "documentation links and corpus, atomic outputs, source organization, and "
         "private/generated file policy"
     )
 

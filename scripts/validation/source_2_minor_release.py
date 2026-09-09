@@ -50,6 +50,11 @@ MINOR_METADATA_PATHS = {
     "config/source_reconstruction_2_1.json",
     "docs/source_reconstruction_2_1.md",
 }
+PREDECESSOR_PATH_ALIASES = {
+    "docs/object_record.md": "docs/object_system.md",
+    "docs/room_map_tiles.md": "docs/room_data_pipeline.md",
+    "docs/provenance/label_renames.json": "config/reconstruction/label_renames.json",
+}
 
 
 class Source2MinorReleaseError(ValueError):
@@ -68,6 +73,26 @@ def section_digest(value: object) -> str:
         value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def inherited_section_digest(identifier: str, value: object) -> str:
+    """Keep accepted hashes stable across reviewed path-only ownership moves."""
+    if identifier == "provenance":
+        legacy_paths = {current: legacy for legacy, current in PREDECESSOR_PATH_ALIASES.items()}
+
+        def restore_accepted_paths(item: Any) -> Any:
+            if isinstance(item, str):
+                return legacy_paths.get(item, item)
+            if isinstance(item, list):
+                return [restore_accepted_paths(member) for member in item]
+            if isinstance(item, dict):
+                return {
+                    key: restore_accepted_paths(member) for key, member in item.items()
+                }
+            return item
+
+        value = restore_accepted_paths(value)
+    return section_digest(value)
 
 
 def git_lines(project_root: Path, *arguments: str) -> list[str]:
@@ -93,13 +118,24 @@ def validate_release_header(release: dict[str, Any]) -> list[str]:
     return errors
 
 
+def normalize_predecessor_paths(value: Any) -> Any:
+    """Map accepted 2.0 paths to their current, content-preserving owners."""
+    if isinstance(value, str):
+        return PREDECESSOR_PATH_ALIASES.get(value, value)
+    if isinstance(value, list):
+        return [normalize_predecessor_paths(item) for item in value]
+    if isinstance(value, dict):
+        return {key: normalize_predecessor_paths(item) for key, item in value.items()}
+    return value
+
+
 def project_release_view(release: dict[str, Any]) -> dict[str, Any]:
     """Return fields whose meaning belongs to this public project."""
-    return {
+    return normalize_predecessor_paths({
         key: value
         for key, value in release.items()
         if key not in {"schema_version", "release_line", "contract"}
-    }
+    })
 
 
 def validate_predecessor(
@@ -160,7 +196,9 @@ def validate_inheritance(
         errors.append("inherited section inventory differs from Source 2.x policy")
     for identifier in sorted(INHERITED_SECTION_IDS):
         item = by_id.get(identifier)
-        if item and item.get("sha256") != section_digest(predecessor.get(identifier)):
+        if item and item.get("sha256") != inherited_section_digest(
+            identifier, predecessor.get(identifier)
+        ):
             errors.append(f"inherited Source 2.0 section changed: {identifier}")
     return errors
 

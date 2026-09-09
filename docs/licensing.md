@@ -25,6 +25,6 @@ under generated/build roots. `make split` validates the private USA image before
 deriving the ignored CHR cache.
 
 The source and evidence provenance ledger is in `docs/provenance.md`; individual
-semantic names are recorded in `docs/provenance/label_renames.json`. The
+semantic names are recorded in `config/reconstruction/label_renames.json`. The
 machine-readable release manifest repeats this classification so a release
 cannot silently treat a tool license as a license for reconstructed game code.

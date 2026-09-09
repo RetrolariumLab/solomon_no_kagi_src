@@ -45,7 +45,7 @@ not part of the project history.
 
 ## Semantic rename ledger
 
-`docs/provenance/label_renames.json` records every accepted ROM-label rename
+`config/reconstruction/label_renames.json` records every accepted ROM-label rename
 with its linked address, previous identifier, confidence, and concise evidence.
 `make reconstruction-audit` rejects duplicate entries, missing evidence,
 missing source labels, and any disagreement with the ld65 label file.

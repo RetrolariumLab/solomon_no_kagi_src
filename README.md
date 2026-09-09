@@ -366,17 +366,17 @@ config/validation/ppu_update_streams.json reviewed static PPU stream inventory
 config/validation/ppu_update_streams_europe.json reviewed PAL static PPU stream inventory
 docs/                      architecture and reverse-engineering notes
 docs/special_room_scripts.md context-six room dispatch and trigger evidence
-docs/ending_sequence.md      room-index 49 ending choreography
-docs/ending_and_special_room_support.md ending text, Seal logic, and room data
-docs/enemy_lifetime.md       room enemy lifetime transition and carry contract
-docs/enemy_ai_record.md      complete eight-byte AI record layout and aliases
-docs/object_record.md        complete 20-byte object and collision-mask layout
-docs/linked_enemy_ai.md      linked-slot allocation and action dispatch
-docs/gameplay_exit_transition.md cooperative death, TIME OVER, and GDV flow
+docs/ending_system.md#ending-sequence      room-index 49 ending choreography
+docs/ending_system.md#ending-and-special-room-support ending text, Seal logic, and room data
+docs/enemy_system.md#enemy-lifetime-transition       room enemy lifetime transition and carry contract
+docs/enemy_system.md#enemy-ai-record-layout      complete eight-byte AI record layout and aliases
+docs/object_system.md#gameplay-object-record-layout        complete 20-byte object and collision-mask layout
+docs/enemy_system.md#linked-enemy-ai-support      linked-slot allocation and action dispatch
+docs/gameplay_runtime.md#gameplay-exit-transition cooperative death, TIME OVER, and GDV flow
 docs/attract_demo_flow.md    post-game, title, and recorded demo control
 docs/chr_bank_policy.md      complete CNROM request and screen/room bank policy
-docs/room_map_tiles.md       RoomMap byte classes, collision, and rendering
-docs/dana_action_states.md   Dana action pairs, facing, Y motion, and cast state
+docs/room_data_pipeline.md#roommap-tile-byte-contract       RoomMap byte classes, collision, and rendering
+docs/player_actions.md#dana-action-state-encoding   Dana action pairs, facing, Y motion, and cast state
 docs/title_screen.md         packed title renderer and record presentation
 scripts/build/project.py         split, verify, lint, and safe build helpers
 scripts/validation/asm_style.py       shared ca65 formatter and style checker

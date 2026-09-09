@@ -22,7 +22,7 @@
 `config/reconstruction/reconstruction.json` records semantic module ranges and monotonic
 cleanup thresholds. `make reconstruction-status` reports current progress;
 `make reconstruction-audit` checks module ranges against the linker map and
-accepted names against `docs/provenance/label_renames.json` and the ld65 label
+accepted names against `config/reconstruction/label_renames.json` and the ld65 label
 file. The audit is part of `make release-check`.
 
 Accepted baseline after the first split:

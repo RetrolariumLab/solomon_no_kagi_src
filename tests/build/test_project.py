@@ -252,6 +252,78 @@ class SourceOrganizationTests(unittest.TestCase):
                 project.validate_source_organization(root, policy)
 
 
+class DocumentationCorpusTests(unittest.TestCase):
+    def make_corpus(self, root: Path) -> dict[str, object]:
+        docs = root / "docs"
+        config = root / "config" / "reconstruction"
+        docs.mkdir(parents=True)
+        config.mkdir(parents=True)
+        (docs / "index.md").write_text("# Index\n", encoding="utf-8")
+        (docs / "review.md").write_text("# Review\n", encoding="utf-8")
+        (docs / "room_data.md").write_text("# Data\na\nb\n", encoding="utf-8")
+        (docs / "room_flow.md").write_text("# Flow\na\nb\n", encoding="utf-8")
+        (config / "label_renames.json").write_text("{}\n", encoding="utf-8")
+        return {
+            "schema_version": 1,
+            "index": "docs/index.md",
+            "review": "docs/review.md",
+            "recommended_max_lines": 2,
+            "rename_registry": "config/reconstruction/label_renames.json",
+            "documents": [
+                "docs/index.md",
+                "docs/review.md",
+                "docs/room_data.md",
+                "docs/room_flow.md",
+            ],
+            "size_exceptions": {
+                "docs/room_data.md": "A compact fixture for the reviewed size exception.",
+                "docs/room_flow.md": "A compact fixture for the reviewed size exception.",
+            },
+            "retained_prefixes": {
+                "room": {
+                    "paths": ["docs/room_data.md", "docs/room_flow.md"],
+                    "reason": "Data ownership is separate from runtime flow ownership.",
+                }
+            },
+            "consolidations": [
+                {
+                    "destination": "docs/room_data.md",
+                    "sources": ["docs/room_block.md"],
+                    "reason": "The historical block note belongs to the room data guide.",
+                }
+            ],
+        }
+
+    def test_accepts_exact_reviewed_corpus(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            project.validate_documentation_corpus(root, self.make_corpus(root))
+
+    def test_rejects_unreviewed_document_and_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            policy = self.make_corpus(root)
+            (root / "docs" / "room_extra.md").write_text("# Extra\n", encoding="utf-8")
+            with self.assertRaisesRegex(project.ProjectError, "unreviewed documents"):
+                project.validate_documentation_corpus(root, policy)
+
+    def test_rejects_duplicate_or_misplaced_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            policy = self.make_corpus(root)
+            (root / "docs" / "label_renames.json").write_text("{}\n", encoding="utf-8")
+            with self.assertRaisesRegex(project.ProjectError, "unique and canonical"):
+                project.validate_documentation_corpus(root, policy)
+
+    def test_rejects_unreviewed_oversized_document(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            policy = self.make_corpus(root)
+            policy["size_exceptions"] = {}
+            with self.assertRaisesRegex(project.ProjectError, "reviewed exception"):
+                project.validate_documentation_corpus(root, policy)
+
+
 class ToolLayoutTests(unittest.TestCase):
     def make_layout(self, root: Path) -> None:
         for owner in ("authoring", "build", "runtime", "validation"):

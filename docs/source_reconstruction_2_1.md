@@ -19,6 +19,13 @@ Build, Preview
 or Play, and dirty-close behavior through all four public studios for both
 accepted profiles.
 
+The reader-facing documentation was reviewed as one corpus. Short routine notes
+are consolidated into subsystem and lifecycle guides, the index follows reader
+tasks, and `config/reconstruction/documentation_corpus.json` records every
+document, retained filename family, consolidation, and size exception. The sole
+label rename registry now lives with reconstruction configuration at
+`config/reconstruction/label_renames.json`.
+
 The full substantive commit interval starts immediately after the annotated 2.0
 tag at `de0b7c764406f5ec2c6c887c0c19272d53f8cae9` and currently ends at
 `da91624c8a83a0e5b19c96880fcf97a703130999`. The 25 commits in that interval

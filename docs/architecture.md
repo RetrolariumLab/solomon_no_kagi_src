@@ -24,27 +24,27 @@ overlap scans, constructs the fireball's four-cell RoomMap collision mask,
 dispatches that mask through a 16-entry handler table, and converts A/B input
 into context-one Dana action requests. Its shared four-slot request producer
 also feeds the pause, death, and defeated-enemy threads. See
-`docs/nmi_gameplay_interactions.md`.
+`docs/nmi_runtime.md#nmi-gameplay-interactions`.
 
 The adjacent `$83C2-$863B` service dispatches Dana's action byte through seven
 input/state groups, then sorts 20 non-Dana objects by Y and emits each active
 record as two 8x16 OAM sprites. A row-indexed allowance array rotates objects
 inside sub-16-pixel overlap groups to manage the NES scanline sprite limit.
-See `docs/nmi_dana_and_sprites.md`.
+See `docs/nmi_runtime.md#nmi-dana-control-and-sprite-composition`.
 
 The active NMI path calls `ReadJoyPads` once per service. It strobes and reads
 both controller ports, records complete serial samples at `$0082-$0083`, and
 updates the cached input at `$03E4-$03E5`. Depending on bit 0 of the global
 game-state flags, the cache either receives the complete sample or refreshes
-only Start and Select. See `docs/controller_input.md`.
+only Start and Select. See `docs/gameplay_runtime.md#controller-input`.
 
 Foreground producers build compact PPU update programs in the shared RAM
 buffer at `$03E6`. `PublishPpuUpdateBuffer` points `$001A-$001B` at that
 buffer; the NMI path uses the pointer's high byte to gate
 `ExecutePpuUpdateStream`. That interpreter supports horizontal or vertical
 addressing plus repeated or literal payloads, clears the pointer when done,
-and restores PPU state. See `docs/ppu_update_buffer.md` and
-`docs/ppu_update_stream.md`.
+and restores PPU state. See `docs/ppu_pipeline.md#ppu-update-buffer-publication` and
+`docs/ppu_pipeline.md#ppu-update-stream-interpreter`.
 
 Single-cell RoomMap changes need the existing nametable attribute byte before
 they can replace one two-bit quadrant. The foreground producer places the
@@ -53,27 +53,27 @@ they can replace one two-bit quadrant. The foreground producer places the
 `PPU_DATA` read, replaces `$001C` with the result, and marks `$0029` complete.
 If the foreground thread does not acknowledge the result, NMI ages the state
 from `$80` and clears the request after the `$A8` threshold. See
-`docs/room_map_cell_update.md`.
+`docs/room_data_pipeline.md#buffered-roommap-cell-updates`.
 
 ROM-resident programs use `QueueStaticPpuUpdateStream`. The caller supplies
 one of 18 indices in `A`; the routine cooperatively waits for the current
 stream to finish, then publishes the indexed split-table pointer. See
-`docs/static_ppu_update_queue.md`.
+`docs/ppu_pipeline.md#static-ppu-update-queue`.
 
 The timer warning state publishes two smaller ROM-resident streams directly.
 The fireball-inventory HUD instead assembles adjacent `$2054` and `$2074`
 literal rows in the shared RAM buffer from eight packed two-bit slots. See
-`docs/timer.md` and `docs/fireball_inventory_display.md`.
+`docs/item_system.md#countdown-timer` and `docs/item_system.md#fireball-inventory-display`.
 
 `RefreshGameplayHud` serializes three producers through that single buffer:
 score at `$2060`, fireball inventory, then the collected-fairy byte at `$2071`.
 The score builder intentionally returns without publishing so room-bonus code
-can append timer digits to the same update program. See `docs/gameplay_hud.md`.
+can append timer digits to the same update program. See `docs/gameplay_runtime.md#gameplay-hud-refresh`.
 
 Room initialization also has a direct rendering path.
 `DrawRoomMapToNametable` traverses the 192 interior `RoomMap` cells, obtains
 per-cell address/data chunks, and sends them while rendering and NMI are
-disabled by the shared direct-transfer guard. See `docs/room_map_render.md`.
+disabled by the shared direct-transfer guard. See `docs/room_data_pipeline.md#room-map-rendering`.
 
 ## Cooperative scheduler
 
@@ -99,12 +99,12 @@ decoded `$30` scheduler entry stores return address `$9FFF`, proving that its
 RTS enters `$A000`. `StartThread` builds this continuation from a packed
 context/entry selector; `StopThread` resets a context to the idle continuation
 and clears its active bit. See `docs/scheduler.md`,
-`docs/scheduler_entries.md`, and `docs/main_gameplay_thread.md`.
+`docs/scheduler_entries.md`, and `docs/gameplay_runtime.md#main-gameplay-thread`.
 
 Context 2 selector 1 is now identified as `PauseGameThread`. Scheduler code
 `$21` enters `$8E47`, enforces a `$28`-NMI-tick debounce, waits for distinct
 Start release/press/release phases, then stops context 2 on resume. See
-`docs/pause_thread.md`.
+`docs/gameplay_runtime.md#pause-thread`.
 
 Context 6 is the cooperative special-room script runner. Code `$60` enters a
 53-entry room-index dispatcher whose two-level base-plus-offset representation
@@ -118,7 +118,7 @@ enters `RoomClearThread`, converts the remaining decimal timer into score, and
 replaces itself with code `$15`. Code `$15` enters `RoomLoadThread`, rebuilds
 the room map, items, enemies, palette, and Dana state, then starts context 3's
 main gameplay loop. Code `$10` enters the same loader through a new-game state
-reset. See `docs/room_transition_pipeline.md`.
+reset. See `docs/room_lifecycle.md#room-clear-and-room-load-pipeline`.
 
 The adjacent room-intro pipeline keeps UI, map changes, and presentation
 objects synchronized. It publishes door/key cells through the same one-cell
@@ -126,23 +126,23 @@ RoomMap producer used by gameplay, formats room/life digits into a compact PPU
 program, then runs a `$40`-tick fifteen-object orbit before placing Dana. The
 orbit uses a reflected 32-byte quarter-sine table and an eight-round scaled
 multiply instead of storing full coordinate frames. See
-`docs/room_intro_and_orbit.md`.
+`docs/room_lifecycle.md#room-intro-and-transition-orbit`.
 
 Two shared condition waits extend the scheduler ABI. A caller supplies a mask
 and zero-page address, then `WaitForMaskedBitsClear` or
 `WaitForMaskedBitsSet` repeatedly yields until the requested RAM condition is
 true. Arguments are saved within the current context's stack partition across
-every switch. See `docs/masked_ram_wait.md`.
+every switch. See `docs/gameplay_runtime.md#cooperative-masked-ram-waits`.
 
 Scene-transition paths use `ResetOtherSecondaryThreads` with the current
 secondary context in `X`. It stops every other context from 1 through 7 while
 leaving context 0 and the caller alive, then clears the four pending-start
-slots and two transition flags. See `docs/secondary_thread_reset.md`.
+slots and two transition flags. See `docs/gameplay_runtime.md#secondary-thread-transition-reset`.
 
 The larger room-transition scene invokes `ResetRoomTransitionState` on two
 paths. It retains context 3, clears gameplay flag bits 6 and 2, disables the
 active fireball, and submits sound command 3. See
-`docs/room_transition_reset.md`.
+`docs/room_lifecycle.md#room-transition-state-reset`.
 
 ## Inline appendix dispatch
 
@@ -197,20 +197,20 @@ or `...C` inset of a 16-pixel cell and clear fraction byte 9 plus motion byte 8.
 When object type byte 1 or action byte 3 changes, the active-object loop calls
 `LoadObjectMotionAndAnimationDefinition`. It resolves signed Y/X motion from a
 room-state-aware table and initializes animation counter, delay, phase, and
-data pointer bytes 12-16. See `docs/object_motion_animation.md`.
+data pointer bytes 12-16. See `docs/object_system.md#object-motion-and-animation-definitions`.
 
 `UpdateActiveObjects` traverses all 21 records during the active NMI service.
 It integrates the signed fixed-point coordinate fields, samples six RoomMap
 cells into collision byte 11, dispatches its low nibble through a 16-entry
 response table, and advances the packed animation phase into sprite bytes 17-19.
 All 20 record fields and the exact upper/lower/below collision-bit geometry are
-tabulated in `docs/object_record.md`; see `docs/object_update_pipeline.md` for
+tabulated in `docs/object_system.md#gameplay-object-record-layout`; see `docs/object_system.md#per-frame-object-update-pipeline` for
 the update sequence.
 
 Collision responses are gated to object states `$E0+`. All 16 mask entries and
 their shared handler tails are reconstructed through `$8A61`; they align
 coordinates, clear or preserve motion components, and change object action.
-See `docs/object_collision_response.md`.
+See `docs/object_system.md#object-collision-response-dispatcher`.
 
 Most consumers resolve either side of that split state through two shared
 helpers. `LoadEnemyObjectPointer` and `LoadEnemyAiPointer` accept a slot index
@@ -254,14 +254,14 @@ Two behavior families first call `ApplyEnemyLifetimeThreshold`. The outer AI
 dispatcher supplies carry set, allowing this helper to compare AI-record bytes
 2-3 with the room-configured lifetime threshold using a chained subtraction.
 On expiry it clears the current object action and AI lifecycle byte, then sets
-object-state bit 1. See `docs/enemy_lifetime.md`.
+object-state bit 1. See `docs/enemy_system.md#enemy-lifetime-transition`.
 
 `UpdateEnemiesMovement` walks these parallel pools through four split pointer
 tables. It advances active AI records using the shared gameplay update count,
 caches direction components relative to Dana, and publishes an active-enemy
 count for later services. The complete eight-byte shared layout distinguishes
 flags, phase, 16-bit lifetime, Dana-relative deltas, and polymorphic link/path
-fields; see `docs/enemy_ai_record.md` and `docs/enemy_movement.md`.
+fields; see `docs/enemy_system.md#enemy-ai-record-layout` and `docs/enemy_system.md#enemy-movement-prepass`.
 
 The following `RunEnemyAiDispatcher` pass resolves the same parallel pointers,
 applies two object-record eligibility tests, and invokes a per-enemy handler.
@@ -306,7 +306,7 @@ helpers immediately before it are also consumed by the `$5C-$67` family. An
 action byte shifted right twice selects a seven-entry inline appendix. Two
 paths allocate one or two free AI records, retain their slot indices in bytes
 6-7 of the parent AI record, and unwind partial allocation if a second slot is
-unavailable. See `docs/linked_enemy_ai.md`.
+unavailable. See `docs/enemy_system.md#linked-enemy-ai-support`.
 
 Two of those behavior families call `LoadCurrentEnemyPosition`. It copies the
 selected enemy record's working Y/X bytes into the shared spawn scratch area,
@@ -319,39 +319,39 @@ The gameplay thread consumes pending timer ticks through `DecrementTimer`.
 Fractional accumulation controls when a decimal decrement occurs; borrow then
 propagates across four unpacked decimal digits. A dirty flag defers HUD work
 until the shared PPU update stream is free. Separate state tracks crossing one
-of four warning thresholds. See `docs/timer.md` for the owned range and current
+of four warning thresholds. See `docs/item_system.md#countdown-timer` for the owned range and current
 evidence boundary.
 
 Four item handlers operate directly on the same unpacked digits. They double
 or multiply the timer by five with decimal carry, or replace it with `10000`
 or `05000`; multiplication discards carry beyond four digits. The two
 multipliers also adjust `TimerDecrementStep`. See
-`docs/timer_item_effects.md`.
+`docs/item_system.md#timer-item-effects`.
 
 Fireball inventory is stored as eight two-bit entries across `$042E-$042F`.
 Bottle handlers fill the first empty usable slot with value 1 or 2, while the
 Scroll Extender raises the usable-slot limit to at most eight. Fairy Bell
 queues a fairy for the gameplay thread, and the two Tzo handlers extend the
 fireball lifetime while its high byte is below 2. See
-`docs/inventory_item_effects.md`.
+`docs/item_system.md#inventory-and-item-effects`.
 
 Score uses eight unpacked decimal digits at `$044A-$0451`. The shared addition
 helper begins at a caller-selected digit and propagates carry toward the most
 significant end. `GameStateFlags` bit 0 gates whether the supplied amount is
 accepted; the flags byte is restored before the digit loop. See
-`docs/score.md`.
+`docs/item_system.md#score-addition`.
 
 Item and enemy paths share one auxiliary object at `$05BB`. One entry converts
 a packed room-map cell to pixels while preserving the caller's item type;
 another accepts coordinates directly. Both install the same four-byte object
 template and integer Y/X fields. The visual meaning remains deliberately
-unassigned pending traces. See `docs/auxiliary_effect.md`.
+unassigned pending traces. See `docs/item_system.md#auxiliary-effect-object`.
 
 The gameplay loop samples the RoomMap cell under Dana and classifies item
 tiles through a 29-entry inline handler appendix. Shared handlers cover timer,
 inventory, score, and persistent flag effects; key and door entries mutate
 room progression and reset all 21 object plus 17 enemy-AI records. See
-`docs/item_interactions.md`.
+`docs/item_system.md#item-interactions`.
 
 Four context-4 entries then provide short/long and map/enemy-originated
 lifecycles for the shared auxiliary item effect. They serialize HUD refresh,
@@ -391,13 +391,13 @@ player start, and Demon Mirror settings live in a ten-byte room header.
 `LoadRoomItemsAndMetadata` is now the source-owned runtime consumer of that
 format. It resolves both Demon Mirror schedules and enemy sets, initializes
 door/key/mirror state, decodes normal and repeated item records into `RoomMap`,
-and expands optional constellation metadata. See `docs/room_item_decode.md`.
+and expands optional constellation metadata. See `docs/room_data_pipeline.md#room-item-and-metadata-decoding`.
 
 `InitializeRoomBlockMap` owns the fixed block path. It prepares a 16x14 RAM
 map with `$F8` sentinel rows around the 16x12 playable interior, computes the
 48-byte room record at `$E02C + room*48`, and expands brown then white planes.
 Writing white second implements the documented overlap priority. See
-`docs/room_block_decode.md`.
+`docs/room_data_pipeline.md#room-block-plane-decoding`.
 
 Gameplay coordinates map onto that grid through a packed nibble index. The
 conversion subtracts a Y=`$10`, X=`$08` pixel origin, uses 16-pixel cells, and
@@ -416,7 +416,7 @@ delay counter, and a final path that stops context 1.
 The fireball path consumes one packed two-bit inventory value. The block path
 chooses creation or removal from the sign of the target `RoomMap` value; the
 head-collision path selects between the two cells covered by Dana's width.
-See `docs/dana_actions.md` for the entry mapping and remaining unknown fields.
+See `docs/player_actions.md#dana-action-threads` for the entry mapping and remaining unknown fields.
 
 The adjacent map-interaction layer converts packed target cells to object
 coordinates, normalizes runtime tile flags, initializes the first four object
@@ -436,23 +436,23 @@ pointer is idle, disables NMI and rendering, and selects one-byte PPU address
 increments. It writes the disabled rendering value only to hardware, leaving
 `PpuMaskShadow` intact. The end side restores render-enable bits in that shadow
 and re-enables NMI; the next NMI commits the shadowed mask. See
-`docs/direct_ppu_transfer.md`.
+`docs/ppu_pipeline.md#direct-ppu-transfer-guard`.
 
 The adjacent direct writer cluster has separate primitives for repeating a
 four-byte pattern and filling PPU_DATA with one byte. Four source patterns are
 kept in a dedicated data module rather than decoded as instructions. See
-`docs/ppu_data_writers.md`.
+`docs/ppu_pipeline.md#repeated-ppu-data-writers`.
 
 Room initialization uses those primitives to frame the 30x24 tile interior.
 `DrawRoomNametableFrame` writes two vertical columns at `$209E/$209F`, two
 bottom rows at `$2380`, and clears all 64 attribute bytes at `$23C0`. See
-`docs/room_nametable_frame.md`.
+`docs/room_lifecycle.md#room-nametable-frame`.
 
 Room transitions also use a direct PPU clearing path at `$C9BD-$CA32`. Its
 three-byte descriptors select width, a scaled nametable start index, and row
 count. The routine writes blank tile `$24` across each row, advances by one
 32-byte nametable row, and finally clears 48 attribute bytes at
-`$23C8-$23F7`. See `docs/nametable_clear.md`.
+`$23C8-$23F7`. See `docs/ppu_pipeline.md#direct-nametable-clearing`.
 
 A second direct path at `$CB6F-$CBA5` resets both physical nametables. For each
 of `$2000` and `$2800`, it writes 960 blank tile bytes followed by all 64
@@ -469,7 +469,7 @@ cooperative producer asks NMI to read the current attribute byte, replaces the
 target two-bit quadrant, emits two 2-byte pattern rows plus one attribute-byte
 command, and publishes the 15-byte program. The initial room renderer bypasses
 the handshake but reuses the same buffer builder. See
-`docs/room_map_cell_update.md`.
+`docs/room_data_pipeline.md#buffered-roommap-cell-updates`.
 
 Because gameplay services run through cooperative contexts, timing-sensitive
 behavior must be validated with instruction/frame traces rather than inferred

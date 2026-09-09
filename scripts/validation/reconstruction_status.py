@@ -997,7 +997,7 @@ def main() -> int:
     manifest_path = (
         args.manifest or root / "config" / "reconstruction" / "reconstruction.json"
     )
-    ledger_path = args.ledger or root / "docs" / "provenance" / "label_renames.json"
+    ledger_path = args.ledger or root / "config" / "reconstruction" / "label_renames.json"
     map_path = args.map_path or root / "build" / "native" / "solomons_key.map"
     labels_path = args.labels or root / "build" / "native" / "solomons_key.lbl"
     release_path = args.release or root / "config" / "source_reconstruction_1_0.json"
