@@ -16,8 +16,8 @@
   },
   "delta_history": {
     "from_exclusive": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
-    "through_inclusive": "1e796b231b5dc072d8450440c5baf6354231cf88",
-    "commit_count": 28,
+    "through_inclusive": "579cd28e04e73ca64e2bdb182f6eadfae8234631",
+    "commit_count": 30,
     "coverage_document": "docs/source_reconstruction_2_1.md"
   },
   "included_scope": [
