@@ -3,16 +3,19 @@
 This review treats the documentation as one reader-facing system. It records
 the navigation paths, consolidation decisions, retained boundaries, and size
 exceptions represented by
-`config/reconstruction/documentation_corpus.json`. `make lint` checks that the
-machine-readable inventory still matches every Markdown file under `docs/`.
+`config/reconstruction/documentation_corpus.json`. The inventory includes the
+root README as the public landing page, and `make lint` checks it together with
+every Markdown file under `docs/`.
 
 ## Reader journeys
 
-The README leads a release user through legal inputs and the complete release
-gate. `docs/index.md` then offers three deliberate paths: build and verification,
-source architecture and subsystem behavior, and provenance or licensing. Each
-path begins with an overview and links to specialized evidence only when the
-reader needs it.
+The README was reviewed and reduced to a concise project entry point. It states
+the tag-ready candidate status, names the legal inputs, gives one setup sequence
+and the current aggregate gate, and delegates the maintained command catalog to
+`make help` and the verification guide. `docs/index.md` then offers three
+deliberate paths: build and verification, source architecture and subsystem
+behavior, and provenance or licensing. Each path begins with an overview and
+links to specialized evidence only when the reader needs it.
 
 An implementer can move from architecture to source layout, RAM ownership, data
 formats, and then one subsystem guide. A reviewer can move from a release
@@ -53,8 +56,8 @@ table and address evidence are easier to review together than as independently
 maintained regional copies. All other ordinary documents remain within the
 reviewed limit.
 
-Lint checks the complete Markdown inventory, line counts, local links, repeated
-filename prefixes, consolidation destinations, removed source files, and the
-single canonical label rename registry. A new document or a new repeated prefix
-therefore requires an explicit review decision rather than silently expanding
-the corpus.
+Lint checks the README and complete `docs/` Markdown inventory, line counts,
+local links, repeated filename prefixes, consolidation destinations, removed
+source files, and the single canonical label rename registry. A new document or
+a new repeated prefix therefore requires an explicit review decision rather
+than silently expanding the corpus.

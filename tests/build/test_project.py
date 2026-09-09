@@ -258,6 +258,7 @@ class DocumentationCorpusTests(unittest.TestCase):
         config = root / "config" / "reconstruction"
         docs.mkdir(parents=True)
         config.mkdir(parents=True)
+        (root / "README.md").write_text("# Project\n", encoding="utf-8")
         (docs / "index.md").write_text("# Index\n", encoding="utf-8")
         (docs / "review.md").write_text("# Review\n", encoding="utf-8")
         (docs / "room_data.md").write_text("# Data\na\nb\n", encoding="utf-8")
@@ -270,6 +271,7 @@ class DocumentationCorpusTests(unittest.TestCase):
             "recommended_max_lines": 2,
             "rename_registry": "config/reconstruction/label_renames.json",
             "documents": [
+                "README.md",
                 "docs/index.md",
                 "docs/review.md",
                 "docs/room_data.md",
@@ -304,6 +306,14 @@ class DocumentationCorpusTests(unittest.TestCase):
             root = Path(directory)
             policy = self.make_corpus(root)
             (root / "docs" / "room_extra.md").write_text("# Extra\n", encoding="utf-8")
+            with self.assertRaisesRegex(project.ProjectError, "unreviewed documents"):
+                project.validate_documentation_corpus(root, policy)
+
+    def test_requires_readme_in_reviewed_corpus(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            policy = self.make_corpus(root)
+            policy["documents"].remove("README.md")
             with self.assertRaisesRegex(project.ProjectError, "unreviewed documents"):
                 project.validate_documentation_corpus(root, policy)
 

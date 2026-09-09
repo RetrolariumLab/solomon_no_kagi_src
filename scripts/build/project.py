@@ -546,7 +546,11 @@ def validate_documentation_corpus(root: Path, policy: dict[str, object]) -> None
         raise ProjectError("documentation consolidations must be a list")
 
     actual = sorted(
-        path.relative_to(root).as_posix() for path in (root / "docs").rglob("*.md")
+        ["README.md"]
+        + [
+            path.relative_to(root).as_posix()
+            for path in (root / "docs").rglob("*.md")
+        ]
     )
     expected = sorted(documents)
     errors: list[str] = []

@@ -5,6 +5,7 @@
   "recommended_max_lines": 600,
   "rename_registry": "config/reconstruction/label_renames.json",
   "documents": [
+    "README.md",
     "docs/architecture.md",
     "docs/attract_demo_flow.md",
     "docs/audio_engine.md",
