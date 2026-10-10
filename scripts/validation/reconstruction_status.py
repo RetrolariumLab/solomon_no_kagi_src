@@ -25,10 +25,10 @@ LABEL_FILE_RE = re.compile(r"^al\s+([0-9A-Fa-f]{6})\s+\.?([^\s]+)\s*$")
 MAKE_TARGET_RE = re.compile(r"^([A-Za-z0-9_.-]+)(?:\s+[^:]*)?:")
 CONFIDENCE_LEVELS = {"confirmed", "high", "tentative", "unknown"}
 HISTORICAL_TOOL_PATHS = {
-    "config/audio_data.json": "config/authoring/audio_data.json",
-    "config/audio_data_europe.json": "config/authoring/audio_data_europe.json",
-    "config/title_data.json": "config/authoring/title_data.json",
-    "config/title_data_europe.json": "config/authoring/title_data_europe.json",
+    "config/audio_data.json": "config/validation/audio_data.json",
+    "config/audio_data_europe.json": "config/validation/audio_data_europe.json",
+    "config/title_data.json": "config/validation/title_data.json",
+    "config/title_data_europe.json": "config/validation/title_data_europe.json",
     "config/debugger_breakpoints.json": "config/debugger/breakpoints.json",
     "config/debugger_watches.json": "config/debugger/watches.json",
     "config/reconstruction.json": "config/reconstruction/reconstruction.json",
@@ -54,8 +54,8 @@ HISTORICAL_TOOL_PATHS = {
     "scripts/level_editor.py": "scripts/authoring/level_editor.py",
     "scripts/level_preview.py": "scripts/authoring/level_preview.py",
     "scripts/level_studio.py": "scripts/authoring/level_studio.py",
-    "scripts/room_data.py": "scripts/authoring/room_data.py",
-    "scripts/audio_data.py": "scripts/authoring/audio_data.py",
+    "scripts/room_data.py": "scripts/validation/room_data.py",
+    "scripts/audio_data.py": "scripts/validation/audio_data.py",
     "scripts/audio_editor.py": "scripts/authoring/audio_editor.py",
     "scripts/audio_preview.py": "scripts/authoring/audio_preview.py",
     "scripts/sound_studio.py": "scripts/authoring/sound_studio.py",

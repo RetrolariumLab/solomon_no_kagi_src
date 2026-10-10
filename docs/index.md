@@ -27,7 +27,8 @@ inputs and capabilities. [Code quality](code_quality.md) and the
 Read [architecture](architecture.md) for execution and data flow, then use
 [source layout](source_layout.md) and [source organization](source_organization.md)
 to locate the owning module. [RAM map](ram_map.md) defines runtime storage and
-[data formats](data_formats.md) defines encoded records and authoring tools.
+[data formats](data_formats.md) defines encoded records and their codecs.
+[Editing in Retrolarium](retrolarium.md) explains how the game is edited.
 
 The runtime is documented by subsystem:
 

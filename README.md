@@ -2,8 +2,9 @@
 
 This repository contains byte-identical ca65 source reconstructions of the USA
 and European NES releases of **Solomon's Key**. It combines preservation builds,
-runtime evidence, decoded data formats, and profile-aware editing tools without
-tracking original ROM images or extracted copyrighted assets.
+runtime evidence and decoded data formats without tracking original ROM images
+or extracted copyrighted assets. The game is edited in Retrolarium Studio; see
+[editing in Retrolarium](docs/retrolarium.md).
 
 ## Release status
 
@@ -17,6 +18,9 @@ tracking original ROM images or extracted copyrighted assets.
   responsibility-based tooling, stronger public-command evidence, and a
   reviewed documentation corpus without changing the accepted ROM identities
   or fixed-layout authoring contracts.
+- Source Reconstruction 3.0 moves editing to Retrolarium: `solomons_key.rlj`
+  opens every revision in the studio, the repository's own editors are
+  retired, and `make studio-check` proves each revision with the kit.
 
 The exact candidate boundary and exclusions are documented in
 [Source Reconstruction 2.1](docs/source_reconstruction_2_1.md).
@@ -34,7 +38,7 @@ filenames declared by `config/revision_profiles.json`:
 - `Solomon's Key (U) [!].nes`
 - `Solomon's Key (E) [!].nes`
 
-ROMs, extracted CHR data, editor workspaces, runtime traces, and build products
+ROMs, extracted CHR data, Retrolarium edits, runtime traces, and build products
 are private or reproducible local files and are ignored by Git. This project
 does not grant rights to the original game code or data; see
 [licensing](docs/licensing.md) and [provenance](docs/provenance.md).
@@ -52,9 +56,9 @@ make source-2-minor-check
 `make split` validates the USA image and extracts the shared ignored CHR input.
 `make source-2-minor-check` is the current complete aggregate verification
 command: it runs the accepted Source 1.0 and 2.0 regression gates first, then
-checks the Source 2.1 profiles, byte identity, runtime scenarios, authoring round
-trips, editor actions, public command orchestration, documentation, and release
-metadata.
+checks the Source 2.1 profiles, byte identity, runtime scenarios, public command
+orchestration and documentation. The 2.0 and 2.1 release manifests describe
+their tagged trees, so their audits run in a checkout of each tag.
 
 For final local tag-readiness checks, use:
 
@@ -73,12 +77,13 @@ maintained command catalog instead of relying on a duplicated list here.
 
 - `src/main.asm` is the canonical profile-selected assembly entry point.
 - `src/` groups assembly by runtime subsystem and data owner.
-- `config/` contains release, profile, linker, authoring, debugger, validation,
+- `config/` contains release, profile, linker, debugger, validation,
   and reconstruction contracts.
 - `assets/manifest.json` records the immutable USA reference identity;
   `assets/generated/` holds ignored extracted data.
-- `scripts/` and `tests/` mirror the `authoring`, `build`, `runtime`, and
-  `validation` responsibility boundaries.
+- `scripts/` and `tests/` mirror the `build`, `runtime`, and `validation`
+  responsibility boundaries.
+- `solomons_key.rlj` names the revisions Retrolarium Studio opens.
 - `scenarios/` declares runtime inputs and expected observations.
 - `docs/` contains reader-facing architecture, workflow, subsystem, evidence,
   provenance, and release guides.

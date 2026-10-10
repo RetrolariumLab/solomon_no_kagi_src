@@ -109,15 +109,12 @@ runtime-result writes are completed in a sibling temporary file before atomic
 publication. `make lint` rejects direct Python path writes outside that shared
 implementation and verifies the Lua capture scripts retain their rename step.
 
-## Editor workstation actions
+## Retrolarium
 
-`make editor-ui-smoke-profiles` opens each public studio in a disposable
-workspace for both accepted profiles. It invokes the real Save and Build
-handlers, renders a preview, exercises Level Studio Play through a mocked
-process boundary, produces and dispatches the Sound Studio WAV preview, and
-checks both reject and accept branches of dirty-close confirmation. Generated
-documents, ROMs, and previews must be nonempty and are removed with the
-temporary workspace.
+`make studio-check` runs the Retrolarium kit's check of `solomons_key.rlj`:
+in a throwaway copy of the repository it prepares every revision, validates
+each document and rebuilds each revision unedited, byte for byte. See
+[editing in Retrolarium](retrolarium.md).
 
 ## Failure diagnostics
 

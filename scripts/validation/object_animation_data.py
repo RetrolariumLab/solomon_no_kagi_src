@@ -11,7 +11,7 @@ from pathlib import Path
 import sys
 from typing import Any
 
-from scripts.authoring.room_data import RoomDataError, extract_prg
+from scripts.validation.room_data import RoomDataError, extract_prg
 
 
 PRG_BASE = 0x8000

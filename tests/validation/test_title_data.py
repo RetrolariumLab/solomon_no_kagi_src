@@ -4,7 +4,7 @@ import hashlib
 from pathlib import Path
 import unittest
 
-from scripts.authoring.title_data import (
+from scripts.validation.title_data import (
     TitleCursorCommand,
     TitleLiteralRun,
     collect_report,
@@ -28,8 +28,8 @@ class TitleDataTests(unittest.TestCase):
         self,
     ) -> None:
         root = Path(__file__).resolve().parents[2]
-        usa = load_manifest(root / "config" / "authoring" / "title_data.json")
-        europe = load_manifest(root / "config" / "authoring" / "title_data_europe.json")
+        usa = load_manifest(root / "config" / "validation" / "title_data.json")
+        europe = load_manifest(root / "config" / "validation" / "title_data_europe.json")
         validate_manifest_profile(usa, "usa")
         validate_manifest_profile(europe, "europe")
         self.assertNotEqual(usa["data_start"], europe["data_start"])

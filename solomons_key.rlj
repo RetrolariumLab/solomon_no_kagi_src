@@ -1,0 +1,31 @@
+schema = "retrolarium.game"
+schema_version = 1
+
+# Opened by Retrolarium Studio: pick a version, and the studio checks its ROM,
+# splits the assets and keeps your edits in hack/<version>/ (not tracked).
+
+[game]
+id = "solomons-key"
+name = "Solomon's Key"
+platform = "nes"
+profile = "solomons-key.v1"
+
+[[revisions]]
+id = "usa"
+label = "USA"
+rom = "Solomon's Key (U) [!].nes"
+
+[[revisions]]
+id = "europe"
+label = "Europe"
+rom = "Solomon's Key (E) [!].nes"
+
+[[revisions]]
+id = "japan"
+label = "Japan · Solomon no Kagi"
+rom = "Solomon no Kagi (J).nes"
+
+[split]
+revision = "usa"
+command = ["scripts/run.py", "build.project", "split", "--image", "{rom}", "--manifest", "assets/manifest.json", "--output-dir", "assets/generated"]
+check = ["scripts/run.py", "build.verify_rom", "asset", "--asset", "assets/generated/chr/solomons_key.chr", "--reference", "{rom}", "--manifest", "assets/manifest.json", "--region", "chr"]

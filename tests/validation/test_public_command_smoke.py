@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
+import subprocess
 import unittest
 
 from scripts.validation import public_command_smoke
@@ -22,13 +22,12 @@ class PublicCommandSmokeTests(unittest.TestCase):
         self.assertIn("Source Reconstruction 2.1 contract", output)
 
     def test_real_minor_release_audit_propagates_failure(self) -> None:
-        def invalidate_release(clone: Path) -> None:
-            path = clone / "config" / "source_reconstruction_2_1.json"
-            release = json.loads(path.read_text(encoding="utf-8"))
-            release["release_line"] = "invalid"
-            path.write_text(
-                json.dumps(release, indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8",
+        # The audit runs at the 2.1 tag; without the tag it cannot run.
+        def drop_release_tag(clone: Path) -> None:
+            subprocess.run(
+                ["git", "-C", str(clone), "tag", "-d", "source-reconstruction-2.1"],
+                check=True,
+                capture_output=True,
             )
 
         with self.assertRaises(
@@ -37,12 +36,12 @@ class PublicCommandSmokeTests(unittest.TestCase):
             public_command_smoke.run_disposable_make(
                 ROOT,
                 "source-2-minor-audit",
-                prepare_clone=invalidate_release,
+                prepare_clone=drop_release_tag,
             )
 
         message = str(raised.exception)
         self.assertIn("public command 'make source-2-minor-audit' failed", message)
-        self.assertIn("release_line must be 2.x", message)
+        self.assertIn("cannot check out source-reconstruction-2.1", message)
 
 
 if __name__ == "__main__":

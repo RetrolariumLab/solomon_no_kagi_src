@@ -7,8 +7,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 
-from scripts.authoring import room_data
-from scripts.authoring import level_editor
+from scripts.validation import room_data
 
 
 class RoomDataTests(unittest.TestCase):
@@ -66,16 +65,6 @@ class RoomDataTests(unittest.TestCase):
     def test_spawn_lifetime_rotation(self) -> None:
         self.assertEqual(room_data.rotate_left_3(0x20), 1)
         self.assertEqual(room_data.rotate_left_3(0xFF), 0xFF)
-
-    def test_level_codec_rejects_more_enemies_than_the_runtime_pool(self) -> None:
-        placements = [
-            {"type": 0x71, "position": {"x": index % 16, "y": index % 12}}
-            for index in range(level_editor.ROOM_ENEMY_SLOT_COUNT + 1)
-        ]
-        with self.assertRaisesRegex(level_editor.LevelEditorError, "17 slots"):
-            level_editor.encode_room_enemies(
-                {"spawn_lifetime": 1, "placements": placements}
-            )
 
     def test_groups_rooms_by_chr_bank(self) -> None:
         self.assertEqual(

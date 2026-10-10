@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from scripts.authoring.room_data import RoomDataError, extract_prg
+from scripts.validation.room_data import RoomDataError, extract_prg
 
 
 INITIAL_STACK_POINTERS = 0x8E01

@@ -23,3 +23,7 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# Retrolarium Studio: generated projects and your edits (game data)
+/.retrolarium/
+/hack/

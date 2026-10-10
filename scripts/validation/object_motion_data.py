@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 from typing import Any
 
-from scripts.authoring.room_data import RoomDataError, extract_prg
+from scripts.validation.room_data import RoomDataError, extract_prg
 from scripts.validation.object_animation_data import (
     cpu_slice,
     decode_words,

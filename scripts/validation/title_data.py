@@ -15,7 +15,7 @@ from typing import Any
 try:
     from .room_data import RoomDataError, extract_prg
 except ImportError:
-    from scripts.authoring.room_data import RoomDataError, extract_prg
+    from scripts.validation.room_data import RoomDataError, extract_prg
 
 
 PRG_BASE = 0x8000
@@ -460,7 +460,7 @@ def main() -> int:
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     manifest_path = args.manifest or (
-        root / "config" / "authoring" / TITLE_DATA_MANIFESTS[args.profile]
+        root / "config" / "validation" / TITLE_DATA_MANIFESTS[args.profile]
     )
     try:
         manifest = load_manifest(manifest_path)

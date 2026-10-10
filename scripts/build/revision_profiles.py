@@ -11,7 +11,7 @@ import sys
 from typing import Any, Iterable
 
 from scripts.build.project import ProjectError, digest, parse_ines, safe_asset_path, write_if_changed
-from scripts.authoring.room_data import (
+from scripts.validation.room_data import (
     ROOM_COUNT,
     ROOM_DATA_LAYOUTS,
     decode_mirror_enemy_sets,

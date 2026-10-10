@@ -29,6 +29,7 @@
     "docs/ppu_pipeline.md",
     "docs/provenance.md",
     "docs/ram_map.md",
+    "docs/retrolarium.md",
     "docs/revision_profiles.md",
     "docs/roadmap.md",
     "docs/room_data_pipeline.md",
@@ -49,9 +50,7 @@
     "docs/unknowns.md",
     "docs/verification.md"
   ],
-  "size_exceptions": {
-    "docs/revision_profiles.md": "The contiguous three-region comparison keeps address tables, identity evidence, and profile limitations reviewable together."
-  },
+  "size_exceptions": {},
   "retained_prefixes": {
     "room": {
       "paths": [

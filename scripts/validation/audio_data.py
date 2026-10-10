@@ -14,7 +14,7 @@ from typing import Any
 try:
     from .room_data import RoomDataError, extract_prg
 except ImportError:
-    from scripts.authoring.room_data import RoomDataError, extract_prg
+    from scripts.validation.room_data import RoomDataError, extract_prg
 
 
 PRG_BASE = 0x8000
@@ -600,7 +600,7 @@ def main() -> int:
     default_manifest = (
         "audio_data.json" if args.profile == "usa" else "audio_data_europe.json"
     )
-    manifest_path = args.manifest or root / "config" / "authoring" / default_manifest
+    manifest_path = args.manifest or root / "config" / "validation" / default_manifest
     layout = AUDIO_LAYOUTS[args.profile]
     try:
         prg = extract_prg(args.image.read_bytes())

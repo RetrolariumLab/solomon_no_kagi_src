@@ -38,7 +38,7 @@ white/solid bitplane.
 `RoomBlockData` and all 53 records are source-owned in the 485-line
 `src/data/rooms/blocks.asm`. Each room is shown as three eight-byte rows per
 brown/breakable plane followed by three per white/solid plane; the file can be
-reproduced with `scripts/authoring/room_data.py --source-blocks`.
+reproduced with `scripts/validation/room_data.py --source-blocks`.
 
 ### Expansion
 
@@ -106,12 +106,12 @@ lossless room codec rather than guessed names.
 `LoadRoomEnemies` at `$961B-$9660` turns the current room's compressed enemy
 record into live runtime slots. `CurrentRoomIndex` selects one of 53 split
 pointers at `$DCEC/$DD21`; the resulting stream uses the format already
-round-tripped by `scripts/authoring/room_data.py`.
+round-tripped by `scripts/validation/room_data.py`.
 
 Both pointer halves and all 53 streams are source-owned in the 552-line
 `src/data/rooms/enemies.asm`. Each record is expressed with macros for the
 encoded lifetime, `(enemy_type, map_position)` pair, and terminator; the source
-can be reproduced with `scripts/authoring/room_data.py --source-enemies`.
+can be reproduced with `scripts/validation/room_data.py --source-enemies`.
 
 The first byte is split into `EnemySpawnLifetimeThresholdLo` (`bits 7..5`) and
 `EnemySpawnLifetimeThresholdHi` (`bits 4..0`). `ApplyEnemyLifetimeThreshold`

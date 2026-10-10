@@ -209,10 +209,6 @@ class ReconstructionStatusTests(unittest.TestCase):
         self.assertTrue(any("release path is missing" in error for error in errors))
         self.assertTrue(any("Make target is missing" in error for error in errors))
 
-    def test_source_2_contract_accepts_current_development_scope(self) -> None:
-        root, release = self.make_source_2_release_fixture()
-        self.assertEqual(validate_source_2_release(root, release), [])
-
     def test_source_2_contract_pins_the_published_predecessor(self) -> None:
         root, release = self.make_source_2_release_fixture()
         release["predecessor"]["commit"] = "0" * 40

@@ -83,7 +83,7 @@ marks a period awaiting publication.
 
 ## Effect call-site catalog
 
-Sound Studio labels an effect by proven request contexts rather than guessing
+Retrolarium labels an effect by proven request contexts rather than guessing
 a soundtrack title from its notes. These names come from every static
 `AddSoundEffect` caller; a slash means that the same descriptor is deliberately
 reused by more than one flow.
@@ -135,7 +135,7 @@ entry reachable through descriptor and `$F2/$F3` command pointers. All 2,664
 bytes at `$F592-$FFF9` must be reachable and every decoded path must re-encode
 byte-for-byte.
 
-`python scripts/run.py authoring.audio_data source --image <rom>` reproduces the reviewed
+`python scripts/run.py validation.audio_data source --image <rom>` reproduces the reviewed
 ASM representation from a matching image.
 
 Source Reconstruction 2.0 gives the codec explicit USA and Europe layouts.
@@ -145,11 +145,11 @@ at `$F53A-$FFDE`. `make audio-profile-audits` verifies both private reference
 identities before decoding 26 effects and 114 reachable stream entries per
 profile. The PAL audit records 2,255 commands and proves that its complete
 stream range round-trips byte-for-byte; this structural evidence is the base
-for the 2.0 music editor and for profile-selected stream source.
+for music editing and for profile-selected stream source.
 
 The PAL gap from `$F300` to `$F341` is not merely a 26-byte primary duration
 table plus opaque padding. Stream tokens mask their duration index to six bits,
-and PAL stock streams use indices through 52. Sound Studio therefore exposes
+and PAL stock streams use indices through 52. The music editor therefore exposes
 the first 64 bytes as the complete addressable PAL duration table and retains
 only the final two bytes as timing tail. NTSC stock streams use indices through
 24 and its envelope pointer table begins immediately after the 26 declared

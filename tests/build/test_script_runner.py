@@ -11,7 +11,7 @@ class ScriptRunnerTests(unittest.TestCase):
     def test_lists_tools_from_each_public_category(self) -> None:
         tools = run.available_tools()
 
-        self.assertIn("authoring.level_editor", tools)
+        self.assertIn("validation.room_data", tools)
         self.assertIn("build.project", tools)
         self.assertIn("runtime.runtime_scenarios", tools)
         self.assertIn("validation.source_2_minor_release", tools)

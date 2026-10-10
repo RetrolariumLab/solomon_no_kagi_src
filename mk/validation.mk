@@ -26,19 +26,19 @@ scaffold-check: lint
 	$(PYTHON) -m unittest $(ROMLESS_TEST_MODULES) -v
 
 rooms: $(ROM)
-	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --pretty
+	$(RUN_TOOL) validation.room_data --image "$(ROM)" --pretty
 
 validate-rooms: $(ROM)
-	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --validate
+	$(RUN_TOOL) validation.room_data --image "$(ROM)" --validate
 
 room-data-audit: $(ROM)
-	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --roundtrip
+	$(RUN_TOOL) validation.room_data --image "$(ROM)" --roundtrip
 
 chr-bank-report: $(ROM)
-	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --chr-bank-report --pretty
+	$(RUN_TOOL) validation.room_data --image "$(ROM)" --chr-bank-report --pretty
 
 chr-bank-audit: $(ROM)
-	$(RUN_TOOL) authoring.room_data --image "$(ROM)" --chr-bank-audit
+	$(RUN_TOOL) validation.room_data --image "$(ROM)" --chr-bank-audit
 
 roundtrip-formats: room-data-audit ppu-update-audit object-animation-audit \
 	object-motion-audit title-data-audit audio-data-audit format-coverage-audit
@@ -171,13 +171,13 @@ object-motion-profile-audits:
 	$(MAKE) object-motion-profile-audit PROFILE=europe
 
 title-data-report: $(ROM)
-	$(RUN_TOOL) authoring.title_data report --image "$(ROM)"
+	$(RUN_TOOL) validation.title_data report --image "$(ROM)"
 
 title-data-audit: $(ROM)
-	$(RUN_TOOL) authoring.title_data audit --image "$(ROM)"
+	$(RUN_TOOL) validation.title_data audit --image "$(ROM)"
 
 title-data-profile-audit: build-revision
-	$(RUN_TOOL) authoring.title_data audit --image "$(REVISION_ROM)" \
+	$(RUN_TOOL) validation.title_data audit --image "$(REVISION_ROM)" \
 		--profile "$(PROFILE)"
 
 title-data-profile-audits:
@@ -185,14 +185,14 @@ title-data-profile-audits:
 	$(MAKE) title-data-profile-audit PROFILE=europe
 
 audio-data-report: $(ROM)
-	$(RUN_TOOL) authoring.audio_data report --image "$(ROM)"
+	$(RUN_TOOL) validation.audio_data report --image "$(ROM)"
 
 audio-data-audit: $(ROM)
-	$(RUN_TOOL) authoring.audio_data audit --image "$(ROM)"
+	$(RUN_TOOL) validation.audio_data audit --image "$(ROM)"
 
 audio-profile-audit:
 	$(MAKE) verify-revision-reference PROFILE=$(PROFILE)
-	$(RUN_TOOL) authoring.audio_data audit --profile "$(PROFILE)" \
+	$(RUN_TOOL) validation.audio_data audit --profile "$(PROFILE)" \
 		--image "$(AUDIO_PROFILE_IMAGE)"
 
 audio-profile-audits:
@@ -207,17 +207,22 @@ source-2-profile-audits:
 		object-motion-profile-audits title-data-profile-audits \
 		audio-profile-audits
 
+# The 2.0 and 2.1 manifests describe the trees tagged source-reconstruction-2.0
+# and -2.1 (with the editors 3.0 retired), so their audits run there, by the
+# tag's own targets and tools, in a disposable clone.
+SOURCE_2_TAG ?= source-reconstruction-2.0
+SOURCE_2_MINOR_TAG ?= source-reconstruction-2.1
+SOURCE_2_AT_TAG = $(RUN_TOOL) validation.tag_audit --tag "$(SOURCE_2_TAG)" --
+SOURCE_2_MINOR_AT_TAG = $(RUN_TOOL) validation.tag_audit --tag "$(SOURCE_2_MINOR_TAG)" --
+
 source-2-release-audit:
-	$(RUN_TOOL) $(SOURCE_2_RELEASE_TOOL) audit \
-		--release "$(SOURCE_2_RELEASE_MANIFEST)"
+	$(SOURCE_2_AT_TAG) "$(MAKE)" source-2-release-audit
 
 source-2-pre-tag-audit:
-	$(RUN_TOOL) $(SOURCE_2_RELEASE_TOOL) pre-tag-audit \
-		--release "$(SOURCE_2_RELEASE_MANIFEST)"
+	$(SOURCE_2_AT_TAG) "$(MAKE)" source-2-pre-tag-audit
 
 source-2-post-tag-audit:
-	$(RUN_TOOL) $(SOURCE_2_RELEASE_TOOL) post-tag-audit \
-		--release "$(SOURCE_2_RELEASE_MANIFEST)"
+	$(SOURCE_2_AT_TAG) "$(MAKE)" source-2-post-tag-audit
 
 quality-check: lint test
 
@@ -245,18 +250,13 @@ source-1-audit: release-check
 
 source-2-static-check:
 	$(MAKE) verify-revision-references verify-revision-sources verify-revisions
-	$(MAKE) source-2-profile-audits roundtrip-level-profiles \
-		roundtrip-audio-profiles roundtrip-graphics-profiles \
-		roundtrip-presentation-profiles
-	$(MAKE) check-level-studio check-sound-studio check-graphics-studio \
-		check-presentation-studio \
-		validate-revision-symbol-profiles
+	$(MAKE) source-2-profile-audits validate-revision-symbol-profiles
 	$(MAKE) source-2-release-audit
 
 source-2-regression-check:
 	$(MAKE) source-1-regression-check
 	$(MAKE) source-2-static-check
-	$(MAKE) trace-revision-runtimes smoke-level-playtests
+	$(MAKE) trace-revision-runtimes
 	$(MAKE) source-2-release-audit
 
 source-2-check:
@@ -264,21 +264,39 @@ source-2-check:
 	$(MAKE) source-2-pre-tag-audit
 
 source-2-minor-audit:
-	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+	$(SOURCE_2_MINOR_AT_TAG) "$(MAKE)" source-2-minor-audit
 
 public-command-smoke:
 	$(RUN_TOOL) validation.public_command_smoke --project-root . --target lint
 
 source-2-minor-check:
 	$(MAKE) source-2-regression-check
-	$(MAKE) editor-ui-smoke-profiles
 	$(MAKE) public-command-smoke
 	$(MAKE) source-2-minor-audit
 
 source-2-minor-pre-tag-check:
 	$(MAKE) source-2-minor-check
-	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) pre-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+	$(SOURCE_2_MINOR_AT_TAG) scripts/run.py $(SOURCE_2_MINOR_TOOL) pre-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
 
 source-2-minor-tag-check:
 	$(MAKE) source-2-regression-check
-	$(RUN_TOOL) $(SOURCE_2_MINOR_TOOL) post-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+	$(SOURCE_2_MINOR_AT_TAG) scripts/run.py $(SOURCE_2_MINOR_TOOL) post-tag-audit --release "$(SOURCE_2_MINOR_MANIFEST)"
+
+# Retrolarium: every revision of solomons_key.rlj opens in the kit and builds
+# back to its ROM, in a throwaway copy of the repository.
+RLTOOL ?= rltool
+
+studio-check:
+	$(RLTOOL) studio check solomons_key.rlj
+
+# Source Reconstruction 3.0, in development until Retrolarium is tagged: the
+# source-2-minor-check gate, then studio-check with the manifest's
+# Retrolarium section checked against the descriptor and the running kit.
+SOURCE_3_MANIFEST ?= config/source_reconstruction_3_0.json
+
+source-3-audit:
+	$(RLTOOL) studio check solomons_key.rlj --release $(SOURCE_3_MANIFEST)
+
+source-3-check:
+	$(MAKE) source-2-minor-check
+	$(MAKE) source-3-audit

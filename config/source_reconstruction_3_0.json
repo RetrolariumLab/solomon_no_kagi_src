@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "release_line": "3.0",
+  "release": {
+    "name": "Source Reconstruction 3.0",
+    "version": "3.0"
+  },
+  "release_kind": "retrolarium",
+  "tag": "source-reconstruction-3.0",
+  "status": "development",
+  "predecessor": {
+    "manifest": "config/source_reconstruction_2_1.json",
+    "tag": "source-reconstruction-2.1",
+    "commit": "52c2503a0d47e2ecbfcc4e5e017bf5687cb0bd4c"
+  },
+  "delta_history": {
+    "from_exclusive": "52c2503a0d47e2ecbfcc4e5e017bf5687cb0bd4c",
+    "through_inclusive": "release-commit",
+    "commits": [
+      {
+        "commit": "27287bb1243608da6ba71b54c0d865920499315f",
+        "subject": "Retrolarium Studio descriptor"
+      },
+      {
+        "commit": "f4de7fa5b00a2b77f34ca56ee29fbebcf3b10a71",
+        "subject": "Retrolarium descriptor: views come from the kit"
+      },
+      {
+        "commit": "7f50e1e5bf19ea3021ec5922dfca7ceafd0d3789",
+        "subject": "Source Reconstruction 3.0: editing moves to Retrolarium"
+      }
+    ]
+  },
+  "included_scope": [
+    "inherited-source-reconstruction-2.1-contract",
+    "retrolarium-descriptor",
+    "kit-owned-editing",
+    "studio-check"
+  ],
+  "excluded_scope": [
+    {
+      "id": "japanese-source-profile",
+      "status": "planned",
+      "reason": "The Japanese image still has no complete source build or direct runtime matrix."
+    },
+    {
+      "id": "systematic-relocation-or-expanded-rom",
+      "status": "unsupported",
+      "reason": "A new layout ABI belongs to a future major release rather than compatible Source 2.x."
+    },
+    {
+      "id": "sibling-or-later-engine",
+      "status": "unsupported",
+      "reason": "Other Solomon's Key engines require an independent architecture and release decision."
+    },
+    {
+      "id": "exhaustive-room-and-ending-runtime",
+      "status": "partial",
+      "reason": "The inherited direct critical-path matrix is retained without claiming a complete longplay."
+    }
+  ],
+  "delta": [
+    {
+      "id": "retrolarium-descriptor",
+      "kind": "tooling",
+      "summary": "solomons_key.rlj names the game, its kit profile solomons-key.v1, the revisions it builds and its asset split; the studio views come from the kit's profile."
+    },
+    {
+      "id": "editing-moves-to-retrolarium",
+      "kind": "tooling",
+      "summary": "The editors, their models, the workspace composer, the UI smokes and their tests, Make targets and documentation are removed; editing happens in Retrolarium Studio over hack/<revision>/ (docs/retrolarium.md)."
+    },
+    {
+      "id": "studio-check",
+      "kind": "validation",
+      "summary": "make studio-check: in a throwaway copy the kit prepares, validates and rebuilds every revision with no edits, byte for byte."
+    },
+    {
+      "id": "tag-bound-2x-audits",
+      "kind": "validation",
+      "summary": "The 2.x manifests describe their tags' trees, so their audits run at the tag in a disposable clone; the functional 2.x gate stays on HEAD."
+    }
+  ],
+  "retrolarium": {
+    "descriptor": "solomons_key.rlj",
+    "profile": "solomons-key.v1",
+    "kit": {
+      "version": null,
+      "commit": null
+    },
+    "studio_min_version": null,
+    "revisions": [
+      "usa",
+      "europe",
+      "japan"
+    ],
+    "removed_authoring": [
+      {
+        "path": "scripts/authoring/audio_editor.py",
+        "replaced_by": "Music & Sounds view"
+      },
+      {
+        "path": "scripts/authoring/audio_preview.py",
+        "replaced_by": "Music & Sounds view"
+      },
+      {
+        "path": "scripts/authoring/editor_workstation_smoke.py",
+        "replaced_by": "studio tests and live checks in Retrolarium"
+      },
+      {
+        "path": "scripts/authoring/graphics_editor.py",
+        "replaced_by": "Graphics, Room Art and Palettes views"
+      },
+      {
+        "path": "scripts/authoring/graphics_studio.py",
+        "replaced_by": "Graphics, Room Art and Palettes views"
+      },
+      {
+        "path": "scripts/authoring/level_editor.py",
+        "replaced_by": "Rooms & Objects, Demon Mirrors and Special Rooms views"
+      },
+      {
+        "path": "scripts/authoring/level_preview.py",
+        "replaced_by": "Rooms & Objects, Demon Mirrors and Special Rooms views"
+      },
+      {
+        "path": "scripts/authoring/level_studio.py",
+        "replaced_by": "Rooms & Objects, Demon Mirrors and Special Rooms views"
+      },
+      {
+        "path": "scripts/authoring/presentation_editor.py",
+        "replaced_by": "Presentation and Screens views"
+      },
+      {
+        "path": "scripts/authoring/presentation_studio.py",
+        "replaced_by": "Presentation and Screens views"
+      },
+      {
+        "path": "scripts/authoring/sound_studio.py",
+        "replaced_by": "Music & Sounds view"
+      }
+    ]
+  },
+  "profiles": [
+    {
+      "id": "usa",
+      "status": "supported",
+      "source": "complete",
+      "identity": "byte-identical",
+      "runtime": "direct",
+      "artifact": "usa_nes_rom"
+    },
+    {
+      "id": "europe",
+      "status": "supported",
+      "source": "complete",
+      "identity": "byte-identical",
+      "runtime": "direct",
+      "artifact": "europe_nes_rom"
+    },
+    {
+      "id": "japan",
+      "status": "planned",
+      "excluded_scope": "japanese_release_profile"
+    }
+  ],
+  "runtime_coverage": [
+    {
+      "profile_id": "usa",
+      "mode": "direct",
+      "manifest": "scenarios/runtime_scenarios.json",
+      "scenarios": [
+        "cold-boot-idle",
+        "start-room-1",
+        "room-1-walk-right",
+        "room-1-pause-resume",
+        "room-1-life-loss-reload",
+        "room-1-cast-block",
+        "room-1-cast-fireball",
+        "audio-channel-priority",
+        "attract-demo-scheduler",
+        "room-1-door-transition"
+      ]
+    },
+    {
+      "profile_id": "europe",
+      "mode": "direct",
+      "manifest": "scenarios/runtime_scenarios_europe.json",
+      "scenarios": [
+        "cold-boot-idle",
+        "start-room-1",
+        "room-1-pause-resume",
+        "audio-channel-priority"
+      ]
+    }
+  ],
+  "revision_manifest": "config/revision_profiles.json",
+  "toolchain": {
+    "manifest": "config/toolchain.json",
+    "components": [
+      "assembler",
+      "linker",
+      "runtime_emulator"
+    ],
+    "host": "windows-x64-powershell",
+    "private_profile_inputs": [
+      "usa",
+      "europe"
+    ],
+    "private_input_owner": "config/revision_profiles.json"
+  },
+  "artifacts": [
+    {
+      "id": "usa_nes_rom",
+      "profile": "usa",
+      "build_target": "verify-revision",
+      "size": 65552,
+      "sha1": "18102689fd35c7d531a5e6241b06b748accab2f6",
+      "sha256": "3d9f3bee199a3fbc04bab38e1d9d5cdeae1c6691dcca463a13c25e42f77bb03d",
+      "regions": {
+        "header": {
+          "size": 16,
+          "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690",
+          "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"
+        },
+        "prg": {
+          "size": 32768,
+          "sha1": "4e8c6c33897e6c0dc6297f67e8f5699b1b5ca4e6",
+          "sha256": "d86d94cd13a7199b9a58cfa0e372ea05ffeabee8ce301639e5d9f52ca860d6b7"
+        },
+        "chr": {
+          "size": 32768,
+          "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
+          "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+        },
+        "payload": {
+          "size": 65536,
+          "sha1": "222e19511d64872e0b47a47d77ecc9bb3ebc52dc",
+          "sha256": "842478f0d9f01c6c547672a7e4dc4a33ed2c900f92e4b318f4d5941ba548b355"
+        }
+      }
+    },
+    {
+      "id": "europe_nes_rom",
+      "profile": "europe",
+      "build_target": "verify-revision",
+      "size": 65552,
+      "sha1": "89ab8f53154c9dcddafe46c16b31df7e00fe2538",
+      "sha256": "e8dc7ad587133869eaf6101018be676e9c14c3b97b988d2e96f7e398b5c33acb",
+      "regions": {
+        "header": {
+          "size": 16,
+          "sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690",
+          "sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282"
+        },
+        "prg": {
+          "size": 32768,
+          "sha1": "80b6514e06f480bfc8ba18a70645516a96aed5c1",
+          "sha256": "3652cf993e369165774e2329062a90ee0167372d77c4dd3d81dc2bc874b5a051"
+        },
+        "chr": {
+          "size": 32768,
+          "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
+          "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+        },
+        "payload": {
+          "size": 65536,
+          "sha1": "d849dee00fcebfbb17f207089ef36f224a20b023",
+          "sha256": "3ce8d763c2919911e769b71ff79e0551a56f0b6fd9c8eb0d16b1601a01574415"
+        }
+      }
+    }
+  ],
+  "layout_deviations": [],
+  "licensing": [
+    {
+      "component": "project_tools_and_documentation",
+      "category": "project_authored",
+      "origin": "repository contributors",
+      "license_id_or_status": "license_not_granted",
+      "redistribution": "no project-wide grant declared",
+      "notes": "Does not grant rights to game material."
+    },
+    {
+      "component": "regional_reconstructed_game_source",
+      "category": "reconstructed_game_source",
+      "origin": "Solomon's Key USA and European binaries",
+      "license_id_or_status": "license_not_granted",
+      "redistribution": "copyrighted game material",
+      "notes": "Source reconstruction and regional comparison do not grant a license."
+    },
+    {
+      "component": "research_references",
+      "category": "imported_material",
+      "origin": "ninespaces disassembly, kaimitai/skchain, and the levelBlocks.csv research export",
+      "license_id_or_status": "external_unbundled",
+      "redistribution": "not distributed by this project",
+      "notes": "Ignored references inform research; accepted claims are independently verified against private ROMs."
+    },
+    {
+      "component": "bundled_cc65_tools",
+      "category": "bundled_external_tools",
+      "origin": "cc65 revision 0fca835",
+      "license_id_or_status": "Zlib",
+      "redistribution": "permitted with included notice",
+      "notes": "See bin/cc65-LICENSE.txt."
+    },
+    {
+      "component": "fceux_automation",
+      "category": "external_tool",
+      "origin": "oranguthang/fceux_automation ec507d86c57acd8979547bc35e9627fb199fac9a",
+      "license_id_or_status": "external_unbundled",
+      "redistribution": "not distributed by this project",
+      "notes": "The external checkout's license governs it."
+    },
+    {
+      "component": "regional_reference_roms_and_extracted_chr",
+      "category": "private_input",
+      "origin": "legally obtained user copies",
+      "license_id_or_status": "private_user_supplied",
+      "redistribution": "prohibited by project policy",
+      "notes": "Ignored; filenames and hashes are owned by the revision profile manifest."
+    }
+  ],
+  "provenance": {
+    "private_inputs_tracked": false,
+    "generated_outputs_tracked": false,
+    "history_policy": {
+      "current_history_status": "tag-ready",
+      "predecessor_commit": "de0b7c764406f5ec2c6c887c0c19272d53f8cae9",
+      "development_branch": "rewrite/source-2.1-modernization",
+      "reason": "The complete compatible-minor gate passed for the pinned non-empty commit interval after the immutable published Source 2.0 tag."
+    }
+  },
+  "aggregate_gates": {
+    "development": [
+      "make source-3-check"
+    ],
+    "pre_tag": [
+      "make source-3-check"
+    ],
+    "post_tag": [
+      "make source-3-audit"
+    ]
+  },
+  "functional_gate": "make source-2-minor-check"
+}

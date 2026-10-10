@@ -642,7 +642,7 @@ def validate_documentation_corpus(root: Path, policy: dict[str, object]) -> None
 
 def validate_tool_layout(root: Path) -> None:
     """Require mirrored responsibility packages around the stable script runner."""
-    categories = {"authoring", "build", "runtime", "validation"}
+    categories = {"build", "runtime", "validation"}
     script_root = root / "scripts"
     test_root = root / "tests"
     flat_tools = sorted(
@@ -666,6 +666,7 @@ def validate_config_layout(root: Path) -> None:
         "source_reconstruction_1_0.json",
         "source_reconstruction_2_0.json",
         "source_reconstruction_2_1.json",
+        "source_reconstruction_3_0.json",
         "toolchain.json",
     }
     config_root = root / "config"
@@ -676,7 +677,7 @@ def validate_config_layout(root: Path) -> None:
     )
     if unexpected:
         raise ProjectError("uncategorized config files: " + ", ".join(unexpected))
-    for owner in ("authoring", "debugger", "reconstruction", "validation"):
+    for owner in ("debugger", "reconstruction", "validation"):
         if not (config_root / owner).is_dir():
             raise ProjectError(f"missing config owner directory: config/{owner}")
 
@@ -705,7 +706,7 @@ def command_lint(_args: argparse.Namespace) -> None:
         "assets/manifest.json",
         "config/reconstruction/reconstruction.json",
         "config/reconstruction/prg_layout.json",
-        "config/authoring/title_data.json",
+        "config/validation/title_data.json",
         "config/validation/enemy_ai_handlers.json",
         "config/validation/item_handlers.json",
         "config/validation/enemy_record_pointers.json",
@@ -736,7 +737,7 @@ def command_lint(_args: argparse.Namespace) -> None:
         "scripts/validation/item_handler_data.py",
         "scripts/validation/enemy_pointer_data.py",
         "scripts/validation/scheduler_data.py",
-        "scripts/authoring/title_data.py",
+        "scripts/validation/title_data.py",
         "scripts/build/verify_rom.py",
         "src/main.asm",
         "src/system/boot_and_frame.asm",
@@ -791,7 +792,7 @@ def command_lint(_args: argparse.Namespace) -> None:
         "config/debugger/breakpoints.json",
         "config/reconstruction/reconstruction.json",
         "config/reconstruction/prg_layout.json",
-        "config/authoring/title_data.json",
+        "config/validation/title_data.json",
         "config/validation/enemy_ai_handlers.json",
         "config/validation/item_handlers.json",
         "config/validation/enemy_record_pointers.json",

@@ -40,17 +40,11 @@ TARGET_GROUPS = (
         ),
     ),
     (
-        "Content authoring",
+        "Retrolarium",
         (
-            ("level-studio", "open the visual room editor"),
-            ("sound-studio", "open the music and sound-effect studio"),
-            ("graphics-studio", "open the CHR graphics editor"),
-            ("presentation-studio", "open the title and presentation editor"),
-            ("roundtrip-level-profiles", "round-trip levels for both profiles"),
-            ("roundtrip-audio-profiles", "round-trip audio for both profiles"),
-            ("roundtrip-graphics-profiles", "round-trip graphics for both profiles"),
-            ("roundtrip-presentation-profiles", "round-trip presentation data"),
-            ("editor-ui-smoke-profiles", "exercise public actions in all editors"),
+            ("studio-check", "open and rebuild every solomons_key.rlj revision with the kit"),
+            ("source-3-audit", "studio-check plus the Source 3.0 manifest against the kit"),
+            ("source-3-check", "the Source 2.1 gate, then source-3-audit"),
         ),
     ),
     (
@@ -61,7 +55,6 @@ TARGET_GROUPS = (
             ("trace-runtime", "capture the USA runtime scenarios"),
             ("validate-runtime", "validate captured USA runtime evidence"),
             ("trace-revision-runtimes", "capture both profile scenario sets"),
-            ("smoke-level-playtests", "launch both headless level playtests"),
         ),
     ),
     (

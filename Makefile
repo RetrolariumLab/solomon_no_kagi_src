@@ -13,32 +13,9 @@ SOURCE_2_MINOR_MANIFEST := config/source_reconstruction_2_1.json
 SOURCE_2_MINOR_TOOL := validation.source_2_minor_release
 REVISION_MANIFEST := config/revision_profiles.json
 REVISION_TOOL := build.revision_profiles
-LEVEL_EDITOR := authoring.level_editor
-LEVEL_STUDIO := authoring.level_studio
-AUDIO_EDITOR := authoring.audio_editor
-SOUND_STUDIO := authoring.sound_studio
-AUDIO_PREVIEW_TOOL := authoring.audio_preview
-GRAPHICS_EDITOR := authoring.graphics_editor
-GRAPHICS_STUDIO := authoring.graphics_studio
-PRESENTATION_EDITOR := authoring.presentation_editor
-PRESENTATION_STUDIO := authoring.presentation_studio
 PROFILE ?= usa
 LEFT_PROFILE ?= usa
 RIGHT_PROFILE ?= europe
-LEVEL_DOCUMENT ?= content/workspace/$(PROFILE)/levels.json
-LEVEL_ROM ?= build/content/$(PROFILE)/solomons_key_levels.nes
-LEVEL_PLAYTEST_ROOM ?= 1
-LEVEL_BLOCK_REFERENCE ?= references/levelBlocks.csv
-AUDIO_DOCUMENT ?= content/workspace/$(PROFILE)/audio.json
-AUDIO_ROM ?= build/content/$(PROFILE)/solomons_key_audio.nes
-AUDIO_EFFECT ?= 1
-AUDIO_PREVIEW_SECONDS ?= 12
-AUDIO_CHANNELS ?= all
-AUDIO_PREVIEW ?= build/content/$(PROFILE)/effect$(AUDIO_EFFECT)-preview.wav
-GRAPHICS_DOCUMENT ?= content/workspace/$(PROFILE)/graphics.json
-GRAPHICS_ROM ?= build/content/$(PROFILE)/solomons_key_graphics.nes
-PRESENTATION_DOCUMENT ?= content/workspace/$(PROFILE)/presentation.json
-PRESENTATION_ROM ?= build/content/$(PROFILE)/solomons_key_presentation.nes
 REVISION_BUILD_DIR = build/revisions/$(PROFILE)
 REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
 REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
@@ -96,7 +73,7 @@ SOURCE_FILES := src/main.asm \
 	src/data/rooms/metadata.asm src/data/rooms/blocks.asm \
 	src/data/rooms/enemies.asm src/data/rooms/items.asm \
 	src/memory/hardware.inc src/memory/ram.inc
-MAKE_FRAGMENTS := mk/authoring.mk mk/profiles.mk mk/runtime.mk mk/validation.mk
+MAKE_FRAGMENTS := mk/profiles.mk mk/runtime.mk mk/validation.mk
 ROMLESS_TEST_MODULES := \
 	tests.build.test_atomic_io \
 	tests.build.test_make_help \
@@ -104,13 +81,13 @@ ROMLESS_TEST_MODULES := \
 	tests.build.test_script_runner \
 	tests.build.test_verify_rom \
 	tests.build.test_revision_profiles \
-	tests.authoring.test_room_data \
 	tests.runtime.test_runtime_scenarios \
 	tests.validation.test_asm_style \
 	tests.validation.test_debug_symbols \
 	tests.validation.test_prg_layout \
 	tests.validation.test_reconstruction_status \
 	tests.validation.test_release_history \
+	tests.validation.test_room_data \
 	tests.validation.test_public_text \
 	tests.validation.test_public_command_smoke \
 	tests.validation.test_source_2_minor_release
@@ -151,19 +128,7 @@ ROMLESS_TEST_MODULES := \
 	list-revisions identify-revision verify-revision-reference \
 	verify-revision-references split-revision-assets split-all \
 	revision-room-report revision-room-audit compare-revision-rooms \
-	export-levels validate-levels build-levels roundtrip-levels \
-	roundtrip-level-profiles level-summary level-studio check-level-studio \
-	check-level-block-reference smoke-level-playtest smoke-level-playtests \
-	editor-ui-smoke-profile editor-ui-smoke-profiles \
-	export-audio validate-audio build-audio roundtrip-audio \
-	roundtrip-audio-profiles audio-summary preview-audio sound-studio \
-	check-sound-studio \
-	export-graphics validate-graphics build-graphics roundtrip-graphics \
-	roundtrip-graphics-profiles graphics-summary graphics-studio \
-	check-graphics-studio \
-	export-presentation validate-presentation build-presentation \
-	roundtrip-presentation roundtrip-presentation-profiles \
-	presentation-summary presentation-studio check-presentation-studio \
+	studio-check source-3-audit source-3-check \
 	build-revision verify-revision-source verify-revision-sources \
 	verify-revision verify-revisions revision-symbols validate-revision-symbols \
 	validate-revision-symbol-profiles trace-revision-runtime \

@@ -457,3 +457,14 @@ public launcher and help surface, disposable public-command evidence, complete
 editor workstation actions, structured release evidence, and atomic
 output publication. Final release status is set only after the aggregate gate
 passes from a clean build and the complete delta is pinned.
+
+## Source Reconstruction 3.0: editing in Retrolarium
+
+Retrolarium Studio edits every revision from `solomons_key.rlj`, the special
+rooms' seals, prizes and bonus spots included, as the 2.x studios did. The
+repository's level, audio, graphics and presentation editors, their
+workspace documents and their workstation smokes are retired; the room, title
+and audio codecs the audits use move to `scripts/validation/`. The 2.0 and 2.1
+manifest audits run at their tags, and `make studio-check` proves every
+revision with the kit. The 3.0 manifest pins the kit once Retrolarium publishes
+its tags; see [editing in Retrolarium](retrolarium.md).

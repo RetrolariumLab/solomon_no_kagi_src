@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from scripts.authoring.room_data import RoomDataError, extract_prg
+from scripts.validation.room_data import RoomDataError, extract_prg
 from scripts.validation.enemy_ai_data import decode_handler_table, parse_number, prg_offset
 
 
