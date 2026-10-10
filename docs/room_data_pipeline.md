@@ -245,16 +245,45 @@ The safe handler-backed identities are:
 | `$18` | bell | queue a fairy |
 | `$19` | explosion jar | retire all eligible enemies |
 | `$1A` | blue key | intentionally no effect |
-| `$1B` | blue jewels / blue Tzo | 200 points and fireball lifetime |
-| `$1C-$1F` | four constellation shrines | set the constellation flag |
+| `$1B` | blue jewel (blue Tzo) on a stand | 200 points and fireball lifetime |
+| `$1C-$1F` | zodiac panels: fire, earth, air, water | set the constellation flag |
 | `$20` | Solomon's Seal | record the room's Seal |
 | `$21` | Egyptian head | record the room-selected Solomon page |
-| `$22` | warp item | grant the Golden Wings room skip |
+| `$22` | Golden Wings | grant the Golden Wings room skip |
 
-The visual names come from the checked-in `skchain` item catalog. The gameplay
-column comes from this reconstruction's handler table and handler bodies;
-where the two vocabularies differ, source symbols use the proven gameplay
-effect.
+The visual names come from the `skchain` item catalog, corrected where the
+project owner's object review saw otherwise. The four zodiac panels carry the
+signs of one element each: Aries, Leo and Sagittarius (fire); Taurus, Virgo and
+Capricorn (earth); Gemini, Libra and Aquarius (air); Cancer, Scorpio and Pisces
+(water). The gameplay column comes from this reconstruction's handler table and
+handler bodies; where the two vocabularies differ, source symbols use the proven
+gameplay effect.
+
+Outside the handler table, `$04` is the Devil's Emblem: it cannot be collected
+and only stops Dana from making a block on its cell. The score and life rewards
+look like this:
+
+| Identity | Visual name | Reward |
+| ---: | --- | --- |
+| `$25` | silver coin | score digit 0, amount 1 |
+| `$26` | two silver coins | score digit 0, amount 2 |
+| `$27` | framed blue jewel | score digit 0, amount 5 |
+| `$28` | gold coin | score digit 1, amount 1 |
+| `$29` | two gold coins | score digit 1, amount 2 |
+| `$2A` | framed gold jewel | score digit 1, amount 5 |
+| `$2B` | gold star coin | score digit 2, amount 1 |
+| `$2C` | two gold star coins | score digit 2, amount 2 |
+| `$2D` | gold-framed gold jewel | score digit 2, amount 5 |
+| `$2E` | golden crane | score digit 3, amount 1 |
+| `$2F` | Mighty Bomb Jack medal | score digit 3, amount 2 |
+| `$30` | sphinx | score digit 3, amount 5 |
+| `$31` | pharaoh head | score digit 4, amount 1 |
+| `$32` | magic lamp | extra life and score |
+| `$33` | extra life | extra life |
+
+The `$2F` medal is Tecmo's own cameo: Mighty Bomb Jack also appears in person
+as enemy type `$18` (`MightyBombJackObjectType`), whose touch turns every
+active enemy into a fairy.
 
 ### Block-magic and head-hit thresholds
 

@@ -2,18 +2,18 @@
 
 .segment "PRG_MID_ENEMY_AI"
 
-RunType10To13EnemyAi:
+RunPanelMonsterEnemyAi:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type10To13ActionHandlers:
-    .addr AllocateType10To13LinkedEnemy, UpdateType10To13Action
+PanelMonsterActionHandlers:
+    .addr AllocatePanelMonsterLinkedEnemy, UpdatePanelMonsterAction
 
-UpdateType10To13Action:
+UpdatePanelMonsterAction:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$10
-    BCC FinishType10To13Update
+    BCC FinishPanelMonsterUpdate
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     AND #$03
@@ -27,16 +27,16 @@ UpdateType10To13Action:
     LDA #$00
     STA (EnemyAiPointer),Y
 
-FinishType10To13Update:
+FinishPanelMonsterUpdate:
     RTS
 
-AllocateType10To13LinkedEnemy:
+AllocatePanelMonsterLinkedEnemy:
     LDY #$02
     LDA (EnemyAiPointer),Y
     CMP #$C0
-    BCC FinishType10To13Allocation
+    BCC FinishPanelMonsterAllocation
     JSR FindFreeEnemySlotIndex
-    BCC FinishType10To13Allocation
+    BCC FinishPanelMonsterAllocation
     TXA
     LDY #EnemyAiFirstLinkedSlotOffset
     STA (EnemyAiPointer),Y
@@ -54,93 +54,93 @@ AllocateType10To13LinkedEnemy:
     DEY
     STA (EnemyAiPointer),Y
 
-FinishType10To13Allocation:
+FinishPanelMonsterAllocation:
     RTS
 
-RunType6CTo6FEnemyAi:
+RunFlameEnemyAi:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type6CTo6FActionHandlers:
-    .addr UpdateType6CTo6FPhase
-    .addr CheckType6CTo6FDanaRange22
+FlameActionHandlers:
+    .addr UpdateFlamePhase
+    .addr CheckFlameDanaRange22
     .addr RunEnemyActionA55C, RunEnemyActionA55C
-    .addr CheckType6CTo6FDanaRange06
-    .addr ResetType6CTo6FDirection
-    .addr CheckType6CTo6FDanaRange16
+    .addr CheckFlameDanaRange06
+    .addr ResetFlameDirection
+    .addr CheckFlameDanaRange16
 
-CheckType6CTo6FDanaRange16:
+CheckFlameDanaRange16:
     LDX #$16
     JMP CheckDanaEnemyProximityThreshold
 
-UpdateType6CTo6FPhase:
+UpdateFlamePhase:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$30
-    BCS DeactivateType6CTo6FEnemy
+    BCS DeactivateFlameEnemy
     CMP #$20
-    BCS FinishType6CTo6FPhase
+    BCS FinishFlamePhase
     LDX #$0A
     JSR CheckDanaEnemyProximityThreshold
 
-FinishType6CTo6FPhase:
+FinishFlamePhase:
     RTS
 
-DeactivateType6CTo6FEnemy:
+DeactivateFlameEnemy:
     JMP DeactivateCurrentEnemy
 
-CheckType6CTo6FDanaRange22:
+CheckFlameDanaRange22:
     LDY #ObjectTypeOffset
     LDA (EnemyObjectPointer),Y
     LSR A
-    BCS SelectType6CTo6FAction14
+    BCS SelectFlameAction14
     DEY
     LDA (EnemyAiPointer),Y
     TAX
     AND #$08
-    BEQ SetType6CTo6FDirectionBit
+    BEQ SetFlameDirectionBit
     INY
     LDA #$00
     STA (EnemyAiPointer),Y
-    BEQ StoreType6CTo6FAction
+    BEQ StoreFlameAction
 
-SetType6CTo6FDirectionBit:
+SetFlameDirectionBit:
     TXA
     ORA #$08
     STA (EnemyAiPointer),Y
 
-SelectType6CTo6FAction14:
+SelectFlameAction14:
     LDA #$14
 
-StoreType6CTo6FAction:
+StoreFlameAction:
     LDY #ObjectActionOffset
     STA (EnemyObjectPointer),Y
     RTS
 
-CheckType6CTo6FDanaRange06:
+CheckFlameDanaRange06:
     LDX #$06
     JSR CheckDanaEnemyProximityThreshold
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$D2
-    BCS SelectDelayedType6CTo6FAction14
+    BCS SelectDelayedFlameAction14
     RTS
 
-SelectDelayedType6CTo6FAction14:
+SelectDelayedFlameAction14:
     LDA #$14
-    BPL StoreType6CTo6FAction
+    BPL StoreFlameAction
 
-ResetType6CTo6FDirection:
+ResetFlameDirection:
     LDX #$10
     JSR CheckDanaEnemyProximityThreshold
     LDY #EnemyAiFlagsOffset
     LDA (EnemyObjectPointer),Y
     TAX
     AND #$08
-    BNE ClearType6CTo6FDirectionBit
+    BNE ClearFlameDirectionBit
     RTS
 
-ClearType6CTo6FDirectionBit:
+ClearFlameDirectionBit:
     TXA
     AND #$F7
     STA (EnemyObjectPointer),Y
@@ -148,7 +148,7 @@ ClearType6CTo6FDirectionBit:
     INY
     STA (EnemyAiPointer),Y
     LDA #$10
-    BPL StoreType6CTo6FAction
+    BPL StoreFlameAction
 
 CheckDanaEnemyProximityThreshold:
     LDA DanaObject + ObjectActionOffset
@@ -178,20 +178,20 @@ CheckDanaHorizontalEnemyOverlap:
     CMP #$0A
     RTS
 
-RunType54To5BEnemyAi:
+RunDragonEnemyAi:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type54To5BActionHandlers:
+DragonActionHandlers:
     .addr RunEnemyActionA55C
     .addr UpdateLinkedEnemyDirectionState
-    .addr SelectType54To5BActionByDirection
+    .addr SelectDragonActionByDirection
     .addr UpdatePairedEnemyState
     .addr RunEnemyActionA55C
-    .addr UpdateType54To5BLinkedPair
+    .addr UpdateDragonLinkedPair
     .addr ClearCurrentEnemyLinkedSlots
 
-SelectType54To5BActionByDirection:
+SelectDragonActionByDirection:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     LSR A
@@ -200,21 +200,21 @@ SelectType54To5BActionByDirection:
     STA (EnemyObjectPointer),Y
     RTS
 
-UpdateType54To5BLinkedPair:
+UpdateDragonLinkedPair:
     JSR CompareEnemyMotionThresholds
-    BCS ProbeType54To5BForwardTile
+    BCS ProbeDragonForwardTile
     JSR SelectEnemyFacingAction
-    BNE AllocateType54To5BLinkedPair
+    BNE AllocateDragonLinkedPair
 
-ProbeType54To5BForwardTile:
+ProbeDragonForwardTile:
     JSR CheckEnemyForwardCollisionBit
-    BNE UpdateType54To5BBlockedDirection
+    BNE UpdateDragonBlockedDirection
     LDA #$02
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     ROR A
     ROR A
-    BCS CheckType54To5BActionPhase
+    BCS CheckDragonActionPhase
     SEC
     ROL A
     ROL A
@@ -223,44 +223,44 @@ ProbeType54To5BForwardTile:
     LDY #EnemyAiPhaseOffset
     STA (EnemyAiPointer),Y
 
-FinishType54To5BUpdate:
+FinishDragonUpdate:
     RTS
 
-CheckType54To5BActionPhase:
+CheckDragonActionPhase:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$14
-    BCC FinishType54To5BUpdate
+    BCC FinishDragonUpdate
     LDY #ObjectXMotionOffset
     TYA
     STA (EnemyObjectPointer),Y
-    BPL ReverseType54To5BDirection
+    BPL ReverseDragonDirection
 
-UpdateType54To5BBlockedDirection:
+UpdateDragonBlockedDirection:
     LDY #ObjectXMotionOffset
     LDA (EnemyObjectPointer),Y
-    BNE FinishType54To5BBlockedDirection
+    BNE FinishDragonBlockedDirection
     JSR CalculateEnemyForwardMapCoordinates
     JSR ConvertPixelCoordinatesToMapIndex
     TAX
     LDA RoomMap,X
-    BPL FinishType54To5BBlockedDirection
+    BPL FinishDragonBlockedDirection
     CMP #$F8
-    BCC AllocateType54To5BLinkedPair
+    BCC AllocateDragonLinkedPair
 
-ReverseType54To5BDirection:
+ReverseDragonDirection:
     LDY #ObjectActionOffset
     LDA #EnemyDirectionBit
     EOR (EnemyObjectPointer),Y
     AND #EnemyActionLinkMask
     STA (EnemyObjectPointer),Y
 
-FinishType54To5BBlockedDirection:
+FinishDragonBlockedDirection:
     RTS
 
-AllocateType54To5BLinkedPair:
+AllocateDragonLinkedPair:
     JSR FindFreeEnemySlotIndex
-    BCC FinishType54To5BPairAllocation
+    BCC FinishDragonPairAllocation
     LDY #EnemyAiFirstLinkedSlotOffset
     TXA
     STA (EnemyAiPointer),Y
@@ -273,12 +273,12 @@ AllocateType54To5BLinkedPair:
     STA TempPointer00 + 1
     JSR FindFreeEnemySlotIndex
     LDY #EnemyAiFlagsOffset
-    BCS ActivateType54To5BLinkedPair
+    BCS ActivateDragonLinkedPair
     TYA
     STA (TempPointer00),Y
-    BCC FinishType54To5BPairAllocation
+    BCC FinishDragonPairAllocation
 
-ActivateType54To5BLinkedPair:
+ActivateDragonLinkedPair:
     LDA #EnemyAiActiveState
     STA (TempPointer04),Y
     LDA (EnemyAiPointer),Y
@@ -296,21 +296,21 @@ ActivateType54To5BLinkedPair:
     TXA
     STA (EnemyAiPointer),Y
 
-FinishType54To5BPairAllocation:
+FinishDragonPairAllocation:
     RTS
 
-RunType08To0BEnemyAi:
+RunFairyEnemyAi:
     LDA $87
     LSR A
-    BCS DispatchType08To0BAction
+    BCS DispatchFairyAction
     JSR CheckEnemyAiDeltaRange
-    BCS DispatchType08To0BAction
+    BCS DispatchFairyAction
     JSR CheckDanaHorizontalEnemyOverlap
-    BCS DispatchType08To0BAction
+    BCS DispatchFairyAction
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     CMP #$0C
-    BEQ DispatchType08To0BAction
+    BEQ DispatchFairyAction
     LDA #$DF
     LDY #ObjectStateOffset
     AND (EnemyObjectPointer),Y
@@ -322,22 +322,22 @@ RunType08To0BEnemyAi:
     LDA #$0C
     STA (EnemyObjectPointer),Y
 
-DispatchType08To0BAction:
+DispatchFairyAction:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type08To0BActionHandlers:
-    .addr UpdateType08To0BPhaseAction
-    .addr UpdateType08To0BHorizontalOrientation
-    .addr UpdateType08To0BVerticalOrientation
-    .addr CollectType08To0BFairy
+FairyActionHandlers:
+    .addr UpdateFairyPhaseAction
+    .addr UpdateFairyHorizontalOrientation
+    .addr UpdateFairyVerticalOrientation
+    .addr CollectFairyFairy
     .addr RunEnemyActionA55C, RunEnemyActionA55C
-    .addr UpdateType08To0BMotion
+    .addr UpdateFairyMotion
 
-CollectType08To0BFairy:
+CollectFairyFairy:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
-    BNE CheckType08To0BFairyLifetime
+    BNE CheckFairyFairyLifetime
     TYA
     STA (EnemyAiPointer),Y
     DEY
@@ -350,7 +350,7 @@ CollectType08To0BFairy:
     INX
     LDA #EnemyItemInteractionThread
     CPX #$0A
-    BCC StoreType08To0BFairyCount
+    BCC StoreFairyFairyCount
     INC GdvFactor2
     JSR LoadCurrentEnemyPosition
     JSR SpawnAuxiliaryEffectAtCoordinates
@@ -358,23 +358,23 @@ CollectType08To0BFairy:
     LDX #$00
     LDA #ExtraLifeEnemyInteractionThread
 
-StoreType08To0BFairyCount:
+StoreFairyFairyCount:
     STX FairiesCollected
     JSR StartThread
     LDY #EnemyAiPhaseOffset
     LDA (EnemyObjectPointer),Y
     CMP #$1C
-    BNE StartType08To0BMapInteraction
+    BNE StartFairyMapInteraction
 
-FinishType08To0BFairyUpdate:
+FinishFairyFairyUpdate:
     RTS
 
-CheckType08To0BFairyLifetime:
+CheckFairyFairyLifetime:
     CMP #$12
-    BCC FinishType08To0BFairyUpdate
+    BCC FinishFairyFairyUpdate
     JMP DeactivateCurrentEnemy
 
-StartType08To0BMapInteraction:
+StartFairyMapInteraction:
     DEY
     STY RoomItemPointer + 1
     LDA #$04
@@ -393,24 +393,24 @@ StartType08To0BMapInteraction:
     LDA #$32
     JSR StartThread
 
-UpdateType08To0BMotion:
+UpdateFairyMotion:
     LDY #ObjectXMotionOffset
     LDA (EnemyObjectPointer),Y
     ASL A
     ASL A
     LDA #$18
-    BCC StoreType08To0BAction
+    BCC StoreFairyAction
     ADC #$00
 
-StoreType08To0BAction:
+StoreFairyAction:
     LDY #ObjectActionOffset
     STA (EnemyObjectPointer),Y
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
-    BNE ApplyType08To0BMotionCorrection
+    BNE ApplyFairyMotionCorrection
     RTS
 
-ApplyType08To0BMotionCorrection:
+ApplyFairyMotionCorrection:
     LDA #$00
     STA (EnemyAiPointer),Y
     LDA (EnemyObjectPointer),Y
@@ -427,34 +427,34 @@ ApplyType08To0BMotionCorrection:
     STA TempPointer02
     LDX TempPointer00
     LDA TempPointer00 + 1
-    BPL SelectType08To0BVerticalAdjustment
+    BPL SelectFairyVerticalAdjustment
     INX
 
-SelectType08To0BVerticalAdjustment:
+SelectFairyVerticalAdjustment:
     LDA TempPointer02
     CLC
-    ADC Type08To0BVerticalAdjustments,X
+    ADC FairyVerticalAdjustments,X
     LDX TempPointer00
     STA TempPointer02
     LDY #EnemyAiVerticalDeltaOffset
     EOR (EnemyAiPointer),Y
-    BPL NormalizeType08To0BVerticalDelta
+    BPL NormalizeFairyVerticalDelta
     INX
 
-NormalizeType08To0BVerticalDelta:
+NormalizeFairyVerticalDelta:
     LDA TempPointer02
-    BPL CompareType08To0BVerticalLimit
+    BPL CompareFairyVerticalLimit
     EOR #$FF
 
-CompareType08To0BVerticalLimit:
-    CMP Type08To0BVerticalLimits,X
-    BCC StoreType08To0BVerticalMotion
+CompareFairyVerticalLimit:
+    CMP FairyVerticalLimits,X
+    BCC StoreFairyVerticalMotion
     ASL TempPointer00 + 1
     LDA TempPointer02
     ASL A
     ROR TempPointer00 + 1
 
-StoreType08To0BVerticalMotion:
+StoreFairyVerticalMotion:
     LDY #ObjectYMotionOffset
     LDA TempPointer02
     LSR A
@@ -466,28 +466,28 @@ StoreType08To0BVerticalMotion:
     LDA TempPointer00 + 1
     LDX TempPointer00
     ASL A
-    BPL SelectType08To0BHorizontalAdjustment
+    BPL SelectFairyHorizontalAdjustment
     INX
 
-SelectType08To0BHorizontalAdjustment:
+SelectFairyHorizontalAdjustment:
     CLC
     LDA TempPointer02
-    ADC Type08To0BHorizontalAdjustments,X
+    ADC FairyHorizontalAdjustments,X
     STA TempPointer02
     LDX TempPointer00
     LDY #EnemyAiHorizontalDeltaOffset
     EOR (EnemyAiPointer),Y
-    BPL NormalizeType08To0BHorizontalDelta
+    BPL NormalizeFairyHorizontalDelta
     INX
 
-NormalizeType08To0BHorizontalDelta:
+NormalizeFairyHorizontalDelta:
     LDA TempPointer02
-    BPL CompareType08To0BHorizontalLimit
+    BPL CompareFairyHorizontalLimit
     EOR #$FF
 
-CompareType08To0BHorizontalLimit:
-    CMP Type08To0BHorizontalLimits,X
-    BCC StoreType08To0BHorizontalMotion
+CompareFairyHorizontalLimit:
+    CMP FairyHorizontalLimits,X
+    BCC StoreFairyHorizontalMotion
     LDA #$80
     EOR TempPointer02
     ASL TempPointer00 + 1
@@ -495,7 +495,7 @@ CompareType08To0BHorizontalLimit:
     ROR A
     STA TempPointer00 + 1
 
-StoreType08To0BHorizontalMotion:
+StoreFairyHorizontalMotion:
     LDY #ObjectXMotionOffset
     LDA TempPointer02
     LSR A
@@ -505,14 +505,14 @@ StoreType08To0BHorizontalMotion:
     STA (EnemyAiPointer),Y
     RTS
 
-Type08To0BVerticalAdjustments:
+FairyVerticalAdjustments:
     .byte $FC, $04, $FA, $06
 
-Type08To0BVerticalLimits:
+FairyVerticalLimits:
     .byte $40, $20, $60, $30
 
-Type08To0BHorizontalAdjustments:
+FairyHorizontalAdjustments:
     .byte $04, $FC, $06, $FA
 
-Type08To0BHorizontalLimits:
+FairyHorizontalLimits:
     .byte $40, $20, $60, $30

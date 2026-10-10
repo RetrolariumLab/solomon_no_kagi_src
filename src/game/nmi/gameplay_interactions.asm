@@ -248,24 +248,24 @@ FireballCollisionHandlerCount = 16
 
 ; Mask $0F reuses the empty-path handler, matching the pathfinding dispatcher
 FireballCollisionHandlerLowBytes:
-    .byte <HandleType14To1BPathMask00, <HandleType14To1BPathMask01
-    .byte <HandleType14To1BPathMask02, <HandleType14To1BPathMask03
-    .byte <HandleType14To1BPathMask04, <HandleType14To1BPathMask05
-    .byte <HandleType14To1BPathMask06, <HandleType14To1BPathMask07
-    .byte <HandleType14To1BPathMask08, <HandleType14To1BPathMask09
-    .byte <HandleType14To1BPathMask0A, <HandleType14To1BPathMask0B
-    .byte <HandleType14To1BPathMask0C, <HandleType14To1BPathMask0D
-    .byte <HandleType14To1BPathMask0E, <HandleType14To1BPathMask00
+    .byte <HandleSparkBallPathMask00, <HandleSparkBallPathMask01
+    .byte <HandleSparkBallPathMask02, <HandleSparkBallPathMask03
+    .byte <HandleSparkBallPathMask04, <HandleSparkBallPathMask05
+    .byte <HandleSparkBallPathMask06, <HandleSparkBallPathMask07
+    .byte <HandleSparkBallPathMask08, <HandleSparkBallPathMask09
+    .byte <HandleSparkBallPathMask0A, <HandleSparkBallPathMask0B
+    .byte <HandleSparkBallPathMask0C, <HandleSparkBallPathMask0D
+    .byte <HandleSparkBallPathMask0E, <HandleSparkBallPathMask00
 
 FireballCollisionHandlerHighBytes:
-    .byte >HandleType14To1BPathMask00, >HandleType14To1BPathMask01
-    .byte >HandleType14To1BPathMask02, >HandleType14To1BPathMask03
-    .byte >HandleType14To1BPathMask04, >HandleType14To1BPathMask05
-    .byte >HandleType14To1BPathMask06, >HandleType14To1BPathMask07
-    .byte >HandleType14To1BPathMask08, >HandleType14To1BPathMask09
-    .byte >HandleType14To1BPathMask0A, >HandleType14To1BPathMask0B
-    .byte >HandleType14To1BPathMask0C, >HandleType14To1BPathMask0D
-    .byte >HandleType14To1BPathMask0E, >HandleType14To1BPathMask00
+    .byte >HandleSparkBallPathMask00, >HandleSparkBallPathMask01
+    .byte >HandleSparkBallPathMask02, >HandleSparkBallPathMask03
+    .byte >HandleSparkBallPathMask04, >HandleSparkBallPathMask05
+    .byte >HandleSparkBallPathMask06, >HandleSparkBallPathMask07
+    .byte >HandleSparkBallPathMask08, >HandleSparkBallPathMask09
+    .byte >HandleSparkBallPathMask0A, >HandleSparkBallPathMask0B
+    .byte >HandleSparkBallPathMask0C, >HandleSparkBallPathMask0D
+    .byte >HandleSparkBallPathMask0E, >HandleSparkBallPathMask00
 
 .assert FireballCollisionHandlerHighBytes - FireballCollisionHandlerLowBytes = FireballCollisionHandlerCount, error, "unexpected fireball collision handler count"
 .assert * - FireballCollisionHandlerHighBytes = FireballCollisionHandlerCount, error, "unexpected fireball collision handler count"

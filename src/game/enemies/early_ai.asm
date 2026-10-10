@@ -8,13 +8,13 @@ DispatchEnemyAiHandler:
     JSR JumpWithParams
 
 EnemyAiHandlerTable:
-    .addr RunType00To03EnemyAi, RunType04To07EnemyAi, RunType08To0BEnemyAi, RunType0CTo0FEnemyAi
-    .addr RunType10To13EnemyAi, RunType14To17EnemyAi, RunType18To1BEnemyAi, RunType1CTo37EnemyAi
-    .addr RunType1CTo37EnemyAi, RunType1CTo37EnemyAi, RunType1CTo37EnemyAi, RunType1CTo37EnemyAi
-    .addr RunType1CTo37EnemyAi, RunType1CTo37EnemyAi, RunType1CTo37EnemyAi, RunType50To5BEnemyAi
-    .addr RunType50To5BEnemyAi, RunType50To5BEnemyAi, RunType48To53EnemyAi, RunType48To53EnemyAi
-    .addr RunType48To53EnemyAi, RunType54To5BEnemyAi, RunType54To5BEnemyAi, RunType5CTo63EnemyAi
-    .addr RunType5CTo63EnemyAi, RunType64To6BEnemyAi, RunType64To6BEnemyAi, RunType6CTo6FEnemyAi
+    .addr RunType00To03EnemyAi, RunMightyBombJackEnemyAi, RunFairyEnemyAi, RunType0CTo0FEnemyAi
+    .addr RunPanelMonsterEnemyAi, RunSlowSparkBallEnemyAi, RunFastSparkBallEnemyAi, RunNuelGhostEnemyAi
+    .addr RunNuelGhostEnemyAi, RunNuelGhostEnemyAi, RunNuelGhostEnemyAi, RunNuelGhostEnemyAi
+    .addr RunNuelGhostEnemyAi, RunNuelGhostEnemyAi, RunNuelGhostEnemyAi, RunDemonheadEnemyAi
+    .addr RunDemonheadEnemyAi, RunDemonheadEnemyAi, RunSalamanderEnemyAi, RunSalamanderEnemyAi
+    .addr RunSalamanderEnemyAi, RunDragonEnemyAi, RunDragonEnemyAi, RunGoblinEnemyAi
+    .addr RunGoblinEnemyAi, RunGargoyleEnemyAi, RunGargoyleEnemyAi, RunFlameEnemyAi
 
 EnemyAiHandlerCount = (* - EnemyAiHandlerTable) / 2
 .assert EnemyAiHandlerCount = 28, error, "unexpected enemy AI handler count"
@@ -151,31 +151,31 @@ LoadEnemyActionSelector:
     LSR A
     RTS
 
-RunType50To5BEnemyAi:
+RunDemonheadEnemyAi:
     JSR ApplyEnemyLifetimeThreshold
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type50To5BActionHandlers:
-    .addr DeactivateType50To5BAtPhase11
-    .addr BeginType50To5BHorizontalStep
+DemonheadActionHandlers:
+    .addr DeactivateDemonheadOrSalamanderAtPhase11
+    .addr BeginDemonheadHorizontalStep
     .addr SetEnemyMovingAction18
     .addr RunEnemyActionA55C
     .addr RunEnemyActionA55C
     .addr UpdateSingleLinkedEnemy
     .addr RunEnemyActionA55C
 
-DeactivateType50To5BAtPhase11:
+DeactivateDemonheadOrSalamanderAtPhase11:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$11
-    BCS DeactivateCurrentType50To5BEnemy
+    BCS DeactivateCurrentDemonheadEnemy
     RTS
 
-DeactivateCurrentType50To5BEnemy:
+DeactivateCurrentDemonheadEnemy:
     JMP DeactivateCurrentEnemy
 
-BeginType50To5BHorizontalStep:
+BeginDemonheadHorizontalStep:
     LDY #ObjectXMotionOffset
     LDA #$01
     STA (EnemyObjectPointer),Y
@@ -495,121 +495,121 @@ UpgradeSmallFireballSlot:
     STA InventorySlotsHigh,X
     RTS
 
-RunType04To07EnemyAi:
+RunMightyBombJackEnemyAi:
     LDY #$03
     LDA ($2C),Y
     CMP #$07
-    BCC RunType04To07Movement
+    BCC RunMightyBombJackMovement
     JMP DeactivateCurrentEnemy
 
-RunType04To07Movement:
+RunMightyBombJackMovement:
     JSR CheckEnemyAiDeltaRange
-    BCS UpdateType04To07Collision
+    BCS UpdateMightyBombJackCollision
     JSR CheckDanaHorizontalEnemyOverlap
-    BCC ReplaceActiveEnemiesAfterType04To07Collision
+    BCC ReplaceActiveEnemiesAfterMightyBombJackCollision
 
-UpdateType04To07Collision:
+UpdateMightyBombJackCollision:
     JSR SampleCurrentEnemyRoomMapCollision
     LDA $07
     TAX
-    BEQ HandleType04To07OpenPath
+    BEQ HandleMightyBombJackOpenPath
     CMP #$0F
-    BNE HandleType04To07BlockedPath
+    BNE HandleMightyBombJackBlockedPath
 
-HandleType04To07OpenPath:
+HandleMightyBombJackOpenPath:
     LDY #$08
     LDA ($2E),Y
-    BNE UpdateType04To07VerticalMotion
+    BNE UpdateMightyBombJackVerticalMotion
     JSR AdvanceRandomState
     LSR A
     LDA #$0C
-    BCS StoreRandomType04To07HorizontalMotion
+    BCS StoreRandomMightyBombJackHorizontalMotion
     LDA #$74
 
-StoreRandomType04To07HorizontalMotion:
+StoreRandomMightyBombJackHorizontalMotion:
     LDY #$08
     STA ($2E),Y
 
-UpdateType04To07VerticalMotion:
+UpdateMightyBombJackVerticalMotion:
     LDY #$05
     LDA ($2E),Y
-    BNE SelectType04To07Action
+    BNE SelectMightyBombJackAction
     TAX
     LDA #$80
     ORA ($2E),Y
     STA ($2E),Y
     TXA
 
-SelectType04To07Action:
+SelectMightyBombJackAction:
     LDX #$00
     ASL A
-    BMI StoreType04To07Action
+    BMI StoreMightyBombJackAction
     LDX #$02
 
-StoreType04To07Action:
+StoreMightyBombJackAction:
     LDY #$03
     TXA
     STA ($2E),Y
     RTS
 
-HandleType04To07BlockedPath:
+HandleMightyBombJackBlockedPath:
     LDY #$05
     AND #$0C
-    BNE UseNegativeType04To07VerticalMotion
+    BNE UseNegativeMightyBombJackVerticalMotion
     LDA ($2E),Y
     AND #$40
-    BEQ SelectType04To07HorizontalMotion
+    BEQ SelectMightyBombJackHorizontalMotion
     LDA #$80
     STA ($2E),Y
-    BMI StoreType04To07VerticalMotion
+    BMI StoreMightyBombJackVerticalMotion
 
-UseNegativeType04To07VerticalMotion:
+UseNegativeMightyBombJackVerticalMotion:
     LDA #$C0
 
-StoreType04To07VerticalMotion:
+StoreMightyBombJackVerticalMotion:
     STA ($2E),Y
 
-SelectType04To07HorizontalMotion:
+SelectMightyBombJackHorizontalMotion:
     LDY #$08
     TXA
     AND #$09
     CMP #$09
-    BNE CheckAlternateType04To07HorizontalMotion
+    BNE CheckAlternateMightyBombJackHorizontalMotion
     LDA #$0C
-    BPL StoreType04To07HorizontalMotion
+    BPL StoreMightyBombJackHorizontalMotion
 
-CheckAlternateType04To07HorizontalMotion:
+CheckAlternateMightyBombJackHorizontalMotion:
     TXA
     AND #$06
     CMP #$06
-    BNE FinishType04To07Movement
+    BNE FinishMightyBombJackMovement
     LDA #$7A
 
-StoreType04To07HorizontalMotion:
+StoreMightyBombJackHorizontalMotion:
     STA ($2E),Y
     LDA #$00
     LDY #$05
     STA ($2E),Y
 
-FinishType04To07Movement:
+FinishMightyBombJackMovement:
     RTS
 
-ReplaceActiveEnemiesAfterType04To07Collision:
+ReplaceActiveEnemiesAfterMightyBombJackCollision:
     LDX #$10
 
-CheckNextEnemyForType04To07Replacement:
+CheckNextEnemyForMightyBombJackReplacement:
     TXA
     JSR LoadEnemyObjectPointer
     LDY #$00
     LDA ($00),Y
-    BPL AdvanceType04To07ReplacementScan
+    BPL AdvanceMightyBombJackReplacementScan
     LDY #$03
 
-CopyType04To07ReplacementHeader:
+CopyMightyBombJackReplacementHeader:
     LDA $A688,Y
     STA ($00),Y
     DEY
-    BPL CopyType04To07ReplacementHeader
+    BPL CopyMightyBombJackReplacementHeader
     TXA
     JSR LoadEnemyAiPointer
     LDY #$00
@@ -617,10 +617,10 @@ CopyType04To07ReplacementHeader:
     INY
     STA ($00),Y
 
-AdvanceType04To07ReplacementScan:
+AdvanceMightyBombJackReplacementScan:
     DEX
-    BPL CheckNextEnemyForType04To07Replacement
+    BPL CheckNextEnemyForMightyBombJackReplacement
     JMP DeactivateCurrentEnemy
 
-Type04To07ReplacementHeader:
+MightyBombJackReplacementHeader:
     .byte $E2, $1C, $FF, $00

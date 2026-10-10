@@ -6519,24 +6519,24 @@
       "evidence": ["Eleven AI dispatch sites call this helper to divide object action byte 3 by four before JumpWithParams."]
     },
     {
-      "address": "0xb348", "previous": "$B348", "current": "RunType50To5BEnemyAi", "confidence": "confirmed",
-      "evidence": ["Primary handler-table entries 15-17 resolve here, corresponding to object types $50-$5B after the dispatcher subtracts $14 and divides by four."]
+      "address": "0xb348", "previous": "$B348", "current": "RunDemonheadEnemyAi", "confidence": "confirmed",
+      "evidence": ["Primary handler-table entries 15-17 resolve here, corresponding to object types $50-$5B after the dispatcher subtracts $14 and divides by four.", "Named after the enemy it runs: the Demonhead ($50-$5B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xb351", "previous": "$B351", "current": "Type50To5BActionHandlers", "confidence": "confirmed",
-      "evidence": ["JumpWithParams consumes the seven little-endian action addresses immediately following the call at $B34E."]
+      "address": "0xb351", "previous": "$B351", "current": "DemonheadActionHandlers", "confidence": "confirmed",
+      "evidence": ["JumpWithParams consumes the seven little-endian action addresses immediately following the call at $B34E.", "Named after the enemy it runs: the Demonhead ($50-$5B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xb35f", "previous": "$B35F", "current": "DeactivateType50To5BAtPhase11", "confidence": "high",
-      "evidence": ["Action selector zero compares AI phase byte 1 with $11 and retires the current enemy once it reaches the threshold."]
+      "address": "0xb35f", "previous": "$B35F", "current": "DeactivateDemonheadOrSalamanderAtPhase11", "confidence": "high",
+      "evidence": ["Action selector zero compares AI phase byte 1 with $11 and retires the current enemy once it reaches the threshold.", "Named after the enemy it runs: the Demonhead and the Salamander, whose action tables share it (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xb368", "previous": "_label_bank0_b368", "current": "DeactivateCurrentType50To5BEnemy", "confidence": "confirmed",
-      "evidence": ["The phase-threshold branch tail-calls the established current-enemy deactivation helper."]
+      "address": "0xb368", "previous": "_label_bank0_b368", "current": "DeactivateCurrentDemonheadEnemy", "confidence": "confirmed",
+      "evidence": ["The phase-threshold branch tail-calls the established current-enemy deactivation helper.", "Named after the enemy it runs: the Demonhead ($50-$5B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xb36b", "previous": "$B36B", "current": "BeginType50To5BHorizontalStep", "confidence": "high",
-      "evidence": ["Action selector one sets object X motion to one and selects action $14/$15 from the prior direction bit."]
+      "address": "0xb36b", "previous": "$B36B", "current": "BeginDemonheadHorizontalStep", "confidence": "high",
+      "evidence": ["Action selector one sets object X motion to one and selects action $14/$15 from the prior direction bit.", "Named after the enemy it runs: the Demonhead ($50-$5B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
       "address": "0xb37b", "previous": "_label_bank0_b37b", "current": "FinishSingleLinkedEnemyUpdate", "confidence": "confirmed",
@@ -9687,263 +9687,283 @@
       "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
     },
     {
-      "address": "0xa5dd", "previous": "$A5DD", "current": "RunType04To07EnemyAi", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa5dd", "previous": "$A5DD", "current": "RunMightyBombJackEnemyAi", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa5e8", "previous": "_label_bank0_a5e8", "current": "RunType04To07Movement", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa5e8", "previous": "_label_bank0_a5e8", "current": "RunMightyBombJackMovement", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa5f2", "previous": "_label_bank0_a5f2", "current": "UpdateType04To07Collision", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa5f2", "previous": "_label_bank0_a5f2", "current": "UpdateMightyBombJackCollision", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa5fe", "previous": "_label_bank0_a5fe", "current": "HandleType04To07OpenPath", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa5fe", "previous": "_label_bank0_a5fe", "current": "HandleMightyBombJackOpenPath", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa60e", "previous": "_label_bank0_a60e", "current": "StoreRandomType04To07HorizontalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa60e", "previous": "_label_bank0_a60e", "current": "StoreRandomMightyBombJackHorizontalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa612", "previous": "_label_bank0_a612", "current": "UpdateType04To07VerticalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa612", "previous": "_label_bank0_a612", "current": "UpdateMightyBombJackVerticalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa620", "previous": "_label_bank0_a620", "current": "SelectType04To07Action", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa620", "previous": "_label_bank0_a620", "current": "SelectMightyBombJackAction", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa627", "previous": "_label_bank0_a627", "current": "StoreType04To07Action", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa627", "previous": "_label_bank0_a627", "current": "StoreMightyBombJackAction", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa62d", "previous": "_label_bank0_a62d", "current": "HandleType04To07BlockedPath", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa62d", "previous": "_label_bank0_a62d", "current": "HandleMightyBombJackBlockedPath", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa63f", "previous": "_label_bank0_a63f", "current": "UseNegativeType04To07VerticalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa63f", "previous": "_label_bank0_a63f", "current": "UseNegativeMightyBombJackVerticalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa641", "previous": "_label_bank0_a641", "current": "StoreType04To07VerticalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa641", "previous": "_label_bank0_a641", "current": "StoreMightyBombJackVerticalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa643", "previous": "_label_bank0_a643", "current": "SelectType04To07HorizontalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa643", "previous": "_label_bank0_a643", "current": "SelectMightyBombJackHorizontalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa650", "previous": "_label_bank0_a650", "current": "CheckAlternateType04To07HorizontalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa650", "previous": "_label_bank0_a650", "current": "CheckAlternateMightyBombJackHorizontalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa659", "previous": "_label_bank0_a659", "current": "StoreType04To07HorizontalMotion", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa659", "previous": "_label_bank0_a659", "current": "StoreMightyBombJackHorizontalMotion", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa661", "previous": "_label_bank0_a661", "current": "FinishType04To07Movement", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa661", "previous": "_label_bank0_a661", "current": "FinishMightyBombJackMovement", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa662", "previous": "_label_bank0_a662", "current": "ReplaceActiveEnemiesAfterType04To07Collision", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa662", "previous": "_label_bank0_a662", "current": "ReplaceActiveEnemiesAfterMightyBombJackCollision", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa664", "previous": "_label_bank0_a664", "current": "CheckNextEnemyForType04To07Replacement", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa664", "previous": "_label_bank0_a664", "current": "CheckNextEnemyForMightyBombJackReplacement", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa670", "previous": "_label_bank0_a670", "current": "CopyType04To07ReplacementHeader", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa670", "previous": "_label_bank0_a670", "current": "CopyMightyBombJackReplacementHeader", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa682", "previous": "_label_bank0_a682", "current": "AdvanceType04To07ReplacementScan", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa682", "previous": "_label_bank0_a682", "current": "AdvanceMightyBombJackReplacementScan", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
-      "address": "0xa688", "previous": "$A688", "current": "Type04To07ReplacementHeader", "confidence": "confirmed",
-      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary."]
+      "address": "0xa688", "previous": "$A688", "current": "MightyBombJackReplacementHeader", "confidence": "confirmed",
+      "evidence": ["The decoded enemy-AI control flow, record-field accesses, and byte-identical assembly confirm this boundary.", "Named after the enemy it runs: Mighty Bomb Jack ($18-$1B) (dispatch table EnemyAiHandlerTable; owner's object review)."]
     },
     {
       "address": "0xa68c",
       "previous": "$A68C",
-      "current": "RunType10To13EnemyAi",
+      "current": "RunPanelMonsterEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Panel Monster ($24-$27) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa692",
       "previous": "$A692",
-      "current": "Type10To13ActionHandlers",
+      "current": "PanelMonsterActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Panel Monster ($24-$27) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa696",
       "previous": "$A696",
-      "current": "UpdateType10To13Action",
+      "current": "UpdatePanelMonsterAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Panel Monster ($24-$27) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6b4",
       "previous": "_label_bank0_a6b4",
-      "current": "FinishType10To13Update",
+      "current": "FinishPanelMonsterUpdate",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Panel Monster ($24-$27) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6b5",
       "previous": "$A6B5",
-      "current": "AllocateType10To13LinkedEnemy",
+      "current": "AllocatePanelMonsterLinkedEnemy",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Panel Monster ($24-$27) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6df",
       "previous": "_label_bank0_a6df",
-      "current": "FinishType10To13Allocation",
+      "current": "FinishPanelMonsterAllocation",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Panel Monster ($24-$27) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6e0",
       "previous": "$A6E0",
-      "current": "RunType6CTo6FEnemyAi",
+      "current": "RunFlameEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6e6",
       "previous": "$A6E6",
-      "current": "Type6CTo6FActionHandlers",
+      "current": "FlameActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6f4",
       "previous": "$A6F4",
-      "current": "CheckType6CTo6FDanaRange16",
+      "current": "CheckFlameDanaRange16",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa6f9",
       "previous": "$A6F9",
-      "current": "UpdateType6CTo6FPhase",
+      "current": "UpdateFlamePhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa70a",
       "previous": "_label_bank0_a70a",
-      "current": "FinishType6CTo6FPhase",
+      "current": "FinishFlamePhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa70b",
       "previous": "_label_bank0_a70b",
-      "current": "DeactivateType6CTo6FEnemy",
+      "current": "DeactivateFlameEnemy",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa70e",
       "previous": "$A70E",
-      "current": "CheckType6CTo6FDanaRange22",
+      "current": "CheckFlameDanaRange22",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa724",
       "previous": "_label_bank0_a724",
-      "current": "SetType6CTo6FDirectionBit",
+      "current": "SetFlameDirectionBit",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa729",
       "previous": "_label_bank0_a729",
-      "current": "SelectType6CTo6FAction14",
+      "current": "SelectFlameAction14",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa72b",
       "previous": "_label_bank0_a72b",
-      "current": "StoreType6CTo6FAction",
+      "current": "StoreFlameAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa730",
       "previous": "$A730",
-      "current": "CheckType6CTo6FDanaRange06",
+      "current": "CheckFlameDanaRange06",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa73e",
       "previous": "_label_bank0_a73e",
-      "current": "SelectDelayedType6CTo6FAction14",
+      "current": "SelectDelayedFlameAction14",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa742",
       "previous": "$A742",
-      "current": "ResetType6CTo6FDirection",
+      "current": "ResetFlameDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa751",
       "previous": "_label_bank0_a751",
-      "current": "ClearType6CTo6FDirectionBit",
+      "current": "ClearFlameDirectionBit",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the red and white flames ($80-$83) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -9976,460 +9996,511 @@
     {
       "address": "0xa78a",
       "previous": "$A78A",
-      "current": "RunType54To5BEnemyAi",
+      "current": "RunDragonEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa790",
       "previous": "$A790",
-      "current": "Type54To5BActionHandlers",
+      "current": "DragonActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa79e",
       "previous": "$A79E",
-      "current": "SelectType54To5BActionByDirection",
+      "current": "SelectDragonActionByDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7a9",
       "previous": "$A7A9",
-      "current": "UpdateType54To5BLinkedPair",
+      "current": "UpdateDragonLinkedPair",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7b3",
       "previous": "_label_bank0_a7b3",
-      "current": "ProbeType54To5BForwardTile",
+      "current": "ProbeDragonForwardTile",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7cd",
       "previous": "_label_bank0_a7cd",
-      "current": "FinishType54To5BUpdate",
+      "current": "FinishDragonUpdate",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7ce",
       "previous": "_label_bank0_a7ce",
-      "current": "CheckType54To5BActionPhase",
+      "current": "CheckDragonActionPhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7dd",
       "previous": "_label_bank0_a7dd",
-      "current": "UpdateType54To5BBlockedDirection",
+      "current": "UpdateDragonBlockedDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7f3",
       "previous": "_label_bank0_a7f3",
-      "current": "ReverseType54To5BDirection",
+      "current": "ReverseDragonDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7fd",
       "previous": "_label_bank0_a7fd",
-      "current": "FinishType54To5BBlockedDirection",
+      "current": "FinishDragonBlockedDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa7fe",
       "previous": "_label_bank0_a7fe",
-      "current": "AllocateType54To5BLinkedPair",
+      "current": "AllocateDragonLinkedPair",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa822",
       "previous": "_label_bank0_a822",
-      "current": "ActivateType54To5BLinkedPair",
+      "current": "ActivateDragonLinkedPair",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa83f",
       "previous": "_label_bank0_a83f",
-      "current": "FinishType54To5BPairAllocation",
+      "current": "FinishDragonPairAllocation",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the Dragon ($68-$6F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa840",
       "previous": "$A840",
-      "current": "RunType08To0BEnemyAi",
+      "current": "RunFairyEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa869",
       "previous": "_label_bank0_a869",
-      "current": "DispatchType08To0BAction",
+      "current": "DispatchFairyAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa86f",
       "previous": "$A86F",
-      "current": "Type08To0BActionHandlers",
+      "current": "FairyActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa87d",
       "previous": "$A87D",
-      "current": "CollectType08To0BFairy",
+      "current": "CollectFairyFairy",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8ab",
       "previous": "_label_bank0_a8ab",
-      "current": "StoreType08To0BFairyCount",
+      "current": "StoreFairyFairyCount",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8b9",
       "previous": "_label_bank0_a8b9",
-      "current": "FinishType08To0BFairyUpdate",
+      "current": "FinishFairyFairyUpdate",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8ba",
       "previous": "_label_bank0_a8ba",
-      "current": "CheckType08To0BFairyLifetime",
+      "current": "CheckFairyFairyLifetime",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8c1",
       "previous": "_label_bank0_a8c1",
-      "current": "StartType08To0BMapInteraction",
+      "current": "StartFairyMapInteraction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8e4",
       "previous": "$A8E4",
-      "current": "UpdateType08To0BMotion",
+      "current": "UpdateFairyMotion",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8f0",
       "previous": "_label_bank0_a8f0",
-      "current": "StoreType08To0BAction",
+      "current": "StoreFairyAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa8fb",
       "previous": "_label_bank0_a8fb",
-      "current": "ApplyType08To0BMotionCorrection",
+      "current": "ApplyFairyMotionCorrection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa91a",
       "previous": "_label_bank0_a91a",
-      "current": "SelectType08To0BVerticalAdjustment",
+      "current": "SelectFairyVerticalAdjustment",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa92b",
       "previous": "_label_bank0_a92b",
-      "current": "NormalizeType08To0BVerticalDelta",
+      "current": "NormalizeFairyVerticalDelta",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa931",
       "previous": "_label_bank0_a931",
-      "current": "CompareType08To0BVerticalLimit",
+      "current": "CompareFairyVerticalLimit",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa93d",
       "previous": "_label_bank0_a93d",
-      "current": "StoreType08To0BVerticalMotion",
+      "current": "StoreFairyVerticalMotion",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa953",
       "previous": "_label_bank0_a953",
-      "current": "SelectType08To0BHorizontalAdjustment",
+      "current": "SelectFairyHorizontalAdjustment",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa964",
       "previous": "_label_bank0_a964",
-      "current": "NormalizeType08To0BHorizontalDelta",
+      "current": "NormalizeFairyHorizontalDelta",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa96a",
       "previous": "_label_bank0_a96a",
-      "current": "CompareType08To0BHorizontalLimit",
+      "current": "CompareFairyHorizontalLimit",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa97a",
       "previous": "_label_bank0_a97a",
-      "current": "StoreType08To0BHorizontalMotion",
+      "current": "StoreFairyHorizontalMotion",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa988",
       "previous": "$A988",
-      "current": "Type08To0BVerticalAdjustments",
+      "current": "FairyVerticalAdjustments",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa98c",
       "previous": "$A98C",
-      "current": "Type08To0BVerticalLimits",
+      "current": "FairyVerticalLimits",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa990",
       "previous": "$A990",
-      "current": "Type08To0BHorizontalAdjustments",
+      "current": "FairyHorizontalAdjustments",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa994",
       "previous": "$A994",
-      "current": "Type08To0BHorizontalLimits",
+      "current": "FairyHorizontalLimits",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role."
+        "The decoded action dispatch, enemy-record accesses, and byte-identical assembly confirm this address and control-flow role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa998",
       "previous": "$A998",
-      "current": "UpdateType08To0BPhaseAction",
+      "current": "UpdateFairyPhaseAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9a8",
       "previous": "_label_bank0_a9a8",
-      "current": "FinishType08To0BPhaseAction",
+      "current": "FinishFairyPhaseAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9a9",
       "previous": "$A9A9",
-      "current": "UpdateType08To0BHorizontalOrientation",
+      "current": "UpdateFairyHorizontalOrientation",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9b9",
       "previous": "_label_bank0_a9b9",
-      "current": "RotateType08To0BHorizontalDirection",
+      "current": "RotateFairyHorizontalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9d1",
       "previous": "_label_bank0_a9d1",
-      "current": "MergeType08To0BHorizontalDirection",
+      "current": "MergeFairyHorizontalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9d8",
       "previous": "_label_bank0_a9d8",
-      "current": "ReverseType08To0BHorizontalDirection",
+      "current": "ReverseFairyHorizontalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9dc",
       "previous": "_label_bank0_a9dc",
-      "current": "StoreType08To0BHorizontalDirection",
+      "current": "StoreFairyHorizontalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9f2",
       "previous": "_label_bank0_a9f2",
-      "current": "MergeType08To0BHorizontalFlag",
+      "current": "MergeFairyHorizontalFlag",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xa9fb",
       "previous": "$A9FB",
-      "current": "UpdateType08To0BVerticalOrientation",
+      "current": "UpdateFairyVerticalOrientation",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa0c",
       "previous": "_label_bank0_aa0c",
-      "current": "CompareType08To0BVerticalDirection",
+      "current": "CompareFairyVerticalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa21",
       "previous": "_label_bank0_aa21",
-      "current": "MergeType08To0BVerticalDirection",
+      "current": "MergeFairyVerticalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa2b",
       "previous": "_label_bank0_aa2b",
-      "current": "ReverseType08To0BVerticalDirection",
+      "current": "ReverseFairyVerticalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa2f",
       "previous": "_label_bank0_aa2f",
-      "current": "StoreType08To0BVerticalDirection",
+      "current": "StoreFairyVerticalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa46",
       "previous": "_label_bank0_aa46",
-      "current": "MergeType08To0BVerticalFlag",
+      "current": "MergeFairyVerticalFlag",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa4c",
       "previous": "$AA4C",
-      "current": "SetType08To0BMovingAction",
+      "current": "SetFairyMovingAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fairy ($1C-$1F), which appears in a sparkle (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -10462,658 +10533,731 @@
     {
       "address": "0xaa69",
       "previous": "$AA69",
-      "current": "RunType14To17EnemyAi",
+      "current": "RunSlowSparkBallEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the slow Spark ball ($28-$2B, step $22) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa6d",
       "previous": "$AA6D",
-      "current": "RunType18To1BEnemyAi",
+      "current": "RunFastSparkBallEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: the fast Spark ball ($2C-$2F, step $4C) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa6f",
       "previous": "_label_bank0_aa6f",
-      "current": "UpdateType14To1BPathSelection",
+      "current": "UpdateSparkBallPathSelection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa76",
       "previous": "_label_bank0_aa76",
-      "current": "BuildType14To1BPathSelection",
+      "current": "BuildSparkBallPathSelection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa7e",
       "previous": "_label_bank0_aa7e",
-      "current": "ClearType14To1BPathScratch",
+      "current": "ClearSparkBallPathScratch",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa97",
       "previous": "_label_bank0_aa97",
-      "current": "ExpandType14To1BPositionDelta",
+      "current": "ExpandSparkBallPositionDelta",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaa9d",
       "previous": "_label_bank0_aa9d",
-      "current": "ShiftType14To1BPositionDelta",
+      "current": "ShiftSparkBallPositionDelta",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaaac",
       "previous": "_label_bank0_aaac",
-      "current": "ApplyType14To1BPositionDelta",
+      "current": "ApplySparkBallPositionDelta",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaac5",
       "previous": "_label_bank0_aac5",
-      "current": "SampleType14To1BPathMask",
+      "current": "SampleSparkBallPathMask",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaacb",
       "previous": "_label_bank0_aacb",
-      "current": "SampleNextType14To1BPathCell",
+      "current": "SampleNextSparkBallPathCell",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaaff",
       "previous": "$AAFF",
-      "current": "Type14To1BPathMaskHandlers",
+      "current": "SparkBallPathMaskHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab1f",
       "previous": "$AB1F",
-      "current": "Type14To1BYFractionDeltas",
+      "current": "SparkBallYFractionDeltas",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab27",
       "previous": "$AB27",
-      "current": "Type14To1BXFractionDeltas",
+      "current": "SparkBallXFractionDeltas",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab2f",
       "previous": "$AB2F",
-      "current": "Type14To1BProbeYOffsets",
+      "current": "SparkBallProbeYOffsets",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab33",
       "previous": "$AB33",
-      "current": "Type14To1BProbeXOffsets",
+      "current": "SparkBallProbeXOffsets",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab37",
       "previous": "$AB37",
-      "current": "HandleType14To1BPathMask00",
+      "current": "HandleSparkBallPathMask00",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab4c",
       "previous": "_label_bank0_ab4c",
-      "current": "FindType14To1BPathDirectionBit",
+      "current": "FindSparkBallPathDirectionBit",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab5a",
       "previous": "_label_bank0_ab5a",
-      "current": "MatchType14To1BPathDirection",
+      "current": "MatchSparkBallPathDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab65",
       "previous": "_label_bank0_ab65",
-      "current": "CompareType14To1BPathDirection",
+      "current": "CompareSparkBallPathDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab78",
       "previous": "_label_bank0_ab78",
-      "current": "CommitType14To1BPathSelection",
+      "current": "CommitSparkBallPathSelection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab7b",
       "previous": "$AB7B",
-      "current": "Type14To1BExpectedDirections",
+      "current": "SparkBallExpectedDirections",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab83",
       "previous": "$AB83",
-      "current": "Type14To1BReplacementDirections",
+      "current": "SparkBallReplacementDirections",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab8b",
       "previous": "$AB8B",
-      "current": "HandleType14To1BPathMask01",
+      "current": "HandleSparkBallPathMask01",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab98",
       "previous": "_label_bank0_ab98",
-      "current": "SetType14To1BPathMask01XDirection",
+      "current": "SetSparkBallPathMask01XDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xab9b",
       "previous": "_label_bank0_ab9b",
-      "current": "SelectType14To1BPathMask01Directions",
+      "current": "SelectSparkBallPathMask01Directions",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaba5",
       "previous": "_label_bank0_aba5",
-      "current": "StoreType14To1BPathMask01Direction",
+      "current": "StoreSparkBallPathMask01Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabad",
       "previous": "_label_bank0_abad",
-      "current": "CommitType14To1BPathCoordinatesFromMask01",
+      "current": "CommitSparkBallPathCoordinatesFromMask01",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabb0",
       "previous": "$ABB0",
-      "current": "HandleType14To1BPathMask02",
+      "current": "HandleSparkBallPathMask02",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabbd",
       "previous": "_label_bank0_abbd",
-      "current": "SetType14To1BPathMask02XDirection",
+      "current": "SetSparkBallPathMask02XDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabc0",
       "previous": "_label_bank0_abc0",
-      "current": "SelectType14To1BPathMask02Directions",
+      "current": "SelectSparkBallPathMask02Directions",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabca",
       "previous": "_label_bank0_abca",
-      "current": "StoreType14To1BPathMask02Direction",
+      "current": "StoreSparkBallPathMask02Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabd2",
       "previous": "$ABD2",
-      "current": "HandleType14To1BPathMask04",
+      "current": "HandleSparkBallPathMask04",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabdf",
       "previous": "_label_bank0_abdf",
-      "current": "SetType14To1BPathMask04XDirection",
+      "current": "SetSparkBallPathMask04XDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabe2",
       "previous": "_label_bank0_abe2",
-      "current": "SelectType14To1BPathMask04Directions",
+      "current": "SelectSparkBallPathMask04Directions",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabec",
       "previous": "_label_bank0_abec",
-      "current": "StoreType14To1BPathMask04Direction",
+      "current": "StoreSparkBallPathMask04Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xabf4",
       "previous": "$ABF4",
-      "current": "HandleType14To1BPathMask08",
+      "current": "HandleSparkBallPathMask08",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac01",
       "previous": "_label_bank0_ac01",
-      "current": "SetType14To1BPathMask08XDirection",
+      "current": "SetSparkBallPathMask08XDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac04",
       "previous": "_label_bank0_ac04",
-      "current": "SelectType14To1BPathMask08Directions",
+      "current": "SelectSparkBallPathMask08Directions",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac0e",
       "previous": "_label_bank0_ac0e",
-      "current": "StoreType14To1BPathMask08Direction",
+      "current": "StoreSparkBallPathMask08Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac16",
       "previous": "$AC16",
-      "current": "HandleType14To1BPathMask03",
+      "current": "HandleSparkBallPathMask03",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac28",
       "previous": "_label_bank0_ac28",
-      "current": "ClassifyType14To1BPathMask03Direction",
+      "current": "ClassifySparkBallPathMask03Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac2b",
       "previous": "_label_bank0_ac2b",
-      "current": "SelectType14To1BHorizontalDirection",
+      "current": "SelectSparkBallHorizontalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac39",
       "previous": "_label_bank0_ac39",
-      "current": "StoreType14To1BHorizontalDirection",
+      "current": "StoreSparkBallHorizontalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac3e",
       "previous": "_label_bank0_ac3e",
-      "current": "ClassifyType14To1BPathMask0C",
+      "current": "ClassifySparkBallPathMask0C",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac43",
       "previous": "$AC43",
-      "current": "HandleType14To1BPathMask0C",
+      "current": "HandleSparkBallPathMask0C",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac53",
       "previous": "_label_bank0_ac53",
-      "current": "CommitType14To1BPathCoordinates",
+      "current": "CommitSparkBallPathCoordinates",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac60",
       "previous": "$AC60",
-      "current": "HandleType14To1BPathMask09",
+      "current": "HandleSparkBallPathMask09",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac70",
       "previous": "_label_bank0_ac70",
-      "current": "CommitType14To1BPathMask09Coordinates",
+      "current": "CommitSparkBallPathMask09Coordinates",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac72",
       "previous": "_label_bank0_ac72",
-      "current": "ClassifyType14To1BPathMask09Direction",
+      "current": "ClassifySparkBallPathMask09Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac77",
       "previous": "$AC77",
-      "current": "HandleType14To1BPathMask06",
+      "current": "HandleSparkBallPathMask06",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac88",
       "previous": "_label_bank0_ac88",
-      "current": "CommitType14To1BPathMask06Coordinates",
+      "current": "CommitSparkBallPathMask06Coordinates",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac8a",
       "previous": "_label_bank0_ac8a",
-      "current": "ClassifyType14To1BPathMask06Direction",
+      "current": "ClassifySparkBallPathMask06Direction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac8d",
       "previous": "_label_bank0_ac8d",
-      "current": "SelectType14To1BVerticalDirection",
+      "current": "SelectSparkBallVerticalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac9b",
       "previous": "_label_bank0_ac9b",
-      "current": "StoreType14To1BVerticalDirection",
+      "current": "StoreSparkBallVerticalDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xac9f",
       "previous": "_label_bank0_ac9f",
-      "current": "HandleType14To1BPathMask0B",
+      "current": "HandleSparkBallPathMask0B",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xacb3",
       "previous": "_label_bank0_acb3",
-      "current": "HandleType14To1BPathMask07",
+      "current": "HandleSparkBallPathMask07",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xacc7",
       "previous": "_label_bank0_acc7",
-      "current": "HandleType14To1BPathMask0D",
+      "current": "HandleSparkBallPathMask0D",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaccf",
       "previous": "_label_bank0_accf",
-      "current": "StoreMappedType14To1BPathDirection02",
+      "current": "StoreMappedSparkBallPathDirection02",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xacdb",
       "previous": "_label_bank0_acdb",
-      "current": "HandleType14To1BPathMask0E",
+      "current": "HandleSparkBallPathMask0E",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xacef",
       "previous": "$ACEF",
-      "current": "HandleType14To1BPathMask05",
+      "current": "HandleSparkBallPathMask05",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xacf9",
       "previous": "$ACF9",
-      "current": "HandleType14To1BPathMask0A",
+      "current": "HandleSparkBallPathMask0A",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad03",
       "previous": "$AD03",
-      "current": "SetType14To1BYLowNibble0B",
+      "current": "SetSparkBallYLowNibble0B",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad0c",
       "previous": "$AD0C",
-      "current": "SetType14To1BYLowNibble02",
+      "current": "SetSparkBallYLowNibble02",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad15",
       "previous": "$AD15",
-      "current": "SetType14To1BXLowNibble04",
+      "current": "SetSparkBallXLowNibble04",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad1e",
       "previous": "$AD1E",
-      "current": "SetType14To1BXLowNibble0A",
+      "current": "SetSparkBallXLowNibble0A",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad27",
       "previous": "$AD27",
-      "current": "Type14To1BDirectionMap0B",
+      "current": "SparkBallDirectionMap0B",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad2b",
       "previous": "$AD2B",
-      "current": "Type14To1BDirectionMap07",
+      "current": "SparkBallDirectionMap07",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad2f",
       "previous": "$AD2F",
-      "current": "Type14To1BDirectionMap0D",
+      "current": "SparkBallDirectionMap0D",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad33",
       "previous": "$AD33",
-      "current": "Type14To1BDirectionMap0E",
+      "current": "SparkBallDirectionMap0E",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role."
+        "The decoded direction logic, RoomMap probes, and byte-identical assembly confirm this address and path-selection role.",
+        "Named after the enemy it runs: both Spark balls ($28-$2F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad37",
       "previous": "$AD37",
-      "current": "RunType1CTo37EnemyAi",
+      "current": "RunNuelGhostEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad3d",
       "previous": "$AD3D",
-      "current": "Type1CTo37ActionHandlers",
+      "current": "NuelGhostActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad45",
       "previous": "$AD45",
-      "current": "UpdateType1CTo37MapInteraction",
+      "current": "UpdateNuelGhostMapInteraction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xad78",
       "previous": "_label_bank0_ad78",
-      "current": "FinishType1CTo37MapInteraction",
+      "current": "FinishNuelGhostMapInteraction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -11137,37 +11281,41 @@
     {
       "address": "0xada8",
       "previous": "$ADA8",
-      "current": "UpdateType1CTo37LinkedSpawn",
+      "current": "UpdateNuelGhostLinkedSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xadd2",
       "previous": "_label_bank0_add2",
-      "current": "AllocateType1CTo37LinkedEnemy",
+      "current": "AllocateNuelGhostLinkedEnemy",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xadf3",
       "previous": "_label_bank0_adf3",
-      "current": "ReserveType1CTo37LinkedEnemy",
+      "current": "ReserveNuelGhostLinkedEnemy",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae18",
       "previous": "_label_bank0_ae18",
-      "current": "FinishType1CTo37LinkedSpawn",
+      "current": "FinishNuelGhostLinkedSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -11182,199 +11330,221 @@
     {
       "address": "0xae1e",
       "previous": "$AE1E",
-      "current": "UpdateType1CTo37LinkedLifetime",
+      "current": "UpdateNuelGhostLinkedLifetime",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae34",
       "previous": "_label_bank0_ae34",
-      "current": "SelectType1CTo37LinkedAction",
+      "current": "SelectNuelGhostLinkedAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae40",
       "previous": "_label_bank0_ae40",
-      "current": "FinishType1CTo37LinkedLifetime",
+      "current": "FinishNuelGhostLinkedLifetime",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae41",
       "previous": "$AE41",
-      "current": "UpdateType1CTo37OpenPath",
+      "current": "UpdateNuelGhostOpenPath",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae50",
       "previous": "_label_bank0_ae50",
-      "current": "FinishType1CTo37OpenPath",
+      "current": "FinishNuelGhostOpenPath",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Nuel and Ghost families ($30-$4F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae51",
       "previous": "$AE51",
-      "current": "RunType5CTo63EnemyAi",
+      "current": "RunGoblinEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae57",
       "previous": "$AE57",
-      "current": "Type5CTo63ActionHandlers",
+      "current": "GoblinActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae65",
       "previous": "$AE65",
-      "current": "UpdateType5CTo63LinkedLifetime",
+      "current": "UpdateGoblinLinkedLifetime",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae7f",
       "previous": "_label_bank0_ae7f",
-      "current": "FinishType5CTo63LinkedLifetime",
+      "current": "FinishGoblinLinkedLifetime",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xae80",
       "previous": "_label_bank0_ae80",
-      "current": "CheckType5CTo63Retirement",
+      "current": "CheckGoblinRetirement",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaead",
       "previous": "_label_bank0_aead",
-      "current": "KeepType5CTo63ForwardDirection",
+      "current": "KeepGoblinForwardDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaeb2",
       "previous": "$AEB2",
-      "current": "UpdateType5CTo63ForwardPath",
+      "current": "UpdateGoblinForwardPath",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaecb",
       "previous": "_label_bank0_aecb",
-      "current": "UpdateType5CTo63BlockedPath",
+      "current": "UpdateGoblinBlockedPath",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaee1",
       "previous": "_label_bank0_aee1",
-      "current": "FinishType5CTo63ForwardPath",
+      "current": "FinishGoblinForwardPath",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaee2",
       "previous": "$AEE2",
-      "current": "UpdateType5CTo63Spawn",
+      "current": "UpdateGoblinSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaefb",
       "previous": "_label_bank0_aefb",
-      "current": "ResetType5CTo63Phase",
+      "current": "ResetGoblinPhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf02",
       "previous": "_label_bank0_af02",
-      "current": "HandleType5CTo63Collision",
+      "current": "HandleGoblinCollision",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf33",
       "previous": "_label_bank0_af33",
-      "current": "SelectType5CTo63CollisionAction",
+      "current": "SelectGoblinCollisionAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf45",
       "previous": "_label_bank0_af45",
-      "current": "CheckType5CTo63CollisionPhase",
+      "current": "CheckGoblinCollisionPhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf5b",
       "previous": "_label_bank0_af5b",
-      "current": "FinishType5CTo63Collision",
+      "current": "FinishGoblinCollision",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address."
+        "The decoded collision mask, action dispatch, linked-slot accesses, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Goblin ($70-$77; $74-$77 draw an Earth Mage in CHR bank 2) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf5c",
       "previous": "$AF5C",
-      "current": "RunType64To6BEnemyAi",
+      "current": "RunGargoyleEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf62",
       "previous": "$AF62",
-      "current": "Type64To6BActionHandlers",
+      "current": "GargoyleActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -11389,28 +11559,31 @@
     {
       "address": "0xaf7b",
       "previous": "$AF7B",
-      "current": "UpdateType64To6BLinkedSpawn",
+      "current": "UpdateGargoyleLinkedSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xaf9f",
       "previous": "_label_bank0_af9f",
-      "current": "SelectType64To6BLinkedAction",
+      "current": "SelectGargoyleLinkedAction",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xafab",
       "previous": "_label_bank0_afab",
-      "current": "CheckType64To6BSpawnPhase",
+      "current": "CheckGargoyleSpawnPhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -11425,10 +11598,11 @@
     {
       "address": "0xb001",
       "previous": "_label_bank0_b001",
-      "current": "FinishType64To6BLinkedSpawn",
+      "current": "FinishGargoyleLinkedSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -11506,64 +11680,71 @@
     {
       "address": "0xb055",
       "previous": "$B055",
-      "current": "UpdateType64To6BSpawn",
+      "current": "UpdateGargoyleSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb06b",
       "previous": "_label_bank0_b06b",
-      "current": "CheckType64To6BSpawnPhaseAgain",
+      "current": "CheckGargoyleSpawnPhaseAgain",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb097",
       "previous": "_label_bank0_b097",
-      "current": "FinishType64To6BSpawn",
+      "current": "FinishGargoyleSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb098",
       "previous": "_label_bank0_b098",
-      "current": "CheckType64To6BSpawnDirection",
+      "current": "CheckGargoyleSpawnDirection",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb0a3",
       "previous": "_label_bank0_b0a3",
-      "current": "HandleType64To6BBlockedSpawn",
+      "current": "HandleGargoyleBlockedSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb0b7",
       "previous": "_label_bank0_b0b7",
-      "current": "CheckType64To6BBlockedPhase",
+      "current": "CheckGargoyleBlockedPhase",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb0cd",
       "previous": "_label_bank0_b0cd",
-      "current": "FinishType64To6BBlockedSpawn",
+      "current": "FinishGargoyleBlockedSpawn",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Gargoyle ($78-$7F) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
@@ -11722,19 +11903,21 @@
     {
       "address": "0xb178",
       "previous": "$B178",
-      "current": "RunType48To53EnemyAi",
+      "current": "RunSalamanderEnemyAi",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Salamander ($5C-$67) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {
       "address": "0xb181",
       "previous": "$B181",
-      "current": "Type48To53ActionHandlers",
+      "current": "SalamanderActionHandlers",
       "confidence": "confirmed",
       "evidence": [
-        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address."
+        "The decoded action table, collision helpers, linked-slot state, and byte-identical assembly confirm this address.",
+        "Named after the enemy it runs: the Salamander ($5C-$67) (dispatch table EnemyAiHandlerTable; owner's object review)."
       ]
     },
     {

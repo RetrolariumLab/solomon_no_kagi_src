@@ -1305,8 +1305,8 @@
         "HandleEnemyCollisionReward",
         "DispatchEnemyCollisionInventoryItem",
         "UpgradeSmallFireballInventory",
-        "RunType04To07EnemyAi",
-        "ReplaceActiveEnemiesAfterType04To07Collision"
+        "RunMightyBombJackEnemyAi",
+        "ReplaceActiveEnemiesAfterMightyBombJackCollision"
       ]
     },
     {
@@ -1317,15 +1317,15 @@
       "end": "0xa997",
       "status": "semantic",
       "required_labels": [
-        "RunType10To13EnemyAi",
-        "RunType6CTo6FEnemyAi",
+        "RunPanelMonsterEnemyAi",
+        "RunFlameEnemyAi",
         "CheckDanaEnemyProximityThreshold",
         "CheckDanaHorizontalEnemyOverlap",
-        "RunType54To5BEnemyAi",
-        "AllocateType54To5BLinkedPair",
-        "RunType08To0BEnemyAi",
-        "CollectType08To0BFairy",
-        "UpdateType08To0BMotion"
+        "RunDragonEnemyAi",
+        "AllocateDragonLinkedPair",
+        "RunFairyEnemyAi",
+        "CollectFairyFairy",
+        "UpdateFairyMotion"
       ]
     },
     {
@@ -1336,15 +1336,15 @@
       "end": "0xad36",
       "status": "semantic",
       "required_labels": [
-        "UpdateType08To0BPhaseAction",
-        "UpdateType08To0BHorizontalOrientation",
-        "UpdateType08To0BVerticalOrientation",
+        "UpdateFairyPhaseAction",
+        "UpdateFairyHorizontalOrientation",
+        "UpdateFairyVerticalOrientation",
         "CheckEnemyAiDeltaRange",
-        "RunType14To17EnemyAi",
-        "RunType18To1BEnemyAi",
-        "Type14To1BPathMaskHandlers",
-        "CommitType14To1BPathCoordinates",
-        "Type14To1BDirectionMap0E"
+        "RunSlowSparkBallEnemyAi",
+        "RunFastSparkBallEnemyAi",
+        "SparkBallPathMaskHandlers",
+        "CommitSparkBallPathCoordinates",
+        "SparkBallDirectionMap0E"
       ]
     },
     {
@@ -1355,14 +1355,14 @@
       "end": "0xaf5b",
       "status": "semantic",
       "required_labels": [
-        "RunType1CTo37EnemyAi",
-        "Type1CTo37ActionHandlers",
+        "RunNuelGhostEnemyAi",
+        "NuelGhostActionHandlers",
         "SampleCurrentEnemyRoomMapCollision",
-        "UpdateType1CTo37LinkedSpawn",
-        "RunType5CTo63EnemyAi",
-        "Type5CTo63ActionHandlers",
-        "UpdateType5CTo63ForwardPath",
-        "UpdateType5CTo63Spawn"
+        "UpdateNuelGhostLinkedSpawn",
+        "RunGoblinEnemyAi",
+        "GoblinActionHandlers",
+        "UpdateGoblinForwardPath",
+        "UpdateGoblinSpawn"
       ]
     },
     {
@@ -1373,13 +1373,13 @@
       "end": "0xb289",
       "status": "semantic",
       "required_labels": [
-        "RunType64To6BEnemyAi",
+        "RunGargoyleEnemyAi",
         "SpawnLinkedEnemyAtOffset",
         "UpdateLinkedEnemyDirectionState",
         "CheckEnemyForwardCollisionBit",
         "RunType0CTo0FEnemyAi",
         "SelectEnemyCollisionMapCoordinates",
-        "RunType48To53EnemyAi",
+        "RunSalamanderEnemyAi",
         "ClearLinkedEnemySlots",
         "UpdatePairedEnemyState",
         "ApplyForwardEnemyMapInteraction"
@@ -1410,8 +1410,8 @@
         "AllocateLinkedEnemyPair",
         "CompareEnemyMotionThresholds",
         "LoadEnemyActionSelector",
-        "RunType50To5BEnemyAi",
-        "Type50To5BActionHandlers",
+        "RunDemonheadEnemyAi",
+        "DemonheadActionHandlers",
         "UpdateSingleLinkedEnemy",
         "AllocateSingleLinkedEnemy",
         "CheckSingleLinkedEnemyPhase",

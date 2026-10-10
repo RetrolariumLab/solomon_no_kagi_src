@@ -2,21 +2,21 @@
 
 .segment "PRG_COLLISION_ENEMY_AI"
 
-RunType1CTo37EnemyAi:
+RunNuelGhostEnemyAi:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type1CTo37ActionHandlers:
-    .addr UpdateType1CTo37LinkedSpawn
-    .addr UpdateType1CTo37MapInteraction
-    .addr UpdateType1CTo37LinkedLifetime
-    .addr UpdateType1CTo37OpenPath
+NuelGhostActionHandlers:
+    .addr UpdateNuelGhostLinkedSpawn
+    .addr UpdateNuelGhostMapInteraction
+    .addr UpdateNuelGhostLinkedLifetime
+    .addr UpdateNuelGhostOpenPath
 
-UpdateType1CTo37MapInteraction:
+UpdateNuelGhostMapInteraction:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$0A
-    BCC FinishType1CTo37MapInteraction
+    BCC FinishNuelGhostMapInteraction
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     AND #$03
@@ -27,17 +27,17 @@ UpdateType1CTo37MapInteraction:
     LDA (EnemyAiPointer),Y
     JSR LoadEnemyObjectPointer
     LDA TempPointer04 + 3
-    BEQ FinishType1CTo37MapInteraction
+    BEQ FinishNuelGhostMapInteraction
     JSR SelectEnemyCollisionMapCoordinates
     JSR ConvertPixelCoordinatesToMapIndex
     TAY
     LDA RoomMap,Y
     CMP #$F8
-    BCS FinishType1CTo37MapInteraction
+    BCS FinishNuelGhostMapInteraction
     STY MapCellIndex
     JSR ApplyMapTileInteractionToObject
 
-FinishType1CTo37MapInteraction:
+FinishNuelGhostMapInteraction:
     RTS
 
 SampleCurrentEnemyRoomMapCollision:
@@ -68,7 +68,7 @@ SampleNextCurrentEnemyRoomMapCell:
     BPL SampleNextCurrentEnemyRoomMapCell
     RTS
 
-UpdateType1CTo37LinkedSpawn:
+UpdateNuelGhostLinkedSpawn:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     LSR A
@@ -82,18 +82,18 @@ UpdateType1CTo37LinkedSpawn:
     STA (EnemyObjectPointer),Y
     JSR SampleCurrentEnemyRoomMapCollision
     LDA TempPointer04 + 3
-    BNE AllocateType1CTo37LinkedEnemy
+    BNE AllocateNuelGhostLinkedEnemy
     LDY #ObjectXMotionOffset
     LDA (EnemyObjectPointer),Y
     LDY #ObjectYMotionOffset
     ORA (EnemyObjectPointer),Y
-    BNE FinishType1CTo37LinkedSpawn
+    BNE FinishNuelGhostLinkedSpawn
     DEY
     TYA
     STA (EnemyObjectPointer),Y
-    BPL FinishType1CTo37LinkedSpawn
+    BPL FinishNuelGhostLinkedSpawn
 
-AllocateType1CTo37LinkedEnemy:
+AllocateNuelGhostLinkedEnemy:
     LDA #$00
     LDY #ObjectYMotionOffset
     STA (EnemyObjectPointer),Y
@@ -102,17 +102,17 @@ AllocateType1CTo37LinkedEnemy:
     LDY #ObjectTypeOffset
     LDA (EnemyObjectPointer),Y
     AND #$40
-    BEQ ReserveType1CTo37LinkedEnemy
+    BEQ ReserveNuelGhostLinkedEnemy
     LDA TempPointer04 + 3
     JSR SelectEnemyCollisionMapCoordinates
     JSR ConvertPixelCoordinatesToMapIndex
     LDA RoomMap,X
     CMP #$F8
-    BCS SelectType1CTo37LinkedAction
+    BCS SelectNuelGhostLinkedAction
 
-ReserveType1CTo37LinkedEnemy:
+ReserveNuelGhostLinkedEnemy:
     JSR FindFreeEnemySlotIndex
-    BCC FinishType1CTo37LinkedSpawn
+    BCC FinishNuelGhostLinkedSpawn
     TXA
     LDY #EnemyAiFirstLinkedSlotOffset
     STA (EnemyAiPointer),Y
@@ -132,27 +132,27 @@ ReserveType1CTo37LinkedEnemy:
     ORA #$04
     STA (EnemyObjectPointer),Y
 
-FinishType1CTo37LinkedSpawn:
+FinishNuelGhostLinkedSpawn:
     RTS
 
 EnemyCollisionProbeOffsets:
     .byte $01, $01, $0E, $0E, $01
 
-UpdateType1CTo37LinkedLifetime:
+UpdateNuelGhostLinkedLifetime:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$19
-    BCC FinishType1CTo37LinkedLifetime
+    BCC FinishNuelGhostLinkedLifetime
     DEY
     LDA (EnemyAiPointer),Y
     LSR A
-    BCC SelectType1CTo37LinkedAction
+    BCC SelectNuelGhostLinkedAction
     ASL A
     STA (EnemyAiPointer),Y
     LDX #$01
     JSR ClearLinkedEnemySlots
 
-SelectType1CTo37LinkedAction:
+SelectNuelGhostLinkedAction:
     LDY #ObjectActionOffset
     LDA #$02
     EOR (EnemyObjectPointer),Y
@@ -160,55 +160,55 @@ SelectType1CTo37LinkedAction:
     ORA #$0C
     STA (EnemyObjectPointer),Y
 
-FinishType1CTo37LinkedLifetime:
+FinishNuelGhostLinkedLifetime:
     RTS
 
-UpdateType1CTo37OpenPath:
+UpdateNuelGhostOpenPath:
     JSR SampleCurrentEnemyRoomMapCollision
     LDA TempPointer04 + 3
-    BNE FinishType1CTo37OpenPath
+    BNE FinishNuelGhostOpenPath
     LDY #ObjectActionOffset
     LDA #$03
     AND (EnemyObjectPointer),Y
     STA (EnemyObjectPointer),Y
 
-FinishType1CTo37OpenPath:
+FinishNuelGhostOpenPath:
     RTS
 
-RunType5CTo63EnemyAi:
+RunGoblinEnemyAi:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type5CTo63ActionHandlers:
-    .addr UpdateType5CTo63LinkedLifetime
+GoblinActionHandlers:
+    .addr UpdateGoblinLinkedLifetime
     .addr UpdateLinkedEnemyDirectionState
     .addr SetEnemyMovingAction18
     .addr RunEnemyActionA55C
-    .addr UpdateType5CTo63ForwardPath
-    .addr UpdateType5CTo63Spawn
+    .addr UpdateGoblinForwardPath
+    .addr UpdateGoblinSpawn
     .addr ClearCurrentEnemyLinkedSlots
 
-UpdateType5CTo63LinkedLifetime:
+UpdateGoblinLinkedLifetime:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     TAX
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     AND #$02
-    BNE CheckType5CTo63Retirement
+    BNE CheckGoblinRetirement
     CPX #$0C
-    BCC FinishType5CTo63LinkedLifetime
+    BCC FinishGoblinLinkedLifetime
     LDA (EnemyObjectPointer),Y
     ORA #$02
     STA (EnemyObjectPointer),Y
     JSR ApplyForwardEnemyMapInteraction
 
-FinishType5CTo63LinkedLifetime:
+FinishGoblinLinkedLifetime:
     RTS
 
-CheckType5CTo63Retirement:
+CheckGoblinRetirement:
     CPX #$1B
-    BCC FinishType5CTo63LinkedLifetime
+    BCC FinishGoblinLinkedLifetime
     LDY #EnemyAiFlagsOffset
     LDA #$FE
     AND (EnemyAiPointer),Y
@@ -226,33 +226,33 @@ CheckType5CTo63Retirement:
     LDY #ObjectActionOffset
     AND (EnemyObjectPointer),Y
     ROL TempPointer00
-    BCC KeepType5CTo63ForwardDirection
+    BCC KeepGoblinForwardDirection
     EOR #$01
 
-KeepType5CTo63ForwardDirection:
+KeepGoblinForwardDirection:
     ORA #$14
     STA (EnemyObjectPointer),Y
     RTS
 
-UpdateType5CTo63ForwardPath:
+UpdateGoblinForwardPath:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     AND #$02
-    BNE UpdateType5CTo63BlockedPath
+    BNE UpdateGoblinBlockedPath
     JSR CheckEnemyForwardCollisionBit
-    BNE HandleType5CTo63Collision
+    BNE HandleGoblinCollision
     LDY #ObjectActionOffset
     LDA #$01
     AND (EnemyObjectPointer),Y
     ORA #$16
     STA (EnemyObjectPointer),Y
-    BNE ResetType5CTo63Phase
+    BNE ResetGoblinPhase
 
-UpdateType5CTo63BlockedPath:
+UpdateGoblinBlockedPath:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$0C
-    BCC FinishType5CTo63ForwardPath
+    BCC FinishGoblinForwardPath
     LDY #ObjectXMotionOffset
     LDA #$01
     STA (EnemyObjectPointer),Y
@@ -261,38 +261,38 @@ UpdateType5CTo63BlockedPath:
     AND (EnemyObjectPointer),Y
     STA (EnemyObjectPointer),Y
 
-FinishType5CTo63ForwardPath:
+FinishGoblinForwardPath:
     RTS
 
-UpdateType5CTo63Spawn:
+UpdateGoblinSpawn:
     LDA #$08
     STA TempPointer00
     JSR CheckEnemyDeltaDirectionThreshold
-    BCS HandleType5CTo63Collision
+    BCS HandleGoblinCollision
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     TAX
     AND #$02
-    BNE HandleType5CTo63Collision
+    BNE HandleGoblinCollision
     TXA
     AND #EnemyDirectionBit
     ORA #$12
     STA (EnemyObjectPointer),Y
 
-ResetType5CTo63Phase:
+ResetGoblinPhase:
     LDY #EnemyAiPhaseOffset
     LDA #$00
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType5CTo63Collision:
+HandleGoblinCollision:
     JSR CheckEnemyForwardCollisionBit
-    BEQ SelectType5CTo63CollisionAction
+    BEQ SelectGoblinCollisionAction
     LDY #ObjectXMotionOffset
     LDA (EnemyObjectPointer),Y
-    BNE FinishType5CTo63Collision
+    BNE FinishGoblinCollision
     JSR FindFreeEnemySlotIndex
-    BCC FinishType5CTo63Collision
+    BCC FinishGoblinCollision
     TXA
     LDY #EnemyAiFirstLinkedSlotOffset
     STA (EnemyAiPointer),Y
@@ -309,25 +309,25 @@ HandleType5CTo63Collision:
     LDY #ObjectActionOffset
     AND (EnemyObjectPointer),Y
     STA (EnemyObjectPointer),Y
-    BPL ResetType5CTo63Phase
+    BPL ResetGoblinPhase
 
-SelectType5CTo63CollisionAction:
+SelectGoblinCollisionAction:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     TAX
     AND #$02
-    BNE CheckType5CTo63CollisionPhase
+    BNE CheckGoblinCollisionPhase
     TXA
     AND #EnemyDirectionBit
     ORA #$16
     STA (EnemyObjectPointer),Y
-    BNE ResetType5CTo63Phase
+    BNE ResetGoblinPhase
 
-CheckType5CTo63CollisionPhase:
+CheckGoblinCollisionPhase:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$18
-    BCC FinishType5CTo63Collision
+    BCC FinishGoblinCollision
     LDY #ObjectXMotionOffset
     LDA #$01
     STA (EnemyObjectPointer),Y
@@ -336,5 +336,5 @@ CheckType5CTo63CollisionPhase:
     AND #$FD
     STA (EnemyObjectPointer),Y
 
-FinishType5CTo63Collision:
+FinishGoblinCollision:
     RTS

@@ -23,7 +23,7 @@ for redraw through `BuildAndPublishRoomMapCellUpdate`.
 
 The entry has six external callers. `HandleDanaHeadCollision` and
 `RemoveBlockAtTarget` supply the magic-spark record. The four enemy paths are
-`UpdateType1CTo37MapInteraction`, `AllocateSingleLinkedEnemy`,
+`UpdateNuelGhostMapInteraction`, `AllocateSingleLinkedEnemy`,
 `UpdateType0CTo0FMapInteraction`, and `ApplyForwardEnemyMapInteraction`.
 Every call uses the semantic symbol and the shared zero-page aliases.
 

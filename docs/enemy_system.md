@@ -299,7 +299,7 @@ and PAL. `make enemy-ai-profile-audits` verifies that shared contract against
 both source-built ROMs rather than inferring it from the source conditionals.
 
 The first two targets are source-owned as `RunType00To03EnemyAi` and
-`RunType04To07EnemyAi` in `src/game/enemies/early_ai.asm`. Their shared contact
+`RunMightyBombJackEnemyAi` in `src/game/enemies/early_ai.asm`. Their shared contact
 path awards score, an extra life, or an inventory effect. Four more handler
 targets are source-owned in `src/game/enemies/mid_ai.asm`: the `$08-$0B`,
 `$10-$13`, `$54-$5B`, and `$6C-$6F` type families. The `$14-$17` and `$18-$1B`
@@ -324,7 +324,7 @@ an extra life, or one of four inventory effects selected through an inline
 `UpgradeSmallFireballInventory` scans the configured packed two-bit inventory
 slots backwards and changes the first small-fireball entry into a large one.
 
-`RunType04To07EnemyAi` chooses randomized motion on open paths and adjusts it
+`RunMightyBombJackEnemyAi` chooses randomized motion on open paths and adjusts it
 after collision. Its contact path replaces all active enemy object headers
 with `$E2,$1C,$FF,$00`, clears their AI phase bytes, and deactivates the
 triggering enemy. Shared helpers beyond this range retain neutral addresses
@@ -412,7 +412,7 @@ assembly module.
 
 `RunEnemyAiDispatcher` subtracts `$14` from an eligible object's type and
 `DispatchEnemyAiHandler` divides that selector by four. Handler-table entries
-15-17 therefore route types `$50-$5B` to `RunType50To5BEnemyAi`.
+15-17 therefore route types `$50-$5B` to `RunDemonheadEnemyAi`.
 
 That handler first applies the room lifetime threshold, then shifts object
 action byte 3 right twice. The resulting selector enters a seven-address
@@ -420,7 +420,7 @@ action byte 3 right twice. The resulting selector enters a seven-address
 retire the current slot after AI phase `$11`, begin horizontal movement, or
 run the single-linked-slot state machine.
 
-The adjacent `$B178` handler is reconstructed as `RunType48To53EnemyAi` in
+The adjacent `$B178` handler is reconstructed as `RunSalamanderEnemyAi` in
 `src/game/enemies/late_ai.asm`; its inline appendix calls
 `SetEnemyHorizontalStepAndFacing` and `UpdateLinkedEnemyPairSpawn` in this
 range.
@@ -461,7 +461,7 @@ table: phase-to-action promotion, horizontal orientation, and vertical
 orientation. `CheckEnemyAiDeltaRange` then checks both signed AI motion deltas
 against the same compact threshold and preserves the original carry contract.
 
-`RunType14To17EnemyAi` and `RunType18To1BEnemyAi` share the remaining path
+`RunSlowSparkBallEnemyAi` and `RunFastSparkBallEnemyAi` share the remaining path
 selector. Their only difference is a four-entry offset into the initial
 fractional-delta tables. The routine advances a candidate fixed-point
 position, samples four RoomMap cells around each of two candidate coordinates,

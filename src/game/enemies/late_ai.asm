@@ -2,16 +2,16 @@
 
 .segment "PRG_LATE_ENEMY_AI"
 
-RunType64To6BEnemyAi:
+RunGargoyleEnemyAi:
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type64To6BActionHandlers:
-    .addr UpdateType64To6BLinkedSpawn
+GargoyleActionHandlers:
+    .addr UpdateGargoyleLinkedSpawn
     .addr UpdateLinkedEnemyDirectionState
     .addr SetEnemyMovingAction18
     .addr RunEnemyActionA55C, RunEnemyActionA55C
-    .addr UpdateType64To6BSpawn
+    .addr UpdateGargoyleSpawn
     .addr RunEnemyActionA55C
 
 SetEnemyMovingAction18:
@@ -22,16 +22,16 @@ SetEnemyMovingAction18:
     STA (EnemyObjectPointer),Y
     RTS
 
-UpdateType64To6BLinkedSpawn:
+UpdateGargoyleLinkedSpawn:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     TAX
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     AND #$02
-    BEQ CheckType64To6BSpawnPhase
+    BEQ CheckGargoyleSpawnPhase
     CPX #$50
-    BCC FinishType64To6BLinkedSpawn
+    BCC FinishGargoyleLinkedSpawn
     LDA #$00
     LDY #EnemyAiPhaseOffset
     STA (EnemyAiPointer),Y
@@ -40,10 +40,10 @@ UpdateType64To6BLinkedSpawn:
     STA (EnemyObjectPointer),Y
     LDX #$00
     JSR CheckEnemyForwardCollisionBit
-    BNE SelectType64To6BLinkedAction
+    BNE SelectGargoyleLinkedAction
     INX
 
-SelectType64To6BLinkedAction:
+SelectGargoyleLinkedAction:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     LSR A
@@ -53,9 +53,9 @@ SelectType64To6BLinkedAction:
     STA (EnemyObjectPointer),Y
     RTS
 
-CheckType64To6BSpawnPhase:
+CheckGargoyleSpawnPhase:
     CPX #$10
-    BCC FinishType64To6BLinkedSpawn
+    BCC FinishGargoyleLinkedSpawn
     LDA (EnemyObjectPointer),Y
     TAX
     ORA #$02
@@ -99,7 +99,7 @@ SpawnLinkedEnemyAtOffset:
     LDY #$17
     JSR AddSoundEffect
 
-FinishType64To6BLinkedSpawn:
+FinishGargoyleLinkedSpawn:
     RTS
 
 LinkedEnemySpawnYOffsets:
@@ -161,25 +161,25 @@ CopyLinkedEnemyReplacementHeader:
 LinkedEnemyReplacementHeader:
     .byte $E2, $1C, $FF, $00
 
-UpdateType64To6BSpawn:
+UpdateGargoyleSpawn:
     LDA #$18
     STA TempPointer00
     JSR CheckEnemyForwardCollisionBit
-    BNE CheckType64To6BSpawnDirection
+    BNE CheckGargoyleSpawnDirection
     JSR CheckEnemyDeltaDirectionThreshold
-    BCS HandleType64To6BBlockedSpawn
+    BCS HandleGargoyleBlockedSpawn
     LDY #ObjectActionOffset
     LDA #$02
     ORA (EnemyObjectPointer),Y
     STA (EnemyObjectPointer),Y
 
-CheckType64To6BSpawnPhaseAgain:
+CheckGargoyleSpawnPhaseAgain:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$68
-    BCC FinishType64To6BSpawn
+    BCC FinishGargoyleSpawn
     JSR FindFreeEnemySlotIndex
-    BCC FinishType64To6BSpawn
+    BCC FinishGargoyleSpawn
     LDY #EnemyAiFlagsOffset
     LDA #EnemyAiActiveState
     STA (TempPointer04),Y
@@ -197,22 +197,22 @@ CheckType64To6BSpawnPhaseAgain:
     AND (EnemyObjectPointer),Y
     STA (EnemyObjectPointer),Y
 
-FinishType64To6BSpawn:
+FinishGargoyleSpawn:
     RTS
 
-CheckType64To6BSpawnDirection:
+CheckGargoyleSpawnDirection:
     JSR CheckEnemyDeltaDirectionThreshold
-    BCC CheckType64To6BSpawnPhaseAgain
+    BCC CheckGargoyleSpawnPhaseAgain
     LDY #ObjectXMotionOffset
     LDA (EnemyObjectPointer),Y
-    BNE FinishType64To6BSpawn
+    BNE FinishGargoyleSpawn
 
-HandleType64To6BBlockedSpawn:
+HandleGargoyleBlockedSpawn:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     TAX
     AND #$02
-    BNE CheckType64To6BBlockedPhase
+    BNE CheckGargoyleBlockedPhase
     TXA
     ORA #$02
     STA (EnemyObjectPointer),Y
@@ -220,11 +220,11 @@ HandleType64To6BBlockedSpawn:
     LDA #$00
     STA (EnemyAiPointer),Y
 
-CheckType64To6BBlockedPhase:
+CheckGargoyleBlockedPhase:
     LDY #$02
     LDA (EnemyAiPointer),Y
     CMP #$18
-    BCC FinishType64To6BBlockedSpawn
+    BCC FinishGargoyleBlockedSpawn
     LDY #ObjectXMotionOffset
     LDA #$01
     STA (EnemyObjectPointer),Y
@@ -233,7 +233,7 @@ CheckType64To6BBlockedPhase:
     AND #$FD
     STA (EnemyObjectPointer),Y
 
-FinishType64To6BBlockedSpawn:
+FinishGargoyleBlockedSpawn:
     RTS
 
 CheckEnemyForwardCollisionBit:
@@ -357,13 +357,13 @@ FindEnemyCollisionDirectionBit:
 EnemyCollisionCoordinateOffsets:
     .byte $00, $00, $0F, $0F, $00
 
-RunType48To53EnemyAi:
+RunSalamanderEnemyAi:
     JSR ApplyEnemyLifetimeThreshold
     JSR LoadEnemyActionSelector
     JSR JumpWithParams
 
-Type48To53ActionHandlers:
-    .addr DeactivateType50To5BAtPhase11
+SalamanderActionHandlers:
+    .addr DeactivateDemonheadOrSalamanderAtPhase11
     .addr SetEnemyHorizontalStepAndFacing
     .addr SetEnemyMovingAction18
     .addr UpdatePairedEnemyState

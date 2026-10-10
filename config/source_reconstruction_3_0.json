@@ -79,6 +79,11 @@
       "id": "tag-bound-2x-audits",
       "kind": "validation",
       "summary": "The 2.x manifests describe their tags' trees, so their audits run at the tag in a disposable clone; the functional 2.x gate stays on HEAD."
+    },
+    {
+      "id": "object-names",
+      "kind": "source",
+      "summary": "Enemy AI handlers are named after the enemies they run (Panel Monster, slow and fast Spark ball, Nuel and Ghost, Demonhead, Salamander, Dragon, Goblin, Gargoyle, flames, fairy, Mighty Bomb Jack), and the item names follow the owner's object review: Devil's Emblem, zodiac panels by element, the score rewards by look, the Mighty Bomb Jack medal."
     }
   ],
   "retrolarium": {

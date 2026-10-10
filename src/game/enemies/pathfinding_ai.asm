@@ -9,20 +9,20 @@ TempPointer05 = TempPointer04 + 1
 TempPointer06 = TempPointer04 + 2
 TempPointer07 = TempPointer04 + 3
 
-UpdateType08To0BPhaseAction:
+UpdateFairyPhaseAction:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
     CMP #$20
-    BCC FinishType08To0BPhaseAction
+    BCC FinishFairyPhaseAction
     LDY #ObjectActionOffset
     LDA #$18
     ORA (EnemyObjectPointer),Y
     STA (EnemyObjectPointer),Y
 
-FinishType08To0BPhaseAction:
+FinishFairyPhaseAction:
     RTS
 
-UpdateType08To0BHorizontalOrientation:
+UpdateFairyHorizontalOrientation:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     ASL A
@@ -31,10 +31,10 @@ UpdateType08To0BHorizontalOrientation:
     LDA (EnemyObjectPointer),Y
     AND #$02
     CLC
-    BNE RotateType08To0BHorizontalDirection
+    BNE RotateFairyHorizontalDirection
     SEC
 
-RotateType08To0BHorizontalDirection:
+RotateFairyHorizontalDirection:
     TXA
     ROR A
     STA TempPointer00
@@ -42,24 +42,24 @@ RotateType08To0BHorizontalDirection:
     LDA (EnemyObjectPointer),Y
     EOR TempPointer00
     AND #$40
-    BNE ReverseType08To0BHorizontalDirection
+    BNE ReverseFairyHorizontalDirection
     LDY #EnemyAiFlagsOffset
     LDA (EnemyAiPointer),Y
     AND #$10
-    BNE MergeType08To0BHorizontalDirection
+    BNE MergeFairyHorizontalDirection
     LDA #$80
 
-MergeType08To0BHorizontalDirection:
+MergeFairyHorizontalDirection:
     AND #$80
     ROL TempPointer00
     ROR A
-    BCC StoreType08To0BHorizontalDirection
+    BCC StoreFairyHorizontalDirection
 
-ReverseType08To0BHorizontalDirection:
+ReverseFairyHorizontalDirection:
     LDA #$40
     EOR TempPointer00
 
-StoreType08To0BHorizontalDirection:
+StoreFairyHorizontalDirection:
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     LDY #EnemyAiFlagsOffset
@@ -69,16 +69,16 @@ StoreType08To0BHorizontalDirection:
     LDY #ObjectActionOffset
     LDA #$02
     AND (EnemyObjectPointer),Y
-    BEQ MergeType08To0BHorizontalFlag
+    BEQ MergeFairyHorizontalFlag
     LDA #$08
 
-MergeType08To0BHorizontalFlag:
+MergeFairyHorizontalFlag:
     LDY #EnemyAiFlagsOffset
     ORA TempPointer00
     STA (EnemyAiPointer),Y
-    JMP SetType08To0BMovingAction
+    JMP SetFairyMovingAction
 
-UpdateType08To0BVerticalOrientation:
+UpdateFairyVerticalOrientation:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     AND #$BF
@@ -87,35 +87,35 @@ UpdateType08To0BVerticalOrientation:
     LDA (EnemyObjectPointer),Y
     LSR A
     TXA
-    BCS CompareType08To0BVerticalDirection
+    BCS CompareFairyVerticalDirection
     ORA #$40
 
-CompareType08To0BVerticalDirection:
+CompareFairyVerticalDirection:
     STA TempPointer00
     LDY #ObjectYMotionOffset
     LDA (EnemyObjectPointer),Y
     ASL A
     EOR TempPointer00
-    BPL ReverseType08To0BVerticalDirection
+    BPL ReverseFairyVerticalDirection
     LDY #EnemyAiFlagsOffset
     LDA (EnemyAiPointer),Y
     AND #$08
-    BNE MergeType08To0BVerticalDirection
+    BNE MergeFairyVerticalDirection
     LDA #$80
 
-MergeType08To0BVerticalDirection:
+MergeFairyVerticalDirection:
     AND #$80
     ASL TempPointer00
     ASL A
     LDA TempPointer00
     ROR A
-    BCC StoreType08To0BVerticalDirection
+    BCC StoreFairyVerticalDirection
 
-ReverseType08To0BVerticalDirection:
+ReverseFairyVerticalDirection:
     LDA #$80
     EOR TempPointer00
 
-StoreType08To0BVerticalDirection:
+StoreFairyVerticalDirection:
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     LDY #EnemyAiFlagsOffset
@@ -126,15 +126,15 @@ StoreType08To0BVerticalDirection:
     LDA (EnemyObjectPointer),Y
     ROR A
     LDA #$00
-    BCC MergeType08To0BVerticalFlag
+    BCC MergeFairyVerticalFlag
     LDA #$10
 
-MergeType08To0BVerticalFlag:
+MergeFairyVerticalFlag:
     LDY #EnemyAiFlagsOffset
     ORA TempPointer00
     STA (EnemyAiPointer),Y
 
-SetType08To0BMovingAction:
+SetFairyMovingAction:
     LDY #ObjectActionOffset
     LDA (EnemyObjectPointer),Y
     AND #EnemyDirectionBit
@@ -159,56 +159,56 @@ CheckNextEnemyAiDelta:
 FinishEnemyAiDeltaRangeCheck:
     RTS
 
-RunType14To17EnemyAi:
+RunSlowSparkBallEnemyAi:
     LDX #$00
-    BEQ UpdateType14To1BPathSelection
+    BEQ UpdateSparkBallPathSelection
 
-RunType18To1BEnemyAi:
+RunFastSparkBallEnemyAi:
     LDX #$04
 
-UpdateType14To1BPathSelection:
+UpdateSparkBallPathSelection:
     LDY #EnemyAiPhaseOffset
     LDA (EnemyAiPointer),Y
-    BNE BuildType14To1BPathSelection
+    BNE BuildSparkBallPathSelection
     RTS
 
-BuildType14To1BPathSelection:
+BuildSparkBallPathSelection:
     LDA #$00
     STA (EnemyAiPointer),Y
     STX TempPointer00
     LDX #$06
 
-ClearType14To1BPathScratch:
+ClearSparkBallPathScratch:
     STA TempPointer00 + 1,X
     DEX
-    BPL ClearType14To1BPathScratch
+    BPL ClearSparkBallPathScratch
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CLC
     ADC TempPointer00
     TAX
-    LDA Type14To1BYFractionDeltas,X
+    LDA SparkBallYFractionDeltas,X
     STA TempPointer00
-    LDA Type14To1BXFractionDeltas,X
+    LDA SparkBallXFractionDeltas,X
     STA TempPointer00 + 1
     LDX #$01
 
-ExpandType14To1BPositionDelta:
+ExpandSparkBallPositionDelta:
     ASL TempPointer00,X
-    BCC ShiftType14To1BPositionDelta
+    BCC ShiftSparkBallPositionDelta
     DEC TempPointer02,X
 
-ShiftType14To1BPositionDelta:
+ShiftSparkBallPositionDelta:
     ASL TempPointer00,X
     ROL TempPointer02,X
     ASL TempPointer00,X
     ROL TempPointer02,X
     DEX
-    BPL ExpandType14To1BPositionDelta
+    BPL ExpandSparkBallPositionDelta
     LDX #$01
     LDY #ObjectXFractionOffset
 
-ApplyType14To1BPositionDelta:
+ApplySparkBallPositionDelta:
     LDA (EnemyObjectPointer),Y
     CLC
     ADC TempPointer00,X
@@ -220,24 +220,24 @@ ApplyType14To1BPositionDelta:
     STA TempPointer02,X
     LDY #ObjectYFractionOffset
     DEX
-    BPL ApplyType14To1BPositionDelta
+    BPL ApplySparkBallPositionDelta
     LDX #$01
     STX TempPointer06
 
-SampleType14To1BPathMask:
+SampleSparkBallPathMask:
     LDY #$00
     STY TempPointer07
     LDY #$03
 
-SampleNextType14To1BPathCell:
+SampleNextSparkBallPathCell:
     LDA TempPointer06
     ASL A
     TAX
-    LDA Type14To1BProbeYOffsets,Y
+    LDA SparkBallProbeYOffsets,Y
     CLC
     ADC TempPointer00,X
     STA CoordinateY
-    LDA Type14To1BProbeXOffsets,Y
+    LDA SparkBallProbeXOffsets,Y
     CLC
     ADC TempPointer00 + 1,X
     STA CoordinateX
@@ -246,11 +246,11 @@ SampleNextType14To1BPathCell:
     ASL A
     ROL TempPointer07
     DEY
-    BPL SampleNextType14To1BPathCell
+    BPL SampleNextSparkBallPathCell
     LDA TempPointer07
     PHA
     DEC TempPointer06
-    BPL SampleType14To1BPathMask
+    BPL SampleSparkBallPathMask
     PLA
     STA TempPointer06
     PLA
@@ -259,33 +259,33 @@ SampleNextType14To1BPathCell:
     LDX #$00
     JSR JumpWithParams
 
-Type14To1BPathMaskHandlers:
-    .addr HandleType14To1BPathMask00, HandleType14To1BPathMask01
-    .addr HandleType14To1BPathMask02, HandleType14To1BPathMask03
-    .addr HandleType14To1BPathMask04, HandleType14To1BPathMask05
-    .addr HandleType14To1BPathMask06, HandleType14To1BPathMask07
-    .addr HandleType14To1BPathMask08, HandleType14To1BPathMask09
-    .addr HandleType14To1BPathMask0A, HandleType14To1BPathMask0B
-    .addr HandleType14To1BPathMask0C, HandleType14To1BPathMask0D
-    .addr HandleType14To1BPathMask0E, CommitType14To1BPathCoordinates
+SparkBallPathMaskHandlers:
+    .addr HandleSparkBallPathMask00, HandleSparkBallPathMask01
+    .addr HandleSparkBallPathMask02, HandleSparkBallPathMask03
+    .addr HandleSparkBallPathMask04, HandleSparkBallPathMask05
+    .addr HandleSparkBallPathMask06, HandleSparkBallPathMask07
+    .addr HandleSparkBallPathMask08, HandleSparkBallPathMask09
+    .addr HandleSparkBallPathMask0A, HandleSparkBallPathMask0B
+    .addr HandleSparkBallPathMask0C, HandleSparkBallPathMask0D
+    .addr HandleSparkBallPathMask0E, CommitSparkBallPathCoordinates
 
-Type14To1BYFractionDeltas:
+SparkBallYFractionDeltas:
     .byte $00, $00, $DE, $22, $00, $00, $B4, $4C
 
-Type14To1BXFractionDeltas:
+SparkBallXFractionDeltas:
     .byte $22, $DE, $00, $00, $4C, $B4, $00, $00
 
-Type14To1BProbeYOffsets:
+SparkBallProbeYOffsets:
     .byte $04, $04, $0E, $0E
 
-Type14To1BProbeXOffsets:
+SparkBallProbeXOffsets:
     .byte $03, $0E, $0E, $03
 
-HandleType14To1BPathMask00:
+HandleSparkBallPathMask00:
     LDY #PathAlternateDirectionOffset
     LDA #$00
     CMP TempPointer07,X
-    BEQ CommitType14To1BPathSelection
+    BEQ CommitSparkBallPathSelection
     LDA (EnemyAiPointer),Y
     STA TempPointer05,X
     DEY
@@ -294,195 +294,195 @@ HandleType14To1BPathMask00:
     LDY #$00
     LDA TempPointer07,X
 
-FindType14To1BPathDirectionBit:
+FindSparkBallPathDirectionBit:
     INY
     LSR A
-    BCC FindType14To1BPathDirectionBit
-    BEQ MatchType14To1BPathDirection
+    BCC FindSparkBallPathDirectionBit
+    BEQ MatchSparkBallPathDirection
     LDY #PathDirectionOffset
     LDA TempPointer05,X
     STA (EnemyAiPointer),Y
-    BPL CommitType14To1BPathSelection
+    BPL CommitSparkBallPathSelection
 
-MatchType14To1BPathDirection:
+MatchSparkBallPathDirection:
     DEY
     TYA
     ASL A
     TAY
     LDA TempPointer04,X
     CMP #$02
-    BCC CompareType14To1BPathDirection
+    BCC CompareSparkBallPathDirection
     INY
 
-CompareType14To1BPathDirection:
+CompareSparkBallPathDirection:
     LDA TempPointer05,X
-    CMP Type14To1BExpectedDirections,Y
-    BNE CommitType14To1BPathSelection
+    CMP SparkBallExpectedDirections,Y
+    BNE CommitSparkBallPathSelection
     PHA
-    LDA Type14To1BReplacementDirections,Y
+    LDA SparkBallReplacementDirections,Y
     LDY #PathAlternateDirectionOffset
     STA (EnemyAiPointer),Y
     PLA
     DEY
     STA (EnemyAiPointer),Y
 
-CommitType14To1BPathSelection:
-    JMP CommitType14To1BPathCoordinates
+CommitSparkBallPathSelection:
+    JMP CommitSparkBallPathCoordinates
 
-Type14To1BExpectedDirections:
+SparkBallExpectedDirections:
     .byte $02, $01, $02, $00, $03, $00, $03, $01
 
-Type14To1BReplacementDirections:
+SparkBallReplacementDirections:
     .byte $00, $03, $01, $03, $01, $02, $00, $02
 
-HandleType14To1BPathMask01:
+HandleSparkBallPathMask01:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCS SetType14To1BPathMask01XDirection
-    JSR SetType14To1BYLowNibble0B
-    BNE SelectType14To1BPathMask01Directions
+    BCS SetSparkBallPathMask01XDirection
+    JSR SetSparkBallYLowNibble0B
+    BNE SelectSparkBallPathMask01Directions
 
-SetType14To1BPathMask01XDirection:
-    JSR SetType14To1BXLowNibble04
+SetSparkBallPathMask01XDirection:
+    JSR SetSparkBallXLowNibble04
 
-SelectType14To1BPathMask01Directions:
+SelectSparkBallPathMask01Directions:
     LDA TempPointer07,X
-    BNE CommitType14To1BPathCoordinatesFromMask01
+    BNE CommitSparkBallPathCoordinatesFromMask01
     LDA #$01
-    BCS StoreType14To1BPathMask01Direction
+    BCS StoreSparkBallPathMask01Direction
     LDA #$02
 
-StoreType14To1BPathMask01Direction:
+StoreSparkBallPathMask01Direction:
     STA (EnemyAiPointer),Y
     EOR #$02
     INY
     STA (EnemyAiPointer),Y
     RTS
 
-CommitType14To1BPathCoordinatesFromMask01:
-    JMP CommitType14To1BPathCoordinates
+CommitSparkBallPathCoordinatesFromMask01:
+    JMP CommitSparkBallPathCoordinates
 
-HandleType14To1BPathMask02:
+HandleSparkBallPathMask02:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCS SetType14To1BPathMask02XDirection
-    JSR SetType14To1BYLowNibble0B
-    BNE SelectType14To1BPathMask02Directions
+    BCS SetSparkBallPathMask02XDirection
+    JSR SetSparkBallYLowNibble0B
+    BNE SelectSparkBallPathMask02Directions
 
-SetType14To1BPathMask02XDirection:
-    JSR SetType14To1BXLowNibble0A
+SetSparkBallPathMask02XDirection:
+    JSR SetSparkBallXLowNibble0A
 
-SelectType14To1BPathMask02Directions:
+SelectSparkBallPathMask02Directions:
     LDA TempPointer07,X
-    BNE CommitType14To1BPathCoordinatesFromMask01
+    BNE CommitSparkBallPathCoordinatesFromMask01
     LDA #$00
-    BCS StoreType14To1BPathMask02Direction
+    BCS StoreSparkBallPathMask02Direction
     LDA #$02
 
-StoreType14To1BPathMask02Direction:
+StoreSparkBallPathMask02Direction:
     STA (EnemyAiPointer),Y
     INY
     EOR #$03
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask04:
+HandleSparkBallPathMask04:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCS SetType14To1BPathMask04XDirection
-    JSR SetType14To1BYLowNibble02
-    BNE SelectType14To1BPathMask04Directions
+    BCS SetSparkBallPathMask04XDirection
+    JSR SetSparkBallYLowNibble02
+    BNE SelectSparkBallPathMask04Directions
 
-SetType14To1BPathMask04XDirection:
-    JSR SetType14To1BXLowNibble0A
+SetSparkBallPathMask04XDirection:
+    JSR SetSparkBallXLowNibble0A
 
-SelectType14To1BPathMask04Directions:
+SelectSparkBallPathMask04Directions:
     LDA TempPointer07,X
-    BNE CommitType14To1BPathCoordinatesFromMask01
+    BNE CommitSparkBallPathCoordinatesFromMask01
     LDA #$00
-    BCS StoreType14To1BPathMask04Direction
+    BCS StoreSparkBallPathMask04Direction
     LDA #$03
 
-StoreType14To1BPathMask04Direction:
+StoreSparkBallPathMask04Direction:
     STA (EnemyAiPointer),Y
     INY
     EOR #$02
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask08:
+HandleSparkBallPathMask08:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCS SetType14To1BPathMask08XDirection
-    JSR SetType14To1BYLowNibble02
-    BNE SelectType14To1BPathMask08Directions
+    BCS SetSparkBallPathMask08XDirection
+    JSR SetSparkBallYLowNibble02
+    BNE SelectSparkBallPathMask08Directions
 
-SetType14To1BPathMask08XDirection:
-    JSR SetType14To1BXLowNibble04
+SetSparkBallPathMask08XDirection:
+    JSR SetSparkBallXLowNibble04
 
-SelectType14To1BPathMask08Directions:
+SelectSparkBallPathMask08Directions:
     LDA TempPointer07,X
-    BNE CommitType14To1BPathCoordinates
+    BNE CommitSparkBallPathCoordinates
     LDA #$01
-    BCS StoreType14To1BPathMask08Direction
+    BCS StoreSparkBallPathMask08Direction
     LDA #$03
 
-StoreType14To1BPathMask08Direction:
+StoreSparkBallPathMask08Direction:
     STA (EnemyAiPointer),Y
     INY
     EOR #$03
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask03:
+HandleSparkBallPathMask03:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCS ClassifyType14To1BPathMask03Direction
-    JSR SetType14To1BYLowNibble0B
+    BCS ClassifySparkBallPathMask03Direction
+    JSR SetSparkBallYLowNibble0B
     INY
     LDA #$03
     STA (EnemyAiPointer),Y
-    BPL CommitType14To1BPathCoordinates
+    BPL CommitSparkBallPathCoordinates
 
-ClassifyType14To1BPathMask03Direction:
+ClassifySparkBallPathMask03Direction:
     LSR A
-    BCS CommitType14To1BPathCoordinates
+    BCS CommitSparkBallPathCoordinates
 
-SelectType14To1BHorizontalDirection:
+SelectSparkBallHorizontalDirection:
     LDY #ObjectXPositionOffset
     LDA (EnemyObjectPointer),Y
     AND #$0F
     CMP #$08
     LDA #$00
-    BCC StoreType14To1BHorizontalDirection
+    BCC StoreSparkBallHorizontalDirection
     LDA #$01
 
-StoreType14To1BHorizontalDirection:
+StoreSparkBallHorizontalDirection:
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     RTS
 
-ClassifyType14To1BPathMask0C:
+ClassifySparkBallPathMask0C:
     LSR A
-    BCC CommitType14To1BPathCoordinates
-    BCS SelectType14To1BHorizontalDirection
+    BCC CommitSparkBallPathCoordinates
+    BCS SelectSparkBallHorizontalDirection
 
-HandleType14To1BPathMask0C:
+HandleSparkBallPathMask0C:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCS ClassifyType14To1BPathMask0C
-    JSR SetType14To1BYLowNibble02
+    BCS ClassifySparkBallPathMask0C
+    JSR SetSparkBallYLowNibble02
     INY
     LDA #$02
     STA (EnemyAiPointer),Y
 
-CommitType14To1BPathCoordinates:
+CommitSparkBallPathCoordinates:
     LDY #ObjectYPositionOffset
     LDA TempPointer02,X
     STA (EnemyObjectPointer),Y
@@ -491,61 +491,61 @@ CommitType14To1BPathCoordinates:
     STA (EnemyObjectPointer),Y
     RTS
 
-HandleType14To1BPathMask09:
+HandleSparkBallPathMask09:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCC ClassifyType14To1BPathMask09Direction
-    JSR SetType14To1BXLowNibble04
+    BCC ClassifySparkBallPathMask09Direction
+    JSR SetSparkBallXLowNibble04
     INY
     LDA #$00
     STA (EnemyAiPointer),Y
 
-CommitType14To1BPathMask09Coordinates:
-    BPL CommitType14To1BPathCoordinates
+CommitSparkBallPathMask09Coordinates:
+    BPL CommitSparkBallPathCoordinates
 
-ClassifyType14To1BPathMask09Direction:
+ClassifySparkBallPathMask09Direction:
     LSR A
-    BCC CommitType14To1BPathMask09Coordinates
-    BCS SelectType14To1BVerticalDirection
+    BCC CommitSparkBallPathMask09Coordinates
+    BCS SelectSparkBallVerticalDirection
 
-HandleType14To1BPathMask06:
+HandleSparkBallPathMask06:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     CMP #$02
-    BCC ClassifyType14To1BPathMask06Direction
-    JSR SetType14To1BXLowNibble0A
+    BCC ClassifySparkBallPathMask06Direction
+    JSR SetSparkBallXLowNibble0A
     LDY #PathAlternateDirectionOffset
     LDA #$01
     STA (EnemyAiPointer),Y
 
-CommitType14To1BPathMask06Coordinates:
-    BPL CommitType14To1BPathCoordinates
+CommitSparkBallPathMask06Coordinates:
+    BPL CommitSparkBallPathCoordinates
 
-ClassifyType14To1BPathMask06Direction:
+ClassifySparkBallPathMask06Direction:
     LSR A
-    BCS CommitType14To1BPathMask06Coordinates
+    BCS CommitSparkBallPathMask06Coordinates
 
-SelectType14To1BVerticalDirection:
+SelectSparkBallVerticalDirection:
     LDY #PathAlternateDirectionOffset
     LDA (EnemyAiPointer),Y
     AND #$0F
     CMP #$0B
     LDA #$02
-    BCS StoreType14To1BVerticalDirection
+    BCS StoreSparkBallVerticalDirection
     LDA #$03
 
-StoreType14To1BVerticalDirection:
+StoreSparkBallVerticalDirection:
     DEY
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask0B:
+HandleSparkBallPathMask0B:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     TAY
-    LDA Type14To1BDirectionMap0B,Y
-    BMI CommitType14To1BPathCoordinates
+    LDA SparkBallDirectionMap0B,Y
+    BMI CommitSparkBallPathCoordinates
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     EOR #$03
@@ -553,12 +553,12 @@ HandleType14To1BPathMask0B:
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask07:
+HandleSparkBallPathMask07:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     TAY
-    LDA Type14To1BDirectionMap07,Y
-    BMI CommitType14To1BPathCoordinates
+    LDA SparkBallDirectionMap07,Y
+    BMI CommitSparkBallPathCoordinates
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     EOR #$02
@@ -566,14 +566,14 @@ HandleType14To1BPathMask07:
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask0D:
+HandleSparkBallPathMask0D:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     TAY
-    LDA Type14To1BDirectionMap0D,Y
+    LDA SparkBallDirectionMap0D,Y
 
-StoreMappedType14To1BPathDirection02:
-    BMI CommitType14To1BPathCoordinates
+StoreMappedSparkBallPathDirection02:
+    BMI CommitSparkBallPathCoordinates
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     EOR #$02
@@ -581,12 +581,12 @@ StoreMappedType14To1BPathDirection02:
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask0E:
+HandleSparkBallPathMask0E:
     LDY #PathDirectionOffset
     LDA (EnemyAiPointer),Y
     TAY
-    LDA Type14To1BDirectionMap0E,Y
-    BMI StoreMappedType14To1BPathDirection02
+    LDA SparkBallDirectionMap0E,Y
+    BMI StoreMappedSparkBallPathDirection02
     LDY #PathDirectionOffset
     STA (EnemyAiPointer),Y
     EOR #$03
@@ -594,56 +594,56 @@ HandleType14To1BPathMask0E:
     STA (EnemyAiPointer),Y
     RTS
 
-HandleType14To1BPathMask05:
+HandleSparkBallPathMask05:
     LDA TempPointer02,X
     ADC #$01
     AND #$08
-    BNE HandleType14To1BPathMask07
-    BEQ HandleType14To1BPathMask0D
+    BNE HandleSparkBallPathMask07
+    BEQ HandleSparkBallPathMask0D
 
-HandleType14To1BPathMask0A:
+HandleSparkBallPathMask0A:
     LDA TempPointer02,X
     ADC #$01
     AND #$08
-    BNE HandleType14To1BPathMask0B
-    BEQ HandleType14To1BPathMask0E
+    BNE HandleSparkBallPathMask0B
+    BEQ HandleSparkBallPathMask0E
 
-SetType14To1BYLowNibble0B:
+SetSparkBallYLowNibble0B:
     LDA #$F0
     AND TempPointer02,X
     ORA #$0B
     STA TempPointer02,X
     RTS
 
-SetType14To1BYLowNibble02:
+SetSparkBallYLowNibble02:
     LDA #$F0
     AND TempPointer02,X
     ORA #$02
     STA TempPointer02,X
     RTS
 
-SetType14To1BXLowNibble04:
+SetSparkBallXLowNibble04:
     LDA #$F0
     AND TempPointer03,X
     ORA #$04
     STA TempPointer03,X
     RTS
 
-SetType14To1BXLowNibble0A:
+SetSparkBallXLowNibble0A:
     LDA #$F0
     AND TempPointer03,X
     ORA #$0A
     STA TempPointer03,X
     RTS
 
-Type14To1BDirectionMap0B:
+SparkBallDirectionMap0B:
     .byte $80, $03, $00, $80
 
-Type14To1BDirectionMap07:
+SparkBallDirectionMap07:
     .byte $03, $80, $01, $80
 
-Type14To1BDirectionMap0D:
+SparkBallDirectionMap0D:
     .byte $80, $02, $80, $00
 
-Type14To1BDirectionMap0E:
+SparkBallDirectionMap0E:
     .byte $02, $80, $80, $01
