@@ -32,6 +32,24 @@ the revisions and the asset split. The studio offers:
 Capacities stay those of the original layout: each table keeps its place and
 size, and the studio refuses an edit that would not fit.
 
+## The game's names and tables
+
+Retrolarium keeps nothing taken from the game; this repository gives it what it
+needs. `config/names.json` holds the game's own names (the player, items,
+constellations, enemy families and special rooms) in English. The studio and the
+kit read it when a project opens and show the names as they are, untranslated;
+without it they show numbers instead. Its `guard` list names what Retrolarium's
+own repositories must never contain.
+
+`config/game_profile.json` is the game's Retrolarium profile: its revisions with
+their hashes and, for each resource, where it lies in each revision's image and
+which codec reads it. The kit reads it when it opens `solomons_key.rlj` or a
+project made from it; Retrolarium keeps no copy.
+
+`config/profile_tables.json` names, by label, the tables the kit reads from the
+image built from this source; `tools/profile_tables.py` in Retrolarium Kit turns
+it into the offsets of `config/game_profile.json` for every revision.
+
 ## Checking the repository
 
 `make studio-check` runs `rltool studio check solomons_key.rlj`. In a throwaway

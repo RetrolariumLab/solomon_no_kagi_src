@@ -94,6 +94,16 @@
       "id": "shared-linter",
       "kind": "tooling",
       "summary": "make lint-asm and make format run Retrolarium Kit's shared linter (rltool lint) over config/lint.json: the ca65 style for src and the text contract; asm_style.py and its tests move to the kit. build.project lint and the public-text check stay here."
+    },
+    {
+      "id": "game-names",
+      "kind": "tooling",
+      "summary": "config/names.json keeps the game's own names, in English, and the lists that carry them; Retrolarium Studio and Kit read them when a project opens and keep none themselves. Its guard list names what Retrolarium's repositories must never contain."
+    },
+    {
+      "id": "profile-tables",
+      "kind": "tooling",
+      "summary": "config/profile_tables.json names by label the tables Retrolarium Kit reads from the image built from this source; the kit's tools/profile_tables.py turns it into profile offsets."
     }
   ],
   "retrolarium": {

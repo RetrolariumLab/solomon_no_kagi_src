@@ -1,0 +1,33 @@
+{
+  "revisions": {
+    "usa": {
+      "engine": "solomon",
+      "dbg": "build/revisions/usa/solomons_key.dbg",
+      "offsets": "image"
+    },
+    "europe": {
+      "engine": "solomon",
+      "dbg": "build/revisions/europe/solomons_key.dbg",
+      "offsets": "image"
+    },
+    "japan": {
+      "match": {
+        "revision": "usa",
+        "reference_image": "build/revisions/usa/solomons_key.nes",
+        "image": "Solomon no Kagi (J).nes"
+      }
+    }
+  },
+  "engines": {
+    "solomon": [
+      {
+        "name": "constellation_tile_patterns",
+        "label": "ConstellationTilePatterns"
+      },
+      {
+        "name": "constellation_palettes",
+        "label": "ConstellationTileLowBits"
+      }
+    ]
+  }
+}

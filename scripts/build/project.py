@@ -689,7 +689,10 @@ def validate_tool_layout(root: Path) -> None:
 def validate_config_layout(root: Path) -> None:
     """Keep shared release/profile contracts at root and group owned configs."""
     allowed_root_json = {
+        "game_profile.json",
         "lint.json",
+        "names.json",
+        "profile_tables.json",
         "revision_profiles.json",
         "source_reconstruction_1_0.json",
         "source_reconstruction_2_0.json",
