@@ -7,14 +7,14 @@ Tecmo's original Solomon's Key code, graphics, audio, or other game data.
 
 ## Component classification
 
-| Component | Origin | Status | Redistribution boundary |
-| --- | --- | --- | --- |
-| Project-authored tools and documentation | Contributors to this repository | No project-wide license grant is currently declared | Retain repository authorship; do not infer a license for game material |
-| Reconstructed game source and encoded data | Derived from the Solomon's Key USA binary and the imported disassembly | License not granted | Treat as copyrighted game material; source availability is not a redistribution license |
-| Imported preservation listing | `rbmichael/solomons_key_disassembly`, attributed there to `ninespaces` | No explicit upstream license observed at import time | Attribution and provenance are retained; no additional rights are asserted |
-| Bundled `ca65.exe` and `ld65.exe` | cc65 revision `0fca835`, official Snapshot Build 795 | cc65 zlib license | Redistribution is permitted under the unchanged notice in `bin/cc65-LICENSE.txt` |
-| FCEUX automation executable | External source-built `oranguthang/fceux_automation` checkout | External, unbundled dependency | The executable is not tracked here; its upstream license governs it |
-| USA reference ROM and extracted CHR | Legally obtained and supplied privately by the user | Private user-supplied input | Never tracked or redistributed by this project |
+| Component                                  | Origin                                                                 | Status                                               | Redistribution boundary                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Project-authored tools and documentation   | Contributors to this repository                                        | No project-wide license grant is currently declared  | Retain repository authorship; do not infer a license for game material                  |
+| Reconstructed game source and encoded data | Derived from the Solomon's Key USA binary and the imported disassembly | License not granted                                  | Treat as copyrighted game material; source availability is not a redistribution license |
+| Imported preservation listing              | `rbmichael/solomons_key_disassembly`, attributed there to `ninespaces` | No explicit upstream license observed at import time | Attribution and provenance are retained; no additional rights are asserted              |
+| `ca65` and `ld65`                          | cc65 revision `0fca835`, built and shipped by Retrolarium Kit          | cc65 zlib license                                    | Not stored here; the kit ships them with the unchanged notice                           |
+| FCEUX automation executable                | External source-built `oranguthang/fceux_automation` checkout          | External, unbundled dependency                       | The executable is not tracked here; its upstream license governs it                     |
+| USA reference ROM and extracted CHR        | Legally obtained and supplied privately by the user                    | Private user-supplied input                          | Never tracked or redistributed by this project                                          |
 
 ## Repository policy
 

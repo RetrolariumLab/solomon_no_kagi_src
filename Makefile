@@ -1,7 +1,11 @@
 PYTHON ?= python
 RUN_TOOL := $(PYTHON) scripts/run.py
-CA65 ?= bin/ca65.exe
-LD65 ?= bin/ld65.exe
+# cc65 from Retrolarium Kit (RLTOOL, default rltool), asked once per run; the
+# recipes' shell needs forward slashes.
+RLTOOL ?= rltool
+export RLTOOL
+CA65 ?= $(eval CA65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ca65)))$(CA65)
+LD65 ?= $(eval LD65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ld65)))$(LD65)
 REFERENCE_ROM ?= Solomon's Key (U) [!].nes
 EUROPE_REFERENCE_ROM ?= Solomon's Key (E) [!].nes
 MANIFEST := assets/manifest.json
@@ -82,7 +86,6 @@ ROMLESS_TEST_MODULES := \
 	tests.build.test_verify_rom \
 	tests.build.test_revision_profiles \
 	tests.runtime.test_runtime_scenarios \
-	tests.validation.test_asm_style \
 	tests.validation.test_debug_symbols \
 	tests.validation.test_prg_layout \
 	tests.validation.test_reconstruction_status \

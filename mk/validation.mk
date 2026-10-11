@@ -1,13 +1,15 @@
 # Static quality, format contracts, and release gates.
 
+# House style (config/lint.json) from Retrolarium Kit: the ca65 sources and
+# the text contract.
 format:
-	$(RUN_TOOL) validation.asm_style --fix src
+	$(RLTOOL) lint --fix
 	$(MAKE) lint
 
 format-check: lint-asm
 
 lint-asm:
-	$(RUN_TOOL) validation.asm_style src
+	$(RLTOOL) lint
 
 lint-source:
 	$(RUN_TOOL) build.project lint

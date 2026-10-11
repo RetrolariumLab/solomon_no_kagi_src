@@ -84,6 +84,16 @@
       "id": "object-names",
       "kind": "source",
       "summary": "Enemy AI handlers are named after the enemies they run (Panel Monster, slow and fast Spark ball, Nuel and Ghost, Demonhead, Salamander, Dragon, Goblin, Gargoyle, flames, fairy, Mighty Bomb Jack), and the item names follow the owner's object review: Devil's Emblem, zodiac panels by element, the score rewards by look, the Mighty Bomb Jack medal."
+    },
+    {
+      "id": "kit-toolchain",
+      "kind": "toolchain",
+      "summary": "The repository no longer carries ca65 and ld65: CA65 and LD65 default to the cc65 Retrolarium Kit builds and ships (the same 2.19 0fca835), still checked by size and SHA-256 against config/toolchain.json, and bin/ is gone."
+    },
+    {
+      "id": "shared-linter",
+      "kind": "tooling",
+      "summary": "make lint-asm and make format run Retrolarium Kit's shared linter (rltool lint) over config/lint.json: the ca65 style for src and the text contract; asm_style.py and its tests move to the kit. build.project lint and the public-text check stay here."
     }
   ],
   "retrolarium": {
@@ -303,12 +313,12 @@
       "notes": "Ignored references inform research; accepted claims are independently verified against private ROMs."
     },
     {
-      "component": "bundled_cc65_tools",
-      "category": "bundled_external_tools",
-      "origin": "cc65 revision 0fca835",
+      "component": "kit_cc65_tools",
+      "category": "external_tools",
+      "origin": "cc65 revision 0fca835, built and shipped by Retrolarium Kit",
       "license_id_or_status": "Zlib",
-      "redistribution": "permitted with included notice",
-      "notes": "See bin/cc65-LICENSE.txt."
+      "redistribution": "not stored here; the kit ships the notice",
+      "notes": "config/toolchain.json pins the kit's binaries."
     },
     {
       "component": "fceux_automation",

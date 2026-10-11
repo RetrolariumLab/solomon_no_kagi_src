@@ -25,6 +25,9 @@ LABEL_FILE_RE = re.compile(r"^al\s+([0-9A-Fa-f]{6})\s+\.?([^\s]+)\s*$")
 MAKE_TARGET_RE = re.compile(r"^([A-Za-z0-9_.-]+)(?:\s+[^:]*)?:")
 CONFIDENCE_LEVELS = {"confirmed", "high", "tentative", "unknown"}
 HISTORICAL_TOOL_PATHS = {
+    # The cc65 notice left with the binaries for Retrolarium Kit; the licensing
+    # page says where it is now.
+    "bin/cc65-LICENSE.txt": "docs/licensing.md",
     "config/audio_data.json": "config/validation/audio_data.json",
     "config/audio_data_europe.json": "config/validation/audio_data_europe.json",
     "config/title_data.json": "config/validation/title_data.json",

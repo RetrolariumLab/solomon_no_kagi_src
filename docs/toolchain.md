@@ -7,16 +7,16 @@ workflow.
 
 ## Build tools
 
-The repository bundles `ca65.exe` and `ld65.exe` from cc65 2.19, upstream
-revision `0fca835` (official Snapshot Build 795). Their version output, sizes,
-source revision, and executable hashes are fixed in the toolchain manifest.
-`make verify-build-toolchain` checks the actual paths selected by `CA65` and
-`LD65`; both assembler prerequisites use that check as an order-only gate so a
-changed executable cannot silently rebuild the ROM.
+The build uses `ca65` and `ld65` from cc65 2.19, upstream revision `0fca835`,
+as Retrolarium Kit builds and ships them: `CA65` and `LD65` default to
+`$(RLTOOL) build-tools path nes ca65` (and `ld65`), with `RLTOOL` naming the kit
+command (default `rltool`). Their version output, sizes, kit release, and
+executable hashes are fixed in the toolchain manifest. `make verify-build-toolchain` checks the actual paths selected by `CA65` and `LD65`;
+both assembler prerequisites use that check as an order-only gate so a changed
+executable cannot silently rebuild the ROM.
 
-The upstream source and bundled license are documented in `bin/README.md` and
-`bin/cc65-LICENSE.txt`. The checked binaries are development tools and contain
-no game data.
+The kit carries cc65's license with the binaries; this repository holds no
+executables.
 
 ## Runtime tool
 

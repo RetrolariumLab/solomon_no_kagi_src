@@ -7,9 +7,11 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -224,6 +226,32 @@ def parse_path_overrides(values: list[str]) -> dict[str, str]:
     return overrides
 
 
+def kit_tool_path(spec: str) -> Path:
+    """A program Retrolarium Kit ships, as suite/tool (nes/ca65); RLTOOL
+    names the kit command (default rltool)."""
+    suite, _, tool = spec.partition("/")
+    # On Windows the command keeps its quoted paths (they may hold spaces).
+    kit = [part[1:-1] if len(part) > 1 and part[0] == part[-1] == '"' else part
+           for part in shlex.split(os.environ.get("RLTOOL", "rltool"), posix=os.name != "nt")]
+    try:
+        completed = subprocess.run([*kit, "build-tools", "path", suite, tool],
+                                   capture_output=True, text=True, check=False)
+    except OSError as exc:
+        raise ProjectError(f"cannot run Retrolarium Kit for {spec}: {exc}") from exc
+    if completed.returncode:
+        raise ProjectError(f"Retrolarium Kit has no {spec}: {completed.stderr.strip()}")
+    return Path(completed.stdout.strip().splitlines()[-1])
+
+
+def entry_path(entry: dict[str, object], overrides: dict[str, str]) -> Path:
+    identifier = str(entry.get("id", ""))
+    if identifier in overrides:
+        return resolve_tool_path(overrides[identifier])
+    if isinstance(entry.get("kit_tool"), str):
+        return kit_tool_path(str(entry["kit_tool"]))
+    return resolve_tool_path(str(entry.get("path", "")))
+
+
 def resolve_tool_path(value: str) -> Path:
     path = Path(value)
     if not path.is_absolute():
@@ -341,8 +369,7 @@ def command_toolchain(args: argparse.Namespace) -> None:
             raise ProjectError("invalid toolchain component entry")
         if args.scope != "all" and entry.get("scope") != args.scope:
             continue
-        identifier = str(entry.get("id", ""))
-        path = resolve_tool_path(overrides.get(identifier, str(entry.get("path", ""))))
+        path = entry_path(entry, overrides)
         verify_component(path, entry)
         verified += 1
     if args.scope in ("private", "all"):
@@ -662,6 +689,7 @@ def validate_tool_layout(root: Path) -> None:
 def validate_config_layout(root: Path) -> None:
     """Keep shared release/profile contracts at root and group owned configs."""
     allowed_root_json = {
+        "lint.json",
         "revision_profiles.json",
         "source_reconstruction_1_0.json",
         "source_reconstruction_2_0.json",
@@ -727,7 +755,7 @@ def command_lint(_args: argparse.Namespace) -> None:
         "docs/toolchain.md",
         "config/reconstruction/label_renames.json",
         "scripts/run.py",
-        "scripts/validation/asm_style.py",
+        "config/lint.json",
         "scripts/validation/debug_symbols.py",
         "scripts/validation/prg_layout.py",
         "scripts/runtime/runtime_scenarios.py",

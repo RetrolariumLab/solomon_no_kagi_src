@@ -3,10 +3,12 @@
 The quality targets follow the same split used by the sibling Pac-Man and
 Super Mario Bros. preservation projects.
 
-- `make format` normalizes every ca65 `.asm` and `.inc` source, then runs all
-  linters
-- `make format-check` checks assembly formatting without changing files
-- `make lint-asm` checks the shared assembly style contract
+- `make format` normalizes every ca65 `.asm` and `.inc` source and the text
+  files, then runs all linters
+- `make format-check` checks formatting without changing files
+- `make lint-asm` checks the shared house style: Retrolarium Kit's linter
+  (`rltool lint`) over `config/lint.json`, for the ca65 sources and the text
+  contract (LF endings, no trailing spaces, one final newline, valid JSON)
 - `make lint-source` checks the repository structure, every Python and JSON
   source, local documentation links, source contracts, ASM module sizes and
   directory organization, and tracked private/generated output policy

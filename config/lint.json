@@ -1,0 +1,17 @@
+{
+  "schema": "retrolarium.lint",
+  "schema_version": 1,
+  "assembly": {
+    "dialect": "ca65",
+    "paths": [
+      "src"
+    ]
+  },
+  "text": {
+    "json": "valid",
+    "skip": [
+      "assets/generated",
+      "references"
+    ]
+  }
+}
