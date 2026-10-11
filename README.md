@@ -110,3 +110,10 @@ layers. See [architecture](docs/architecture.md),
 
 This is an unofficial preservation and research project. Solomon's Key and its
 game data remain property of their respective rights holders.
+
+## Trademarks
+
+This is an unofficial reconstruction, made for study and preservation. The game,
+its title and its characters are trademarks of their owners, who have not made,
+licensed or endorsed this project. It contains no part of the game: you need
+your own copy of Solomon's Key to build anything.
