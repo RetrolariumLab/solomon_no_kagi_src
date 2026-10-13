@@ -7,7 +7,7 @@
   },
   "release_kind": "retrolarium",
   "tag": "source-reconstruction-3.0",
-  "status": "development",
+  "status": "tag-ready",
   "predecessor": {
     "manifest": "config/source_reconstruction_2_1.json",
     "tag": "source-reconstruction-2.1",
@@ -18,16 +18,24 @@
     "through_inclusive": "release-commit",
     "commits": [
       {
-        "commit": "27287bb1243608da6ba71b54c0d865920499315f",
-        "subject": "Retrolarium Studio descriptor"
-      },
-      {
-        "commit": "f4de7fa5b00a2b77f34ca56ee29fbebcf3b10a71",
-        "subject": "Retrolarium descriptor: views come from the kit"
-      },
-      {
-        "commit": "7f50e1e5bf19ea3021ec5922dfca7ceafd0d3789",
+        "commit": "e142c2c833f0983bf65d31498e3faa32cd28eb63",
         "subject": "Source Reconstruction 3.0: editing moves to Retrolarium"
+      },
+      {
+        "commit": "79999f764f1c5162199bc8d76eeaa789a3ccda46",
+        "subject": "Object names: enemy AI handlers and items"
+      },
+      {
+        "commit": "7a33d6ce165ab7d7f93453169012b874629a5f77",
+        "subject": "Build and lint with Retrolarium Kit"
+      },
+      {
+        "commit": "3555f1d902c78ef0d37f0bd441cb5d109ae7042d",
+        "subject": "The game's names, profile and tables for Retrolarium"
+      },
+      {
+        "commit": "c473df6840888e303b09befbd9457088935a98ec",
+        "subject": "README: a trademark notice"
       }
     ]
   },
@@ -63,7 +71,7 @@
     {
       "id": "retrolarium-descriptor",
       "kind": "tooling",
-      "summary": "solomons_key.rlj names the game, its kit profile solomons-key.v1, the revisions it builds and its asset split; the studio views come from the kit's profile."
+      "summary": "solomons_key.rlj names the game, its profile solomons-key.v1, the revisions it builds and its asset split; the studio views come from the kit."
     },
     {
       "id": "editing-moves-to-retrolarium",
@@ -101,6 +109,11 @@
       "summary": "config/names.json keeps the game's own names, in English, and the lists that carry them; Retrolarium Studio and Kit read them when a project opens and keep none themselves. Its guard list names what Retrolarium's repositories must never contain."
     },
     {
+      "id": "game-profile",
+      "kind": "tooling",
+      "summary": "config/game_profile.json is the game's Retrolarium profile: its revisions with their hashes and where each resource lies in each image. Retrolarium Kit reads it when it opens the repository and keeps no copy."
+    },
+    {
       "id": "profile-tables",
       "kind": "tooling",
       "summary": "config/profile_tables.json names by label the tables Retrolarium Kit reads from the image built from this source; the kit's tools/profile_tables.py turns it into profile offsets."
@@ -110,10 +123,10 @@
     "descriptor": "solomons_key.rlj",
     "profile": "solomons-key.v1",
     "kit": {
-      "version": null,
-      "commit": null
+      "version": "0.5.0",
+      "commit": "53622768fae796d01e38622199c2d35563333a70"
     },
-    "studio_min_version": null,
+    "studio_min_version": "0.1.0",
     "revisions": [
       "usa",
       "europe",
