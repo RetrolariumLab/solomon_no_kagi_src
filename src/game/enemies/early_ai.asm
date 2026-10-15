@@ -447,7 +447,7 @@ SelectEnemyCollisionScoreDigit:
     BCS SelectEnemyCollisionScoreDigit
     ADC #$03
     TAY
-    LDA $A5A0,Y
+    LDA EnemyCollisionScoreAmounts,Y
     JSR AddScoreByAAtDigitX
     BMI QueueEnemyItemPresentation
 
@@ -606,7 +606,7 @@ CheckNextEnemyForMightyBombJackReplacement:
     LDY #$03
 
 CopyMightyBombJackReplacementHeader:
-    LDA $A688,Y
+    LDA MightyBombJackReplacementHeader,Y
     STA ($00),Y
     DEY
     BPL CopyMightyBombJackReplacementHeader

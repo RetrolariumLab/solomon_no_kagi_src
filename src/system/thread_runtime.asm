@@ -140,7 +140,7 @@ ThreadEntryTableBases:
     .addr PauseGameThread - 1
     .addr RunDemoInputPlayback - 1
 
-    .byte $ff, $9f
+    .addr MainGameplayThread - 1
     .addr RunDanaDeathTransition - 1
     .addr EnterRoomDoor - 1
     .addr RunTimeOverTransition - 1
