@@ -27,3 +27,6 @@ __pycache__/
 # Retrolarium Studio: generated projects and your edits (game data)
 /.retrolarium/
 /hack/
+
+# The stop-word list (retrolarium_core.stop_words) never enters a repository
+/.stopwords
