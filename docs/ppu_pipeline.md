@@ -1,5 +1,10 @@
 # PPU update pipeline
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 This guide describes direct PPU access, buffered update streams, repeated writers, static requests, and nametable clearing.
 
 

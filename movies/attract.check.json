@@ -1,0 +1,104 @@
+{
+  "schema": "retrolarium.movie-check",
+  "schema_version": 1,
+  "movie": "attract.rlmovie",
+  "cells": {
+    "room": {
+      "address": "0x0428"
+    },
+    "room_state": {
+      "address": "0x007C"
+    },
+    "score": {
+      "address": "0x044A",
+      "length": 8
+    },
+    "lives": {
+      "address": "0x0452"
+    },
+    "timer": {
+      "address": "0x0438",
+      "length": 4
+    },
+    "dana_y": {
+      "address": "0x0586"
+    },
+    "dana_x": {
+      "address": "0x0589"
+    }
+  },
+  "frames": [
+    1000,
+    1500,
+    2000,
+    2500,
+    3000,
+    3500,
+    "end"
+  ],
+  "expected": {
+    "1000": {
+      "room": "02",
+      "room_state": "03",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "00000001",
+      "dana_y": "00",
+      "dana_x": "00"
+    },
+    "1500": {
+      "room": "02",
+      "room_state": "03",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "00040900",
+      "dana_y": "3b",
+      "dana_x": "55"
+    },
+    "2000": {
+      "room": "02",
+      "room_state": "03",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "04070800",
+      "dana_y": "81",
+      "dana_x": "dc"
+    },
+    "2500": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "00",
+      "timer": "04030800",
+      "dana_y": "00",
+      "dana_x": "00"
+    },
+    "3000": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "00",
+      "timer": "04030800",
+      "dana_y": "00",
+      "dana_x": "00"
+    },
+    "3500": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "00000001",
+      "dana_y": "50",
+      "dana_x": "38"
+    },
+    "end": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "04070900",
+      "dana_y": "50",
+      "dana_x": "38"
+    }
+  }
+}

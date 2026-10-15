@@ -1,5 +1,10 @@
 # Title-screen renderer
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 `src/graphics/title_screen.asm` owns CPU `$CBA6-$CD52`. It contains a packed
 direct-PPU renderer, two callers that compose the title/record screen, and the
 small fixed tile and buffered-update templates consumed by those callers.

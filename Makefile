@@ -1,3 +1,5 @@
+# Solomon's Key: build the source back into the USA and European ROMs and
+# check it. `make help` lists the targets.
 PYTHON ?= python
 RUN_TOOL := $(PYTHON) scripts/run.py
 # cc65 from Retrolarium Kit (RLTOOL, default rltool), asked once per run; the
@@ -6,33 +8,21 @@ RLTOOL ?= rltool
 export RLTOOL
 CA65 ?= $(eval CA65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ca65)))$(CA65)
 LD65 ?= $(eval LD65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ld65)))$(LD65)
+# MAME for `make test-full` and `make golden`.
+MAME ?= $(RETROLARIUM_MAME)
+
 REFERENCE_ROM ?= Solomon's Key (U) [!].nes
-EUROPE_REFERENCE_ROM ?= Solomon's Key (E) [!].nes
 MANIFEST := assets/manifest.json
-VERIFY_ROM := build.verify_rom
+VERIFY_ROM := $(RUN_TOOL) build.verify_rom
 TOOLCHAIN_MANIFEST := config/toolchain.json
-SOURCE_2_RELEASE_MANIFEST := config/source_reconstruction_2_0.json
-SOURCE_2_RELEASE_TOOL := validation.source_2_release
-SOURCE_2_MINOR_MANIFEST := config/source_reconstruction_2_1.json
-SOURCE_2_MINOR_TOOL := validation.source_2_minor_release
+LINKER_CONFIG := config/linker/cnrom.cfg
 REVISION_MANIFEST := config/revision_profiles.json
-REVISION_TOOL := build.revision_profiles
+REVISION_TOOL := $(RUN_TOOL) build.revision_profiles --manifest "$(REVISION_MANIFEST)"
 PROFILE ?= usa
-LEFT_PROFILE ?= usa
-RIGHT_PROFILE ?= europe
-REVISION_BUILD_DIR = build/revisions/$(PROFILE)
-REVISION_OBJECT = $(REVISION_BUILD_DIR)/solomons_key.o
-REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
-REVISION_LABELS = $(REVISION_BUILD_DIR)/solomons_key.lbl
-REVISION_MAP = $(REVISION_BUILD_DIR)/solomons_key.map
-REVISION_DEBUG = $(REVISION_BUILD_DIR)/solomons_key.dbg
-REVISION_SYMBOL_SUMMARY = $(REVISION_BUILD_DIR)/debug_symbols.json
 REVISION_DEFINE_usa = 0
 REVISION_DEFINE_europe = 1
-REVISION_DEFINE = $(REVISION_DEFINE_$(PROFILE))
-AUDIO_REFERENCE_usa = $(REFERENCE_ROM)
-AUDIO_REFERENCE_europe = $(EUROPE_REFERENCE_ROM)
-AUDIO_PROFILE_IMAGE = $(AUDIO_REFERENCE_$(PROFILE))
+REVISION_BUILD_DIR = build/revisions/$(PROFILE)
+REVISION_ROM = $(REVISION_BUILD_DIR)/solomons_key.nes
 
 BUILD_DIR := build/native
 GENERATED_ASSET_DIR := assets/generated
@@ -42,188 +32,163 @@ ROM := $(BUILD_DIR)/solomons_key.nes
 LABELS := $(BUILD_DIR)/solomons_key.lbl
 MAP := $(BUILD_DIR)/solomons_key.map
 DEBUG := $(BUILD_DIR)/solomons_key.dbg
-SYMBOL_DIR := $(BUILD_DIR)
-SYMBOL_SUMMARY := $(BUILD_DIR)/debug_symbols.json
-FCEUX ?= ../fceux_automation/vc/x64/Release/fceux64.exe
-RUNTIME_SCENARIOS := scenarios/runtime_scenarios.json
-RUNTIME_LUA := scripts/runtime/capture_runtime_scenario.lua
-RUNTIME_TRACE_DIR := $(BUILD_DIR)/runtime
-REVISION_RUNTIME_SCENARIOS_usa = scenarios/runtime_scenarios.json
-REVISION_RUNTIME_SCENARIOS_europe = scenarios/runtime_scenarios_europe.json
-REVISION_RUNTIME_SCENARIOS = $(REVISION_RUNTIME_SCENARIOS_$(PROFILE))
-REVISION_RUNTIME_TRACE_DIR = $(REVISION_BUILD_DIR)/runtime
-DEBUG_SYMBOLS := $(RUN_TOOL) validation.debug_symbols --debug "$(DEBUG)" --map "$(MAP)" \
-	--labels "$(LABELS)" --breakpoints config/debugger/breakpoints.json \
-	--watches config/debugger/watches.json --output-dir "$(SYMBOL_DIR)" \
-	--rom-name "$(notdir $(ROM))" --summary "$(SYMBOL_SUMMARY)"
-SOURCE_FILES := src/main.asm \
-	src/system/boot_and_frame.asm src/system/thread_runtime.asm \
-	src/audio/engine.asm src/audio/data.asm src/audio/europe_streams.asm \
-	src/game/nmi/gameplay_interactions.asm src/game/nmi/dana_and_sprites.asm \
-	src/game/objects/update_pipeline.asm src/game/objects/collision_and_motion.asm \
-	src/game/enemies/runtime.asm src/game/enemies/early_ai.asm \
-	src/game/enemies/mid_ai.asm src/game/enemies/pathfinding_ai.asm \
-	src/game/enemies/collision_ai.asm src/game/enemies/late_ai.asm \
-	src/game/rooms/lifecycle.asm src/game/rooms/decoding.asm \
-	src/game/rooms/mechanics.asm src/game/items/collection.asm \
-	src/game/items/progression.asm src/game/demon_mirror/runtime.asm \
-	src/game/ending/sequence.asm src/game/ending/special_room_support.asm \
-	src/game/flow/runtime.asm src/game/timer/runtime.asm \
-	src/game/transitions/orbit.asm src/game/dana_actions.asm src/game/scoring.asm \
-	src/graphics/ppu/runtime.asm src/graphics/rooms/rendering.asm \
-	src/graphics/hud/runtime.asm src/graphics/title_screen.asm src/graphics/chr.asm \
-	src/data/static_layout.asm src/data/enemies/tables.asm \
-	src/data/objects/animations.asm src/data/objects/motion.asm \
-	src/data/rooms/metadata.asm src/data/rooms/blocks.asm \
-	src/data/rooms/enemies.asm src/data/rooms/items.asm \
-	src/memory/hardware.inc src/memory/ram.inc
-MAKE_FRAGMENTS := mk/profiles.mk mk/runtime.mk mk/validation.mk
-ROMLESS_TEST_MODULES := \
-	tests.build.test_atomic_io \
-	tests.build.test_make_help \
-	tests.build.test_project \
-	tests.build.test_script_runner \
-	tests.build.test_verify_rom \
-	tests.build.test_revision_profiles \
-	tests.runtime.test_runtime_scenarios \
-	tests.validation.test_debug_symbols \
-	tests.validation.test_prg_layout \
-	tests.validation.test_reconstruction_status \
-	tests.validation.test_release_history \
-	tests.validation.test_room_data \
-	tests.validation.test_public_text \
-	tests.validation.test_public_command_smoke \
-	tests.validation.test_source_2_minor_release
+# Fifty-one segments before the audio code moved (scripts/build/relocate.py).
+RELOCATED_DIR := build/relocated
+RELOCATED_ROM := $(RELOCATED_DIR)/solomons_key.nes
+ATTRACT_CHECK := movies/attract.check.json
+SOURCE_FILES := $(sort $(wildcard src/*.asm src/*/*.asm src/*/*/*.asm src/*/*.inc))
 
-.PHONY: all help build split verify verify-reference verify-built verify-header \
-	verify-prg verify-chr verify-payload verify-rom verify-assets check-assets \
-	verify-toolchain verify-build-toolchain verify-runtime-toolchain verify-host \
-	verify-private-input \
-	rom-info rom-info-reference rom-info-built symbols validate-symbols \
-	trace trace-runtime validate-runtime \
-	format format-check lint lint-asm validate-public-text \
-	lint-source lint-project test scaffold-check quality-check check release-audit pre-tag-audit \
-	release-static-check release-check source-1-audit source-1-post-tag-audit rooms \
-	source-1-regression-check source-2-profile-audits \
-	source-2-release-audit source-2-static-check source-2-regression-check \
-	source-2-pre-tag-audit source-2-post-tag-audit source-2-check \
-	public-command-smoke \
-	source-2-minor-audit source-2-minor-check source-2-minor-pre-tag-check \
-	source-2-minor-tag-check \
-	validate-rooms room-data-audit chr-bank-report chr-bank-audit roundtrip-formats \
-	reconstruction-status reconstruction-audit \
-	prg-layout-report prg-layout-audit format-coverage-audit \
-	scheduler-report scheduler-audit scheduler-profile-audit \
-	scheduler-profile-audits enemy-ai-report enemy-ai-audit \
-	enemy-ai-profile-audit enemy-ai-profile-audits \
-	item-handler-report item-handler-audit item-handler-profile-audit \
-	item-handler-profile-audits \
-	enemy-pointer-report enemy-pointer-audit enemy-pointer-profile-audit \
-	enemy-pointer-profile-audits ppu-update-report ppu-update-audit \
-	ppu-update-profile-audit ppu-update-profile-audits \
-	object-animation-report object-animation-audit object-animation-profile-audit \
-	object-animation-profile-audits \
-	object-motion-report object-motion-audit object-motion-profile-audit \
-	object-motion-profile-audits \
-	title-data-report title-data-audit title-data-profile-audit \
-	title-data-profile-audits audio-data-report audio-data-audit \
-	audio-profile-audit audio-profile-audits clean \
-	list-revisions identify-revision verify-revision-reference \
-	verify-revision-references split-revision-assets split-all \
-	revision-room-report revision-room-audit compare-revision-rooms \
-	studio-check source-3-audit source-3-check \
-	build-revision verify-revision-source verify-revision-sources \
-	verify-revision verify-revisions revision-symbols validate-revision-symbols \
-	validate-revision-symbol-profiles trace-revision-runtime \
-	validate-revision-runtime trace-revision-runtimes
+.PHONY: all help build split verify verify-reference verify-built verify-header verify-prg \
+	verify-chr verify-payload verify-rom verify-assets rom-info rom-info-reference \
+	rom-info-built list-revisions identify-revision verify-revision-reference \
+	verify-revision-references split-revision-assets split-all build-revision \
+	verify-revision-source verify-revision-sources verify-revision verify-revisions \
+	build-relocated verify-toolchain studio-check lint format format-check test test-full \
+	golden hooks clean
 
 all: verify
 
-help:
-	@$(PYTHON) -m scripts.build.make_help
-
-$(BUILD_DIR):
-	$(RUN_TOOL) build.project mkdir --path "$(BUILD_DIR)"
+$(BUILD_DIR) $(RELOCATED_DIR):
+	$(RUN_TOOL) build.project mkdir --path "$@"
 
 $(CHR_ASSET):
 	$(RUN_TOOL) build.project require --path "$@" --hint "run 'make split' first"
 
-$(OBJECT): $(SOURCE_FILES) $(CHR_ASSET) Makefile $(MAKE_FRAGMENTS) | $(BUILD_DIR) verify-build-toolchain
+$(OBJECT): $(SOURCE_FILES) $(CHR_ASSET) Makefile | $(BUILD_DIR) verify-toolchain
 	$(CA65) --debug-info -g -o "$@" -l "$(BUILD_DIR)/solomons_key.lst" "src/main.asm"
 
-$(ROM): $(OBJECT) config/linker/cnrom.cfg | verify-build-toolchain
-	$(LD65) -C config/linker/cnrom.cfg -o "$@" "$<" -Ln "$(LABELS)" -m "$(MAP)" --dbgfile "$(DEBUG)"
+$(ROM): $(OBJECT) $(LINKER_CONFIG)
+	$(LD65) -C $(LINKER_CONFIG) -o "$@" "$<" -Ln "$(LABELS)" -m "$(MAP)" --dbgfile "$(DEBUG)"
 
-build: verify-build-toolchain $(ROM)
+build: $(ROM)
 
-verify-build-toolchain:
-	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
-		--scope build --component-path "assembler=$(CA65)" \
-		--component-path "linker=$(LD65)"
+split:
+	$(RUN_TOOL) build.project split --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --output-dir "$(GENERATED_ASSET_DIR)"
 
-verify-runtime-toolchain:
-	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
-		--scope runtime --component-path "runtime_emulator=$(FCEUX)"
-
-verify-private-input:
-	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
-		--scope private --component-path "usa_reference_rom=$(REFERENCE_ROM)"
-
-verify-host:
-	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
-		--scope host
-
-verify-toolchain: verify-build-toolchain verify-runtime-toolchain verify-private-input verify-host
-
-verify-reference: verify-private-input
+verify-reference:
 	$(RUN_TOOL) build.project verify --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
 
 verify-built: $(ROM)
 	$(RUN_TOOL) build.project verify --image "$(ROM)" --manifest "$(MANIFEST)"
 
-verify-header: $(ROM)
-	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region header
-
-verify-prg: $(ROM)
-	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region prg
-
-verify-chr: $(ROM)
-	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
-
-verify-payload: $(ROM)
-	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region payload
-
-verify-rom: $(ROM)
-	$(RUN_TOOL) $(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region rom
+verify-header verify-prg verify-chr verify-payload verify-rom: $(ROM)
+	$(VERIFY_ROM) compare --built "$(ROM)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region $(subst verify-,,$@)
 
 verify-assets: $(CHR_ASSET)
-	$(RUN_TOOL) $(VERIFY_ROM) asset --asset "$(CHR_ASSET)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
+	$(VERIFY_ROM) asset --asset "$(CHR_ASSET)" --reference "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --region chr
 
-check-assets: verify-assets
-
-verify: verify-reference verify-built verify-header verify-prg verify-chr verify-payload verify-rom verify-assets
-
-split: verify-private-input
-	$(RUN_TOOL) build.project split --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)" --output-dir "$(GENERATED_ASSET_DIR)"
+verify: verify-reference verify-built verify-header verify-prg verify-chr verify-payload \
+	verify-rom verify-assets
 
 rom-info-reference:
-	$(RUN_TOOL) $(VERIFY_ROM) report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
+	$(VERIFY_ROM) report --image "$(REFERENCE_ROM)" --manifest "$(MANIFEST)"
 
 rom-info-built: $(ROM)
-	$(RUN_TOOL) $(VERIFY_ROM) report --image "$(ROM)" --manifest "$(MANIFEST)"
+	$(VERIFY_ROM) report --image "$(ROM)" --manifest "$(MANIFEST)"
 
 rom-info: rom-info-reference rom-info-built
 
-include $(MAKE_FRAGMENTS)
+# The regional revisions (config/revision_profiles.json), PROFILE=usa or europe.
+list-revisions:
+	$(REVISION_TOOL) list
 
-check: release-static-check
+identify-revision:
+	$(REVISION_TOOL) identify --image "$(REVISION_ROM)"
 
-clean:
-	$(RUN_TOOL) build.project clean --path build
+verify-revision-reference:
+	$(REVISION_TOOL) verify --profile "$(PROFILE)"
+
+verify-revision-references:
+	$(REVISION_TOOL) verify
+
+split-revision-assets:
+	$(REVISION_TOOL) split --profile "$(PROFILE)" --output-dir "$(GENERATED_ASSET_DIR)"
+
+split-all:
+	$(REVISION_TOOL) split --output-dir "$(GENERATED_ASSET_DIR)"
+
+build-revision: $(CHR_ASSET) verify-toolchain
+	$(REVISION_TOOL) source-check --profile "$(PROFILE)"
+	$(RUN_TOOL) build.project mkdir --path "$(REVISION_BUILD_DIR)"
+	$(CA65) -D SolomonRevision=$(REVISION_DEFINE_$(PROFILE)) --debug-info -g \
+		-o "$(REVISION_BUILD_DIR)/solomons_key.o" "src/main.asm"
+	$(LD65) -C $(LINKER_CONFIG) -o "$(REVISION_ROM)" "$(REVISION_BUILD_DIR)/solomons_key.o" \
+		-Ln "$(REVISION_BUILD_DIR)/solomons_key.lbl" -m "$(REVISION_BUILD_DIR)/solomons_key.map" \
+		--dbgfile "$(REVISION_BUILD_DIR)/solomons_key.dbg"
+
+verify-revision-source: build-revision
+	$(REVISION_TOOL) verify-source --profile "$(PROFILE)" --built "$(REVISION_ROM)"
+
+verify-revision-sources:
+	$(MAKE) --no-print-directory verify-revision-source PROFILE=usa
+	$(MAKE) --no-print-directory verify-revision-source PROFILE=europe
+
+verify-revision: build-revision
+	$(REVISION_TOOL) verify-built --profile "$(PROFILE)" --built "$(REVISION_ROM)"
+
+verify-revisions:
+	$(MAKE) --no-print-directory verify-revision PROFILE=usa
+	$(MAKE) --no-print-directory verify-revision PROFILE=europe
+
+build-relocated: $(SOURCE_FILES) $(CHR_ASSET) | $(RELOCATED_DIR) verify-toolchain
+	$(PYTHON) scripts/build/relocate.py --main src/main.asm --linker-config $(LINKER_CONFIG) \
+		--output "$(RELOCATED_DIR)/main.asm"
+	$(CA65) -g -o "$(RELOCATED_DIR)/solomons_key.o" "$(RELOCATED_DIR)/main.asm"
+	$(LD65) -C $(LINKER_CONFIG) -o "$(RELOCATED_ROM)" "$(RELOCATED_DIR)/solomons_key.o"
+
+verify-toolchain:
+	$(RUN_TOOL) build.project toolchain --manifest "$(TOOLCHAIN_MANIFEST)" \
+		--scope build --component-path "assembler=$(CA65)" --component-path "linker=$(LD65)"
+
+# Open every revision of solomons_key.rlj in a throwaway copy of the
+# repository the way Retrolarium Studio does, and rebuild each without edits.
+studio-check:
+	$(RLTOOL) studio check solomons_key.rlj
+
+lint:
+	$(RLTOOL) lint
+
+format:
+	$(RLTOOL) lint --fix
+
+format-check:
+	$(RLTOOL) lint --only assembly
+
+# The quick suite: the unit tests, both revisions byte for byte, the relocated
+# build and the studio check.
+test:
+	$(PYTHON) -m unittest discover -s tests -t .
+	$(MAKE) --no-print-directory verify verify-revisions verify-revision-sources \
+		build-relocated studio-check
+
+# The full suite: the quick one, then the attract mode in MAME (no input: the
+# title, the demo and its game over) on the relocated build, compared with what
+# the original ROM gives (movies/attract.check.json, written by `make golden`).
+test-full: test
+	$(RLTOOL) movie check $(ATTRACT_CHECK) --rom "$(RELOCATED_ROM)" --mame "$(MAME)"
+
+golden:
+	$(RLTOOL) movie golden $(ATTRACT_CHECK) --rom "$(REFERENCE_ROM)" --mame "$(MAME)"
 
 # `make hooks`, once per clone, makes Git check every commit and push for stop
 # words and run `make lint` and `make format-check` first (Retrolarium Kit's
 # rltool hooks; the stop-word list lives outside the repositories).
-.PHONY: hooks
 hooks:
 	$(RLTOOL) hooks install --project .
+
+clean:
+	$(RUN_TOOL) build.project clean --path build
+
+help:
+	@echo "Solomon's Key source reconstruction"
+	@echo "  make split                  unpack the assets from your USA ROM (once)"
+	@echo "  make build / verify         the USA revision / and byte for byte"
+	@echo "  make verify-revisions       USA and Europe (PROFILE=usa|europe for one)"
+	@echo "  make build-relocated        fifty-one segments moved"
+	@echo "  make studio-check           open and rebuild every solomons_key.rlj revision"
+	@echo "  make test                   the quick suite"
+	@echo "  make test-full              test, then the attract mode in MAME (MAME=<path>)"
+	@echo "  make golden                 record the attract mode's checkpoints from the original"
+	@echo "  make lint / format / format-check   the house style (Retrolarium Kit)"
+	@echo "  make hooks                  install the Git hooks"
+	@echo "  make rom-info / list-revisions / identify-revision / split-all / clean"

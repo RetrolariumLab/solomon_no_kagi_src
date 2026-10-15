@@ -1,5 +1,10 @@
 # Unknowns and research queue
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 Source Reconstruction 2.1 has no unresolved question that blocks the accepted
 USA or European fixed-layout profiles. Neutral names remain where the original
 developers' historical intent cannot be proven; those are evidence boundaries,

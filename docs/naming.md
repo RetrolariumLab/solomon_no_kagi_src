@@ -1,5 +1,10 @@
 # Naming and evidence policy
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 The imported source contains generated labels and raw addresses. Renaming is a
 semantic change to the research record even when it does not change bytes.
 

@@ -1,5 +1,10 @@
 # Items, timer, and score
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 This guide covers item collision effects, inventory state, timer adjustments, scoring, and fireball services.
 
 

@@ -1,115 +1,79 @@
 # Solomon's Key NES source reconstruction
 
-This repository contains byte-identical ca65 source reconstructions of the USA
-and European NES releases of **Solomon's Key**. It combines preservation builds,
-runtime evidence and decoded data formats without tracking original ROM images
-or extracted copyrighted assets. The game is edited in Retrolarium Studio; see
-[editing in Retrolarium](docs/retrolarium.md).
+Byte-identical ca65 reconstructions of the USA and European NES releases of
+**Solomon's Key**, edited in Retrolarium Studio. Both revisions build from
+shared source; the ROM-derived assets stay private.
 
-## Release status
+## Status
 
-- Source Reconstruction 1.0 is published at the annotated
-  `source-reconstruction-1.0` tag.
-- Source Reconstruction 2.0 is published at the annotated
-  `source-reconstruction-2.0` tag. It accepts the byte-identical USA and Europe
-  profiles, direct runtime evidence, and four profile-aware authoring models.
-- Source Reconstruction 2.1 is a tag-ready compatible-minor candidate. It adds
-  improved editor previews and audio playback, semantic source organization,
-  responsibility-based tooling, stronger public-command evidence, and a
-  reviewed documentation corpus without changing the accepted ROM identities
-  or fixed-layout authoring contracts.
-- Source Reconstruction 3.0 moves editing to Retrolarium: `solomons_key.rlj`
-  opens every revision in the studio, the repository's own editors are
-  retired, and `make studio-check` proves each revision with the kit.
+Source Reconstruction 3.1. Editing happens in Retrolarium Studio:
+`solomons_key.rlj` opens every revision
+([`docs/retrolarium.md`](docs/retrolarium.md)).
 
-The exact candidate boundary and exclusions are documented in
-[Source Reconstruction 2.1](docs/source_reconstruction_2_1.md).
+3.1 keeps only what builds and checks the source. The earlier releases'
+validation codecs and audits, release manifests, FCEUX runtime scenarios and
+debugger exports remain in the history (tags `source-reconstruction-1.0` to
+`3.0`); the source is now edited directly.
 
-## Requirements and legal inputs
+## Quick start
 
-The repository includes pinned Windows x64 builds of ca65 and ld65. The full
-runtime gate also uses the pinned FCEUX automation build described by the
-[toolchain contract](docs/toolchain.md). Python, GNU Make, and the supported host
-versions are recorded in `config/toolchain.json`.
+You need Python 3, GNU Make and Retrolarium Kit (`rltool` on `PATH`, or
+`RLTOOL=...`); the kit supplies the pinned ca65 and ld65 of
+`config/toolchain.json`. Copy `Solomon's Key (U) [!].nes` and
+`Solomon's Key (E) [!].nes` into the repository root, then:
 
-Provide legally obtained copies of the accepted regional images using the
-filenames declared by `config/revision_profiles.json`:
+```bash
+make split              # unpack the private CHR (once)
+make verify             # build the USA revision and compare byte for byte
+make verify-revisions   # USA and Europe
+```
 
-- `Solomon's Key (U) [!].nes`
-- `Solomon's Key (E) [!].nes`
-
-ROMs, extracted CHR data, Retrolarium edits, runtime traces, and build products
-are private or reproducible local files and are ignored by Git. This project
+ROMs, extracted assets and build products are ignored by Git. This project
 does not grant rights to the original game code or data; see
 [licensing](docs/licensing.md) and [provenance](docs/provenance.md).
 
-## Setup and verification
+## Targets
 
-From the repository root:
-
-```console
-make help
-make split
-make source-2-minor-check
+```bash
+make build / verify                    # the USA revision
+make verify-revisions                  # USA and Europe (PROFILE=usa|europe for one)
+make build-relocated                   # fifty-one segments moved
+make studio-check                      # open and rebuild every revision in the kit
+make test / test-full / golden         # the checks
+make lint / format / format-check / hooks / rom-info / list-revisions / clean / help
 ```
 
-`make split` validates the USA image and extracts the shared ignored CHR input.
-`make source-2-minor-check` is the current complete aggregate verification
-command: it runs the accepted Source 1.0 and 2.0 regression gates first, then
-checks the Source 2.1 profiles, byte identity, runtime scenarios, public command
-orchestration and documentation. The 2.0 and 2.1 release manifests describe
-their tagged trees, so their audits run in a checkout of each tag.
+## Tests
 
-For final local tag-readiness checks, use:
+`make test` (about half a minute) runs the unit tests, verifies both revisions
+byte for byte, builds the relocated ROM and runs the studio check.
 
-```console
-make source-2-minor-pre-tag-check
+`make test-full` adds the attract mode played in MAME on the relocated build:
+with no input the game shows its title, plays its demo and ends it with a game
+over, and at seven checkpoints the room, room state, score, lives, timer and
+Dana's position must equal what the original ROM gives
+(`movies/attract.check.json`). In the relocated build one byte follows each of
+fifty-one segments before the audio code, and the filler before the audio code
+shrinks by as many. Name MAME with `MAME=<path>` or `RETROLARIUM_MAME`;
+`make golden` records the reference values again.
+
+Only the first demo is checked: the next one depends on a random seed taken
+from frame counters, which a moved build may reach a frame later.
+
+## Repository map
+
+```text
+src/              ca65 source (main.asm, grouped by subsystem)
+config/           linker layout, revisions, toolchain, lint, names, profile
+assets/           manifest.json (the extracted CHR is ignored)
+scripts/build/    split, verification, revision and relocation scripts
+tests/            their unit tests
+movies/           the attract-mode check
+docs/             architecture, subsystems, RAM, data formats
+solomons_key.rlj  the Retrolarium project
 ```
 
-That command additionally requires a clean tracked worktree and verifies the
-future tag boundary. No Source 2.1 tag is created by either command.
-
-See the [verification guide](docs/verification.md) for focused checks, failure
-diagnostics, generated evidence, and profile selectors. Run `make help` for the
-maintained command catalog instead of relying on a duplicated list here.
-
-## Project map
-
-- `src/main.asm` is the canonical profile-selected assembly entry point.
-- `src/` groups assembly by runtime subsystem and data owner.
-- `config/` contains release, profile, linker, debugger, validation,
-  and reconstruction contracts.
-- `assets/manifest.json` records the immutable USA reference identity;
-  `assets/generated/` holds ignored extracted data.
-- `scripts/` and `tests/` mirror the `build`, `runtime`, and `validation`
-  responsibility boundaries.
-- `solomons_key.rlj` names the revisions Retrolarium Studio opens.
-- `scenarios/` declares runtime inputs and expected observations.
-- `docs/` contains reader-facing architecture, workflow, subsystem, evidence,
-  provenance, and release guides.
-- `build/` contains only reproducible ignored output.
-
-Start with the task-oriented [documentation index](docs/index.md). It provides
-separate paths for building and verifying a release, understanding the source,
-and evaluating evidence or project boundaries.
-
-## Evidence boundary
-
-The complete 65,552-byte USA and European iNES images assemble byte-for-byte
-from the tracked PRG source and ignored extracted assets. The release gate checks
-the pinned toolchain and private inputs, compares every image byte, validates
-source-layout ownership, exercises direct runtime scenarios for both profiles,
-and proves zero-edit round trips for level, audio, graphics, and presentation
-documents.
-
-Names and comments are classified by evidence strength. Readable terminology is
-not treated as proof by itself; static control flow, tables, byte identity,
-round trips, and repeatable runtime observations remain distinct evidence
-layers. See [architecture](docs/architecture.md),
-[naming](docs/naming.md), and [unknowns](docs/unknowns.md).
-
-This is an unofficial preservation and research project. Solomon's Key and its
-game data remain property of their respective rights holders.
+Start with the task-oriented [documentation index](docs/index.md).
 
 ## Trademarks
 

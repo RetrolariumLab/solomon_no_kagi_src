@@ -4,24 +4,12 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import sys
 from typing import Any, Iterable
 
 from scripts.build.project import ProjectError, digest, parse_ines, safe_asset_path, write_if_changed
-from scripts.validation.room_data import (
-    ROOM_COUNT,
-    ROOM_DATA_LAYOUTS,
-    decode_mirror_enemy_sets,
-    decode_mirror_schedules,
-    decode_room,
-    decode_room_tile_patterns,
-    decode_special_room_data,
-    extract_prg,
-    roundtrip_rooms,
-)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,15 +17,6 @@ PROFILE_STATES = {"complete", "in-progress", "planned"}
 TIMING_MODES = {"ntsc", "pal"}
 IMAGE_REGIONS = ("header", "prg", "chr")
 HASH_FIELDS = (("sha1", 40), ("sha256", 64))
-ROOM_FAMILIES = (
-    "tile_patterns",
-    "mirror_schedules",
-    "mirror_enemy_sets",
-    "room_blocks",
-    "room_enemies",
-    "room_items",
-    "special_room_data",
-)
 
 
 def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -151,71 +130,6 @@ def validate_source_range(
             errors.append(f"{profile_id}/{range_id} has invalid source {hash_name}")
 
 
-def parse_manifest_integer(value: object) -> int | None:
-    if isinstance(value, int):
-        return value
-    if isinstance(value, str):
-        try:
-            return int(value, 0)
-        except ValueError:
-            return None
-    return None
-
-
-def validate_playtest(profile_id: str, value: object, errors: list[str]) -> None:
-    if not isinstance(value, dict):
-        errors.append(f"{profile_id} has no playtest contract")
-        return
-    for field in ("room_load_address", "gameplay_address"):
-        address = parse_manifest_integer(value.get(field))
-        if address is None or not 0x8000 <= address <= 0xFFFF:
-            errors.append(f"{profile_id} has invalid playtest {field}")
-    current_room = parse_manifest_integer(value.get("current_room_address"))
-    if current_room is None or not 0 <= current_room <= 0x07FF:
-        errors.append(f"{profile_id} has invalid playtest current_room_address")
-    start_frame = value.get("start_frame")
-    ready_frames = value.get("ready_frames")
-    if not isinstance(start_frame, int) or not 1 <= start_frame <= 3600:
-        errors.append(f"{profile_id} has invalid playtest start_frame")
-    if (
-        not isinstance(ready_frames, int)
-        or not isinstance(start_frame, int)
-        or ready_frames <= start_frame + 1
-        or ready_frames > 3600
-    ):
-        errors.append(f"{profile_id} has invalid playtest ready_frames")
-
-
-def validate_level_preview(profile_id: str, value: object, errors: list[str]) -> None:
-    if not isinstance(value, dict):
-        errors.append(f"{profile_id} has no level preview contract")
-        return
-    for field in (
-        "object_animation_pointer_address",
-        "enemy_type_configuration_address",
-    ):
-        address = parse_manifest_integer(value.get(field))
-        if address is None or not 0x8000 <= address <= 0xFFFF:
-            errors.append(f"{profile_id} has invalid level preview {field}")
-
-
-def validate_graphics_authoring(
-    profile_id: str, value: object, errors: list[str]
-) -> None:
-    if not isinstance(value, dict):
-        errors.append(f"{profile_id} has no graphics authoring contract")
-        return
-    fields = {
-        "room_palette_template_address": 36,
-        "room_group_colors_address": 14,
-        "ending_palette_values_address": 3,
-    }
-    for field, size in fields.items():
-        address = parse_manifest_integer(value.get(field))
-        if address is None or not 0x8000 <= address <= 0x10000 - size:
-            errors.append(f"{profile_id} has invalid graphics authoring {field}")
-
-
 def validate_profiles(document: object) -> list[str]:
     errors: list[str] = []
     if not isinstance(document, dict) or document.get("schema_version") != 1:
@@ -239,8 +153,6 @@ def validate_profiles(document: object) -> list[str]:
             errors.append(f"{profile_id} has no display name")
         if profile.get("timing") not in TIMING_MODES:
             errors.append(f"{profile_id} has an invalid timing mode")
-        if profile.get("room_layout") not in ROOM_DATA_LAYOUTS:
-            errors.append(f"{profile_id} has an unknown room layout")
         if profile.get("source_status") not in PROFILE_STATES:
             errors.append(f"{profile_id} has an invalid source status")
         assembly_define = profile.get("assembly_define")
@@ -249,12 +161,6 @@ def validate_profiles(document: object) -> list[str]:
                 errors.append(f"{profile_id} planned source has an assembly define")
         elif not isinstance(assembly_define, int) or assembly_define < 0:
             errors.append(f"{profile_id} has no assembly define")
-        else:
-            validate_level_preview(profile_id, profile.get("level_preview"), errors)
-            validate_graphics_authoring(
-                profile_id, profile.get("graphics_authoring"), errors
-            )
-            validate_playtest(profile_id, profile.get("playtest"), errors)
         reference = profile.get("reference_rom")
         if (
             not isinstance(reference, str)
@@ -332,17 +238,6 @@ def validate_profiles(document: object) -> list[str]:
                 occupied[region].append(span)
             if len(range_ids) != len(set(range_ids)):
                 errors.append(f"{profile_id} has duplicate verified source range ids")
-        fingerprints = profile.get("room_fingerprints")
-        if not isinstance(fingerprints, dict):
-            errors.append(f"{profile_id} has no room fingerprints")
-        elif tuple(fingerprints) != ROOM_FAMILIES:
-            errors.append(f"{profile_id} room fingerprint families differ")
-        else:
-            for family, fingerprint in fingerprints.items():
-                if not valid_hash(fingerprint, 64):
-                    errors.append(
-                        f"{profile_id} has invalid {family} room fingerprint"
-                    )
 
     if len(identifiers) != len(set(identifiers)):
         errors.append("revision profile ids are not unique")
@@ -538,105 +433,6 @@ def identify_profile(document: dict[str, Any], image: bytes) -> dict[str, Any]:
     return matches[0]
 
 
-def without_locations(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {
-            key: without_locations(item)
-            for key, item in value.items()
-            if key != "prg_offset"
-        }
-    if isinstance(value, list):
-        return [without_locations(item) for item in value]
-    return value
-
-
-def room_document(parsed: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
-    prg = extract_prg(parsed["prg"])
-    layout = ROOM_DATA_LAYOUTS[profile["room_layout"]]
-    roundtrip_rooms(prg, layout)
-    rooms = [decode_room(prg, index, layout) for index in range(ROOM_COUNT)]
-    return without_locations(
-        {
-            "tile_patterns": decode_room_tile_patterns(prg, layout),
-            "mirror_schedules": decode_mirror_schedules(prg, layout),
-            "mirror_enemy_sets": decode_mirror_enemy_sets(prg, layout),
-            "room_blocks": [room["blocks"] for room in rooms],
-            "room_enemies": [room["enemy_stream"] for room in rooms],
-            "room_items": [room["item_stream"] for room in rooms],
-            "special_room_data": decode_special_room_data(prg, layout),
-        }
-    )
-
-
-def room_fingerprint(parsed: dict[str, Any], profile: dict[str, Any]) -> str:
-    canonical = json.dumps(
-        room_document(parsed, profile),
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
-
-
-def content_fingerprint(value: Any) -> str:
-    canonical = json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
-
-
-def room_family_fingerprints(
-    parsed: dict[str, Any], profile: dict[str, Any]
-) -> dict[str, str]:
-    document = room_document(parsed, profile)
-    return {name: content_fingerprint(document[name]) for name in ROOM_FAMILIES}
-
-
-def audit_room_fingerprints(
-    parsed: dict[str, Any], profile: dict[str, Any]
-) -> dict[str, str]:
-    actual = room_family_fingerprints(parsed, profile)
-    for family in ROOM_FAMILIES:
-        expected = profile["room_fingerprints"][family]
-        if actual[family] != expected:
-            raise ProjectError(
-                f"{profile['id']} {family} fingerprint mismatch: "
-                f"got {actual[family]}, expected {expected}"
-            )
-    return actual
-
-
-def first_structural_difference(
-    left: Any,
-    right: Any,
-    path: str = "room_data",
-) -> tuple[str, Any, Any] | None:
-    if type(left) is not type(right):
-        return path, left, right
-    if isinstance(left, dict):
-        if left.keys() != right.keys():
-            return f"{path}.keys", tuple(left), tuple(right)
-        for key in left:
-            difference = first_structural_difference(
-                left[key], right[key], f"{path}.{key}"
-            )
-            if difference is not None:
-                return difference
-        return None
-    if isinstance(left, list):
-        if len(left) != len(right):
-            return f"{path}.length", len(left), len(right)
-        for index, (left_item, right_item) in enumerate(zip(left, right)):
-            difference = first_structural_difference(
-                left_item, right_item, f"{path}[{index}]"
-            )
-            if difference is not None:
-                return difference
-        return None
-    return None if left == right else (path, left, right)
-
-
 def print_profile(profile: dict[str, Any]) -> None:
     print(
         f"{profile['id']:<7} {profile['timing']:<4} "
@@ -693,23 +489,6 @@ def build_parser() -> argparse.ArgumentParser:
                 required=True,
                 type=Path,
             )
-    compare = commands.add_parser(
-        "compare-rooms",
-        help="compare canonical room content between two profiles",
-    )
-    compare.add_argument("--left", required=True)
-    compare.add_argument("--right", required=True)
-    compare.add_argument("--private-root", type=Path, default=ROOT)
-    report = commands.add_parser(
-        "room-report",
-        help="print canonical room-family fingerprints",
-    )
-    add_selection_arguments(report)
-    audit = commands.add_parser(
-        "audit-rooms",
-        help="verify room-family fingerprints and lossless codecs",
-    )
-    add_selection_arguments(audit)
     return parser
 
 
@@ -780,67 +559,6 @@ def main() -> int:
                 args.reference_rom,
                 args.output_dir if args.command == "split" else None,
             )
-        elif args.command in {"room-report", "audit-rooms"}:
-            profiles = selected_profiles(document, args.profile, args.all_profiles)
-            if args.reference_rom is not None and len(profiles) != 1:
-                raise ProjectError("--reference-rom requires exactly one --profile")
-            for profile in profiles:
-                parsed = verify_reference(
-                    resolve_reference(profile, args.private_root, args.reference_rom),
-                    profile,
-                )
-                fingerprints = audit_room_fingerprints(parsed, profile)
-                if args.command == "audit-rooms":
-                    print(
-                        f"[OK] {profile['id']}: {ROOM_COUNT} rooms, "
-                        f"{len(ROOM_FAMILIES)} format families"
-                    )
-                    continue
-                print(f"{profile['id']}:")
-                for family, fingerprint in fingerprints.items():
-                    print(f"  {family:<18} {fingerprint}")
-        else:
-            left = get_profile(document, args.left)
-            right = get_profile(document, args.right)
-            left_parsed = verify_reference(
-                resolve_reference(left, args.private_root), left
-            )
-            right_parsed = verify_reference(
-                resolve_reference(right, args.private_root), right
-            )
-            left_document = room_document(left_parsed, left)
-            right_document = room_document(right_parsed, right)
-            difference = first_structural_difference(left_document, right_document)
-            left_families = room_family_fingerprints(left_parsed, left)
-            right_families = room_family_fingerprints(right_parsed, right)
-            for family in left_families:
-                matches = left_families[family] == right_families[family]
-                state = "MATCH" if matches else "DIFF"
-                print(
-                    f"[{state}] {family}: {left_families[family]} / "
-                    f"{right_families[family]}"
-                )
-                if not matches:
-                    family_difference = first_structural_difference(
-                        left_document[family],
-                        right_document[family],
-                        family,
-                    )
-                    if family_difference is not None:
-                        path, left_value, right_value = family_difference
-                        print(f"       first at {path}: {left_value!r} != {right_value!r}")
-            if difference is None:
-                fingerprint = room_fingerprint(left_parsed, left)
-                print(
-                    f"[OK] {left['id']} and {right['id']}: {ROOM_COUNT} canonical "
-                    f"rooms and auxiliary room data match ({fingerprint})"
-                )
-            else:
-                path, left_value, right_value = difference
-                print(
-                    f"[INFO] first semantic difference at {path}: "
-                    f"{left_value!r} != {right_value!r}"
-                )
     except (OSError, KeyError, TypeError, ProjectError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1

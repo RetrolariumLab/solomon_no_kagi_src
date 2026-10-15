@@ -9,7 +9,9 @@
       "size": 323584,
       "binary_sha256": "779a2a266f038cfeea4cdb3cd2cf5bbef4b602bb43560c3fd9f1b45d7bc5c776",
       "version": "ca65 V2.19 - Git 0fca835",
-      "version_arguments": ["--version"],
+      "version_arguments": [
+        "--version"
+      ],
       "source": "https://github.com/cc65/cc65",
       "source_commit": "0fca835",
       "provenance": "retrolarium-kit",
@@ -23,25 +25,13 @@
       "size": 202240,
       "binary_sha256": "06720e9200c9a2a53e049413888a6a55ee023b0801a598d4b6143caae8466813",
       "version": "ld65 V2.19 - Git 0fca835",
-      "version_arguments": ["--version"],
+      "version_arguments": [
+        "--version"
+      ],
       "source": "https://github.com/cc65/cc65",
       "source_commit": "0fca835",
       "provenance": "retrolarium-kit",
       "verification_target": "verify-build-toolchain"
-    },
-    {
-      "id": "runtime_emulator",
-      "scope": "runtime",
-      "path": "../fceux_automation/vc/x64/Release/fceux64.exe",
-      "size": 5499904,
-      "binary_sha256": "97aadff4970e98a413377810a296c045fab717661dd8270f84d58190f43a232e",
-      "version": "oranguthang/fceux_automation ec507d86",
-      "version_arguments": [],
-      "source": "https://github.com/oranguthang/fceux_automation",
-      "source_commit": "ec507d86c57acd8979547bc35e9627fb199fac9a",
-      "source_checkout": "../fceux_automation",
-      "provenance": "source-built-external",
-      "verification_target": "verify-runtime-toolchain"
     }
   ],
   "hosts": [

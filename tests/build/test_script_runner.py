@@ -11,10 +11,9 @@ class ScriptRunnerTests(unittest.TestCase):
     def test_lists_tools_from_each_public_category(self) -> None:
         tools = run.available_tools()
 
-        self.assertIn("validation.room_data", tools)
         self.assertIn("build.project", tools)
-        self.assertIn("runtime.runtime_scenarios", tools)
-        self.assertIn("validation.source_2_minor_release", tools)
+        self.assertIn("build.revision_profiles", tools)
+        self.assertIn("build.verify_rom", tools)
 
     def test_rejects_flat_and_private_names(self) -> None:
         for name in ("project", "private.tool", "build._hidden"):

@@ -1,5 +1,10 @@
 # Room data formats
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 All offsets below are within the 32 KiB PRG. Add 16 for offsets in a headered
 iNES file. Runtime pointers address the same bytes at CPU `$8000-$FFFF`.
 

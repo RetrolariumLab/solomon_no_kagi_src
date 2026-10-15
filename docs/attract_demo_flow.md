@@ -1,5 +1,10 @@
 # Attract and demo flow
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 `src/game/flow/runtime.asm` owns CPU `$CA6E-$CB6E`. It connects the
 gameplay-exit pipeline to the post-game summary, title wait, and automated
 gameplay demonstration through three scheduler entries.

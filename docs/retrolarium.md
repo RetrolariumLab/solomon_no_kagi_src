@@ -57,13 +57,3 @@ copy of the repository it prepares every revision, decodes and validates each
 document and rebuilds each revision with no edits, requiring the original ROM
 byte for byte. It needs the revisions' ROMs and the Retrolarium kit (`rltool` on
 `PATH`, or `RLTOOL=...`), and never reads or writes `hack/` or `.retrolarium/`.
-
-## Source Reconstruction 3.0
-
-`config/source_reconstruction_3_0.json` is the 3.0 release manifest. It names
-the descriptor, the profile and the revisions, the kit and studio versions the
-release is checked with, and every removed editor with the view that replaced
-it. `make source-3-audit` runs studio-check with `--release`, which also checks
-that section against the descriptor and the running kit; `make source-3-check`
-runs the Source 2.1 gate first. The manifest stays in `development` with the kit unpinned
-until Retrolarium publishes its first tags.

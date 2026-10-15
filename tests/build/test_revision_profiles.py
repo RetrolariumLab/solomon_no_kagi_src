@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-import copy
-import json
 from pathlib import Path
-import sys
 import tempfile
 import unittest
-from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 from scripts.build import project
 from scripts.build import revision_profiles
-from scripts.validation import room_data
 
 
 def sample_image(seed: int = 0x20) -> bytes:
@@ -44,35 +39,14 @@ def sample_profile(
         "name": f"Sample {profile_id}",
         "region": "Test",
         "timing": "ntsc",
-        "room_layout": "usa",
         "source_status": source_status,
         "assembly_define": None if source_status == "planned" else 0,
-        "level_preview": None if source_status == "planned" else {
-            "object_animation_pointer_address": "0xd000",
-            "enemy_type_configuration_address": "0xa400",
-        },
-        "graphics_authoring": None if source_status == "planned" else {
-            "room_palette_template_address": "0x8100",
-            "room_group_colors_address": "0x8200",
-            "ending_palette_values_address": "0x8300",
-        },
-        "playtest": None if source_status == "planned" else {
-            "room_load_address": "0x9000",
-            "gameplay_address": "0xa000",
-            "current_room_address": "0x0428",
-            "start_frame": 300,
-            "ready_frames": 1000,
-        },
         "reference_rom": f"{profile_id}.nes",
         "reference_provenance": "Synthetic unit-test image.",
         "rom": region_descriptor(image),
         "header": region_descriptor(parsed["header"]),
         "prg": region_descriptor(parsed["prg"]),
         "chr": region_descriptor(parsed["chr"]),
-        "room_fingerprints": {
-            family: project.digest(family.encode("ascii"), "sha256")
-            for family in revision_profiles.ROOM_FAMILIES
-        },
         "verified_source_ranges": [],
         "extracted_assets": [
             {
@@ -134,35 +108,6 @@ class ManifestValidationTests(unittest.TestCase):
         document["source_2_required_profiles"].append("missing")
         errors = revision_profiles.validate_profiles(document)
         self.assertIn("required profile does not exist: missing", errors)
-
-    def test_rejects_invalid_room_layout(self) -> None:
-        document, _ = sample_document()
-        document["profiles"][1]["room_layout"] = "unknown"
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn("europe has an unknown room layout", errors)
-
-    def test_rejects_buildable_profile_without_graphics_authoring_contract(self) -> None:
-        document, _ = sample_document()
-        del document["profiles"][0]["graphics_authoring"]
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn("usa has no graphics authoring contract", errors)
-
-    def test_rejects_invalid_graphics_authoring_address(self) -> None:
-        document, _ = sample_document()
-        document["profiles"][0]["graphics_authoring"][
-            "room_palette_template_address"
-        ] = "0xfff0"
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn(
-            "usa has invalid graphics authoring room_palette_template_address",
-            errors,
-        )
-
-    def test_rejects_incomplete_room_fingerprint_inventory(self) -> None:
-        document, _ = sample_document()
-        del document["profiles"][0]["room_fingerprints"]["room_items"]
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn("usa room fingerprint families differ", errors)
 
     def test_rejects_invalid_hash(self) -> None:
         document, _ = sample_document()
@@ -227,35 +172,6 @@ class ManifestValidationTests(unittest.TestCase):
         document["profiles"].append(planned)
         errors = revision_profiles.validate_profiles(document)
         self.assertIn("japan planned source has an assembly define", errors)
-
-    def test_rejects_buildable_profile_without_playtest_contract(self) -> None:
-        document, _ = sample_document()
-        del document["profiles"][0]["playtest"]
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn("usa has no playtest contract", errors)
-
-    def test_rejects_buildable_profile_without_level_preview_contract(self) -> None:
-        document, _ = sample_document()
-        del document["profiles"][0]["level_preview"]
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn("usa has no level preview contract", errors)
-
-    def test_rejects_invalid_level_preview_address(self) -> None:
-        document, _ = sample_document()
-        document["profiles"][0]["level_preview"][
-            "object_animation_pointer_address"
-        ] = "0x10000"
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn(
-            "usa has invalid level preview object_animation_pointer_address",
-            errors,
-        )
-
-    def test_rejects_invalid_playtest_address(self) -> None:
-        document, _ = sample_document()
-        document["profiles"][0]["playtest"]["room_load_address"] = "0x7000"
-        errors = revision_profiles.validate_profiles(document)
-        self.assertIn("usa has invalid playtest room_load_address", errors)
 
     def test_rejects_overlapping_verified_source_ranges(self) -> None:
         document, images = sample_document()
@@ -463,57 +379,6 @@ class SplitAssetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(project.ProjectError, "sha256 mismatch"):
                 revision_profiles.split_profile(profile, parsed, Path(directory))
-
-
-class RoomEvidenceTests(unittest.TestCase):
-    def test_removes_only_layout_dependent_offsets(self) -> None:
-        value = {
-            "prg_offset": 0x1234,
-            "encoded_size": 5,
-            "nested": [{"prg_offset": 0x5678, "value": 9}],
-        }
-        self.assertEqual(
-            revision_profiles.without_locations(value),
-            {"encoded_size": 5, "nested": [{"value": 9}]},
-        )
-
-    def test_structural_difference_reports_precise_path(self) -> None:
-        left = {"rooms": [{"items": [1, 2]}]}
-        right = {"rooms": [{"items": [1, 3]}]}
-        self.assertEqual(
-            revision_profiles.first_structural_difference(left, right),
-            ("room_data.rooms[0].items[1]", 2, 3),
-        )
-
-    def test_equal_structures_have_no_difference(self) -> None:
-        value = {"rooms": [{"items": [1, 2]}]}
-        self.assertIsNone(
-            revision_profiles.first_structural_difference(value, copy.deepcopy(value))
-        )
-
-    def test_room_audit_accepts_recorded_fingerprints(self) -> None:
-        document, _ = sample_document()
-        profile = revision_profiles.get_profile(document, "usa")
-        fake_document = {
-            family: {"family": family} for family in revision_profiles.ROOM_FAMILIES
-        }
-        profile["room_fingerprints"] = {
-            family: revision_profiles.content_fingerprint(value)
-            for family, value in fake_document.items()
-        }
-        with patch.object(revision_profiles, "room_document", return_value=fake_document):
-            actual = revision_profiles.audit_room_fingerprints({}, profile)
-        self.assertEqual(actual, profile["room_fingerprints"])
-
-    def test_room_audit_rejects_changed_semantics(self) -> None:
-        document, _ = sample_document()
-        profile = revision_profiles.get_profile(document, "usa")
-        fake_document = {
-            family: {"family": family} for family in revision_profiles.ROOM_FAMILIES
-        }
-        with patch.object(revision_profiles, "room_document", return_value=fake_document):
-            with self.assertRaisesRegex(project.ProjectError, "fingerprint mismatch"):
-                revision_profiles.audit_room_fingerprints({}, profile)
 
 
 if __name__ == "__main__":

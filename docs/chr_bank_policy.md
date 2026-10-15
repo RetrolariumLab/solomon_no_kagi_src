@@ -1,5 +1,10 @@
 # CNROM CHR-bank policy
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 The USA ROM has four switchable 8 KiB CHR banks. Static source inspection
 finds exactly two cartridge-space write sites: the reset handshake at
 `StartupChrBankSelectValue` and the per-frame `UpdateNmiChrBank` service.

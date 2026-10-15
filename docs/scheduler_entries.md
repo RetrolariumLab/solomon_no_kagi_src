@@ -1,5 +1,10 @@
 # Scheduler entry tables
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 `StartThread` receives a packed byte: the high nibble selects one of eight
 stack contexts and the low nibble selects a two-byte entry in that context's
 table. The table word is an RTS return address, so the first executed address

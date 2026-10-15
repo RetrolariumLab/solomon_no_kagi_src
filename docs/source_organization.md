@@ -1,5 +1,10 @@
 # Source organization
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 The source tree groups code by subsystem rather than by the order in which the
 original bytes appeared in the ROM. The linker configuration remains the
 authority for physical PRG order: each consolidated source can contain several

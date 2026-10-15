@@ -1,33 +1,20 @@
 # Documentation index
 
 Use this page as the reader-facing entry point. The guides are organized by
-task and subsystem rather than by individual routines. The machine-readable
-[documentation corpus](../config/reconstruction/documentation_corpus.json) and
-[corpus review](documentation_review.md) record ownership, consolidation, and
-the few intentionally retained filename families.
+task and subsystem rather than by individual routines.
 
-## Build and verify a release
+## Build and verify
 
-Start with the [README](../README.md), then use the
-[verification contract](verification.md) for the complete command sequence.
-The [toolchain contract](toolchain.md), [runtime evidence](runtime_evidence.md),
-and [debugger workflow](debugger_workflow.md) explain the pinned tools and the
-evidence produced by those commands.
-
-Release boundaries are recorded separately for
-[Source Reconstruction 1.0](source_reconstruction_1_0.md),
-[2.0](source_reconstruction_2_0.md), and the
-[2.1 candidate](source_reconstruction_2_1.md). The
-[revision profiles](revision_profiles.md) describe the USA, Europe, and Japan
-inputs and capabilities. [Code quality](code_quality.md) and the
-[roadmap](roadmap.md) distinguish accepted behavior from later work.
+Start with the [README](../README.md). The [revision profiles](revision_profiles.md)
+describe the USA, Europe, and Japan inputs and how each revision is built and
+checked.
 
 ## Understand the source
 
 Read [architecture](architecture.md) for execution and data flow, then use
 [source layout](source_layout.md) and [source organization](source_organization.md)
 to locate the owning module. [RAM map](ram_map.md) defines runtime storage and
-[data formats](data_formats.md) defines encoded records and their codecs.
+[data formats](data_formats.md) defines encoded records.
 [Editing in Retrolarium](retrolarium.md) explains how the game is edited.
 
 The runtime is documented by subsystem:
@@ -43,15 +30,19 @@ The runtime is documented by subsystem:
   [Demon Mirror runtime](demon_mirror_runtime.md), and the
   [ending system](ending_system.md).
 - [PPU update pipeline](ppu_pipeline.md), [title screen](title_screen.md),
-  [CHR-bank policy](chr_bank_policy.md), and [audio engine](audio_engine.md).
+  [CHR-bank policy](chr_bank_policy.md), [audio engine](audio_engine.md), and
+  the [sound-effect queue](sound_effect_queue.md).
 - [Attract and demo flow](attract_demo_flow.md) for the non-gameplay presentation
   path.
 
-## Evaluate evidence and project boundaries
+## Evidence and boundaries
 
-[Naming and evidence policy](naming.md), [provenance](provenance.md), and the
-canonical [label rename registry](../config/reconstruction/label_renames.json)
+[Naming and evidence policy](naming.md) and [provenance](provenance.md)
 separate confirmed names from hypotheses and imported knowledge.
 [Unknowns](unknowns.md) records unresolved questions. [Licensing](licensing.md)
 separates project tooling and documentation from reconstructed source and
 private user-supplied inputs.
+
+The reference pages describe findings made during Source Reconstruction 1.0
+to 3.0; the validation targets and machine-readable contracts they cite remain
+at those tags.

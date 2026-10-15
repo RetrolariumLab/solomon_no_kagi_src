@@ -1,5 +1,10 @@
 # Audio engine
 
+The validation and audit targets (`make ...-audit`, `make validate-...`) and
+machine-readable contracts (`config/validation/`, `config/reconstruction/`)
+this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
+those tags. The findings stand; the source is now edited directly.
+
 `src/audio/engine.asm` owns CPU `$F000-$F367`. `UpdateAudio` is called
 from NMI after input sampling whenever the game-state audio-disable bit is
 clear. It first consumes the three pending sound-effect mailboxes, then updates
