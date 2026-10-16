@@ -35,7 +35,9 @@ DEBUG := $(BUILD_DIR)/solomons_key.dbg
 # Fifty-one segments before the audio code moved (scripts/build/relocate.py).
 RELOCATED_DIR := build/relocated
 RELOCATED_ROM := $(RELOCATED_DIR)/solomons_key.nes
-ATTRACT_CHECK := movies/attract.check.json
+# The movies test-full plays, in this order: a TAS first, then a longplay,
+# then the attract mode.
+MOVIE_CHECKS := movies/attract.check.json
 SOURCE_FILES := $(sort $(wildcard src/*.asm src/*/*.asm src/*/*/*.asm src/*/*.inc))
 
 .PHONY: all help build split verify verify-reference verify-built verify-header verify-prg \
@@ -161,14 +163,15 @@ test:
 	$(MAKE) --no-print-directory verify verify-revisions verify-revision-sources \
 		build-relocated studio-check
 
-# The full suite: the quick one, then the attract mode in MAME (no input: the
-# title, the demo and its game over) on the relocated build, compared with what
-# the original ROM gives (movies/attract.check.json, written by `make golden`).
+# The full suite: the quick one, then the movies in MAME on the relocated
+# build in turn (the first that differs stops it); the attract mode plays with
+# no input: the title, the demo and its game over. Compared with what the
+# original ROM gives (movies/*.check.json, written by `make golden`).
 test-full: test
-	$(RLTOOL) movie check $(ATTRACT_CHECK) --rom "$(RELOCATED_ROM)" --mame "$(MAME)"
+	$(RLTOOL) movie check $(MOVIE_CHECKS) --rom "$(RELOCATED_ROM)" --mame "$(MAME)"
 
 golden:
-	$(RLTOOL) movie golden $(ATTRACT_CHECK) --rom "$(REFERENCE_ROM)" --mame "$(MAME)"
+	$(RLTOOL) movie golden $(MOVIE_CHECKS) --rom "$(REFERENCE_ROM)" --mame "$(MAME)"
 
 # `make hooks`, once per clone, makes Git check every commit and push for stop
 # words and run `make lint` and `make format-check` first (Retrolarium Kit's
