@@ -42,6 +42,7 @@ make verify-revisions                  # USA and Europe (REVISION=usa|europe for
 make build-relocated                   # fifty-one segments moved
 make studio-check                      # open and rebuild every revision in the kit
 make test / test-full / golden         # the checks
+make play MOVIE=attract                # watch a movie in MAME
 make lint / format / format-check / hooks / clean / help
 ```
 
@@ -56,11 +57,18 @@ over, and at seven checkpoints the room, room state, score, lives, timer and
 Dana's position must equal what the original ROM gives
 (`movies/attract.check.json`). In the relocated build one byte follows each of
 fifty-one segments before the audio code, and the filler before the audio code
-shrinks by as many. Name MAME with `MAME=<path>` or `RETROLARIUM_MAME`;
+shrinks by as many. Name MAME once with `rltool movie mame <path>`
+(or `MAME=<path>`);
 `make golden` records the reference values again.
 
 Only the first demo is checked: the next one depends on a random seed taken
 from frame counters, which a moved build may reach a frame later.
+
+`make play MOVIE=attract` shows a movie in a MAME window at the game's
+speed, on the relocated build (or on `ROM=<image>`), and compares its cells
+with the original's once the window is closed; in MAME, F10 lifts the speed
+limit and Insert fast-forwards. `FRAMES=<frame>` closes MAME at that frame, `CLOSE=1`
+when the movie ends. `make play` alone plays `attract`.
 
 ## Repository map
 

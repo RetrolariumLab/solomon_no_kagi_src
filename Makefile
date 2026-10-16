@@ -7,7 +7,8 @@ RLTOOL ?= rltool
 export RLTOOL
 CA65 ?= $(eval CA65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ca65)))$(CA65)
 LD65 ?= $(eval LD65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ld65)))$(LD65)
-# MAME for `make test-full` and `make golden`.
+# MAME for `make test-full`, `make golden` and `make play`; with none named,
+# the one `rltool movie mame <path>` remembered.
 MAME ?= $(RETROLARIUM_MAME)
 
 # The private assets: assets/manifest.json names the ROMs and what `make split`
@@ -29,9 +30,11 @@ REVISION_ROM = build/revisions/$(REVISION)/solomons_key.nes
 # Fifty-one segments before the audio code moved (scripts/build/relocate.py).
 RELOCATED_DIR := build/relocated
 RELOCATED_ROM := $(RELOCATED_DIR)/solomons_key.nes
-# The movies test-full plays, in this order: a TAS first, then a longplay,
-# then the attract mode.
-MOVIE_CHECKS := movies/attract.check.json
+# The movies by name (make play MOVIE=<name>); test-full plays them in this
+# order: the TAS first, then the longplay, then the attract mode.
+MOVIE_attract := movies/attract.check.json
+MOVIES := attract
+MOVIE_CHECKS := $(foreach movie,$(MOVIES),$(MOVIE_$(movie)))
 SOURCE_FILES := $(sort $(wildcard src/*.asm src/*/*.asm src/*/*/*.asm src/*/*.inc))
 
 # One build of src/main.asm: $(call build_rom,<output ROM>,<SolomonRevision>)
@@ -40,7 +43,7 @@ build_rom = $(PYTHON) -c "from pathlib import Path; Path('$(dir $(1))').mkdir(pa
 	$(LD65) -C $(LINKER_CONFIG) -o "$(1)" "$(basename $(1)).o" -Ln "$(basename $(1)).lbl" \
 		-m "$(basename $(1)).map" --dbgfile "$(basename $(1)).dbg"
 
-.PHONY: all help build verify build-revision verify-revision verify-revisions split \
+.PHONY: play all help build verify build-revision verify-revision verify-revisions split \
 	_require-assets build-relocated verify-toolchain studio-check lint format format-check \
 	test test-full golden hooks clean
 
@@ -114,6 +117,24 @@ test-full: test
 golden:
 	$(RLTOOL) movie golden $(MOVIE_CHECKS) --rom "$(REFERENCE_ROM)" --mame "$(MAME)"
 
+# Watch a movie in a MAME window at the game's speed, on the relocated build
+# or on ROM=<image>; once the window is closed, its cells are compared with
+# the original's. In MAME, F10 lifts the speed limit and Insert fast-forwards.
+#   make play MOVIE=<name> [ROM=<image>] [FRAMES=<frame>] [CLOSE=1]
+# FRAMES closes MAME at that frame (only the start of the movie), CLOSE=1 when
+# the movie ends (else it stays open to play on, the credits say).
+MOVIE ?= $(firstword $(MOVIES))
+PLAY_ROM = $(if $(filter command line,$(origin ROM)),$(ROM),$(RELOCATED_ROM))
+ifneq ($(filter play,$(MAKECMDGOALS)),)
+ifeq ($(MOVIE_$(MOVIE)),)
+$(error unknown MOVIE "$(MOVIE)": this game has $(MOVIES))
+endif
+endif
+
+play: $(if $(filter command line,$(origin ROM)),,build-relocated)
+	$(RLTOOL) movie play $(MOVIE_$(MOVIE)) --rom "$(PLAY_ROM)" --mame "$(MAME)" \
+		$(if $(FRAMES),--stop-at $(FRAMES)) $(if $(CLOSE),--close)
+
 # `make hooks`, once per clone, makes Git check every commit and push for stop
 # words and run `make lint` and `make format-check` first (Retrolarium Kit's
 # rltool hooks; the stop-word list lives outside the repositories).
@@ -133,6 +154,7 @@ help:
 	@echo "  make test                   the quick suite"
 	@echo "  make test-full              test, then the attract mode in MAME (MAME=<path>)"
 	@echo "  make golden                 record the attract mode's checkpoints from the original"
+	@echo "  make play MOVIE=attract     watch a movie in MAME (ROM=<image> for another build)"
 	@echo "  make lint / format / format-check   the house style (Retrolarium Kit)"
 	@echo "  make hooks                  install the Git hooks"
 	@echo "  make verify-toolchain / clean"
