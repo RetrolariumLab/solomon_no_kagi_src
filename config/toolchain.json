@@ -1,63 +1,34 @@
 {
-  "schema_version": 1,
-  "components": [
-    {
-      "id": "assembler",
-      "scope": "build",
-      "kit_tool": "nes/ca65",
-      "kit_release": "2026.10.11",
-      "size": 323584,
-      "binary_sha256": "779a2a266f038cfeea4cdb3cd2cf5bbef4b602bb43560c3fd9f1b45d7bc5c776",
-      "version": "ca65 V2.19 - Git 0fca835",
-      "version_arguments": [
-        "--version"
-      ],
-      "source": "https://github.com/cc65/cc65",
-      "source_commit": "0fca835",
-      "provenance": "retrolarium-kit",
-      "verification_target": "verify-build-toolchain"
-    },
-    {
-      "id": "linker",
-      "scope": "build",
-      "kit_tool": "nes/ld65",
-      "kit_release": "2026.10.11",
-      "size": 202240,
-      "binary_sha256": "06720e9200c9a2a53e049413888a6a55ee023b0801a598d4b6143caae8466813",
-      "version": "ld65 V2.19 - Git 0fca835",
-      "version_arguments": [
-        "--version"
-      ],
-      "source": "https://github.com/cc65/cc65",
-      "source_commit": "0fca835",
-      "provenance": "retrolarium-kit",
-      "verification_target": "verify-build-toolchain"
-    }
-  ],
+  "format": 1,
   "hosts": [
     {
-      "id": "windows-x64-powershell",
       "os": "Windows",
-      "architecture": "AMD64",
-      "shell": "Windows PowerShell 5.1",
-      "language_versions": {
-        "python": "3.14.6",
-        "make": "GNU Make 4.4.1"
-      },
-      "supported_status": "supported",
-      "verification_target": "verify-host"
+      "architecture": "x64",
+      "shell": "PowerShell with GNU Make 4.4.1",
+      "python_tested": "3.14.6",
+      "status": "tested"
     }
   ],
-  "private_inputs": [
-    {
-      "id": "usa_reference_rom",
-      "scope": "private",
-      "path": "Solomon's Key (U) [!].nes",
-      "role": "canonical byte-identity reference and CHR extraction source",
-      "size": 65552,
-      "sha256": "3d9f3bee199a3fbc04bab38e1d9d5cdeae1c6691dcca463a13c25e42f77bb03d",
-      "tracked": false,
-      "verification_target": "verify-private-input"
+  "components": {
+    "ca65": {
+      "version": "ca65 V2.19 - Git 0fca835",
+      "provenance": "retrolarium-kit",
+      "suite": "nes",
+      "tool": "ca65",
+      "kit_release": "2026.10.11",
+      "source": "https://github.com/cc65/cc65",
+      "source_commit": "0fca835",
+      "binary_sha256": "779a2a266f038cfeea4cdb3cd2cf5bbef4b602bb43560c3fd9f1b45d7bc5c776"
+    },
+    "ld65": {
+      "version": "ld65 V2.19 - Git 0fca835",
+      "provenance": "retrolarium-kit",
+      "suite": "nes",
+      "tool": "ld65",
+      "kit_release": "2026.10.11",
+      "source": "https://github.com/cc65/cc65",
+      "source_commit": "0fca835",
+      "binary_sha256": "06720e9200c9a2a53e049413888a6a55ee023b0801a598d4b6143caae8466813"
     }
-  ]
+  }
 }

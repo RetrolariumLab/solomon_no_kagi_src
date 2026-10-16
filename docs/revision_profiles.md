@@ -1,32 +1,21 @@
 # Revision Profiles
 
 The source treats each regional ROM as an independently verified build
-profile. A filename is only a convenient local default. The
-complete-image and region SHA-256 values in `config/revision_profiles.json`
-are the authoritative identities.
+profile. A filename is only a convenient local default: the size and SHA-1
+in `assets/manifest.json` (`retrolarium.assets`) are the authoritative
+identities, and `rltool assets` (Retrolarium Kit) refuses a ROM that does not
+match them.
 
-The profile layer has three responsibilities:
-
-1. refuse a private ROM whose complete identity does not match the selected
-   profile;
-2. extract only manifest-owned binary assets under the ignored
-   `assets/generated/` tree;
-3. distinguish a verified reference from a source-complete profile.
-
-This last distinction was important while the PAL reconstruction was partial.
-USA and Europe are now both complete source profiles whose PRG and complete
-iNES images reproduce their references byte for byte. Japan is recorded as a
-verified research input and is not required by the minimum 2.0 scope.
+USA and Europe are complete source revisions whose iNES images reproduce
+their references byte for byte. Japan is recorded as a verified research
+input: `make split` cuts its CHR, but the source does not build it yet.
 
 ## Contents
 
 - [Known private images](#known-private-images)
 - [Commands](#commands)
-- [Room-data comparison](#room-data-comparison)
 - [Source and binary boundaries](#source-and-binary-boundaries)
-- [Planned build structure](#planned-build-structure)
 - [Editing](#editing)
-- [Source 2.0 release boundary](#source-20-release-boundary)
 
 ## Known private images
 
@@ -49,62 +38,23 @@ gives it a separate destination and identity.
 
 ## Commands
 
-List all recorded profiles and their source status:
-
-```console
-make list-revisions
-```
-
-Verify one private reference:
-
-```console
-make verify-revision-reference PROFILE=europe
-```
-
-Verify the required references, USA and Europe:
-
-```console
-make verify-revision-references
-```
-
-Extract the assets owned by one profile:
-
-```console
-make split-revision-assets PROFILE=europe
-```
-
-Extract assets for all required profiles:
-
-```console
-make split-all
-```
-
-The split operation validates the complete ROM before reading any slice. It
-then validates every extracted slice independently by size, SHA-1, and
-SHA-256, constrains its destination to the requested output tree, and replaces
-the destination only when its bytes changed. Neither a ROM nor a generated
-asset is tracked by Git.
-
-An image with an uncertain filename can be identified by complete hash:
-
-```console
-make identify-revision REVISION_ROM="path/to/image.nes"
-```
-
-The command fails if the image matches zero or more than one manifest entry.
-It does not guess from the filename, region byte, title text, or partial hash.
+`make split` checks every ROM that is here against `assets/manifest.json` and
+cuts the assets the builds read into the ignored `assets/generated/`, replacing
+a file only when its bytes changed. Neither a ROM nor a generated asset is
+tracked by Git. `rltool assets images` lists the manifest's ROMs (`--present`:
+those that are here).
 
 `src/main.asm` takes a numeric `SolomonRevision` define and defaults to USA.
-Build one revision and compare it with its reference, or check both:
+Build one revision and compare it with its reference (`rltool assets verify`),
+or check every revision whose ROM is here:
 
 ```console
-make verify-revision PROFILE=europe
+make verify-revision REVISION=europe
 make verify-revisions
 ```
 
-`make verify-revision-sources` additionally checks the source-owned byte
-ranges each profile declares. Both 65,552-byte images are byte-identical; no
-European code, data, padding, or graphics comes from an opaque PRG asset.
+Both 65,552-byte images are byte-identical; no European code, data, padding,
+or graphics comes from an opaque PRG asset.
 
 ## Source and binary boundaries
 

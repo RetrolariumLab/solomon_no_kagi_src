@@ -1,39 +1,41 @@
 {
+  "schema": "retrolarium.assets",
   "schema_version": 1,
-  "reference_rom": {
-    "name": "Solomon's Key (USA)",
-    "catalog_id": "NES-KE-USA",
-    "file_size": 65552,
-    "file_sha1": "18102689fd35c7d531a5e6241b06b748accab2f6",
-    "file_sha256": "3d9f3bee199a3fbc04bab38e1d9d5cdeae1c6691dcca463a13c25e42f77bb03d",
-    "file_md5": "097f3eb5211e106a5ea6ec43e0c439de",
-    "file_crc32": "99773bc4",
-    "payload_sha1": "222e19511d64872e0b47a47d77ecc9bb3ebc52dc",
-    "payload_sha256": "842478f0d9f01c6c547672a7e4dc4a33ed2c900f92e4b318f4d5941ba548b355",
-    "payload_crc32": "40684e95",
-    "header_size": 16,
-    "header_sha1": "0ff57201bc3954fdaf0d0fb2ac0be6b9219b3690",
-    "header_sha256": "7001d2434a841982ec8a8ef0bb02a7f2e272d4d1e9b4a934aa3b84d708991282",
-    "prg_size": 32768,
-    "prg_sha1": "4e8c6c33897e6c0dc6297f67e8f5699b1b5ca4e6",
-    "prg_sha256": "d86d94cd13a7199b9a58cfa0e372ea05ffeabee8ce301639e5d9f52ca860d6b7",
-    "prg_crc32": "0771c34f",
-    "chr_size": 32768,
-    "chr_sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
-    "chr_sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d",
-    "chr_crc32": "fad8a464",
-    "trainer_size": 0,
-    "mapper": 3,
-    "mirroring": "horizontal",
-    "prg_cpu_base": "0x8000"
-  },
-  "extracted_assets": [
+  "output": "assets/generated",
+  "images": [
+    {
+      "id": "usa",
+      "file": "Solomon's Key (U) [!].nes",
+      "size": 65552,
+      "sha1": "18102689fd35c7d531a5e6241b06b748accab2f6"
+    },
+    {
+      "id": "europe",
+      "file": "Solomon's Key (E) [!].nes",
+      "size": 65552,
+      "sha1": "89ab8f53154c9dcddafe46c16b31df7e00fe2538"
+    },
+    {
+      "id": "japan",
+      "file": "Solomon no Kagi (J).nes",
+      "size": 65552,
+      "sha1": "71d073d0e9e9be84a02db3f78d962c9d94ceea05"
+    }
+  ],
+  "assets": [
     {
       "path": "chr/solomons_key.chr",
-      "region": "chr",
+      "image": "usa",
+      "offset": 32784,
       "size": 32768,
-      "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf",
-      "sha256": "50bcd8917c30a22ecb70b0cfe771302058c24477dc1d5b4cdb22c0dfaded560d"
+      "sha1": "59f98252ca72dd3908964e2ad70aba5dda2e84bf"
+    },
+    {
+      "path": "revisions/japan/chr/solomon_no_kagi.chr",
+      "image": "japan",
+      "offset": 32784,
+      "size": 32768,
+      "sha1": "4ce7eb793aebea0c2b78a9f14180affd647181e5"
     }
   ]
 }

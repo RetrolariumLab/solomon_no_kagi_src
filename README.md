@@ -23,12 +23,14 @@ You need Python 3, GNU Make and Retrolarium Kit (`rltool` on `PATH`, or
 `Solomon's Key (E) [!].nes` into the repository root, then:
 
 ```bash
-make split              # unpack the private CHR (once)
+make split              # cut the private CHR out of the ROMs (once)
 make verify             # build the USA revision and compare byte for byte
 make verify-revisions   # USA and Europe
 ```
 
-ROMs, extracted assets and build products are ignored by Git. This project
+`assets/manifest.json` names the ROMs and the assets cut out of them
+(`rltool assets`, Retrolarium Kit). ROMs, extracted assets and build products
+are ignored by Git. This project
 does not grant rights to the original game code or data; see
 [licensing](docs/licensing.md) and [provenance](docs/provenance.md).
 
@@ -36,11 +38,11 @@ does not grant rights to the original game code or data; see
 
 ```bash
 make build / verify                    # the USA revision
-make verify-revisions                  # USA and Europe (PROFILE=usa|europe for one)
+make verify-revisions                  # USA and Europe (REVISION=usa|europe for one)
 make build-relocated                   # fifty-one segments moved
 make studio-check                      # open and rebuild every revision in the kit
 make test / test-full / golden         # the checks
-make lint / format / format-check / hooks / rom-info / list-revisions / clean / help
+make lint / format / format-check / hooks / clean / help
 ```
 
 ## Tests

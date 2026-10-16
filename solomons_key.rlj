@@ -25,7 +25,8 @@ id = "japan"
 label = "Japan · Solomon no Kagi"
 rom = "Solomon no Kagi (J).nes"
 
+# The assets the revisions build from: the kit cuts them out of the USA ROM by
+# assets/manifest.json, as `make split` does.
 [split]
 revision = "usa"
-command = ["scripts/run.py", "build.project", "split", "--image", "{rom}", "--manifest", "assets/manifest.json", "--output-dir", "assets/generated"]
-check = ["scripts/run.py", "build.verify_rom", "asset", "--asset", "assets/generated/chr/solomons_key.chr", "--reference", "{rom}", "--manifest", "assets/manifest.json", "--region", "chr"]
+manifest = "assets/manifest.json"
