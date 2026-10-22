@@ -32,6 +32,15 @@ the revisions and the asset split. The studio offers:
 Capacities stay those of the original layout: each table keeps its place and
 size, and the studio refuses an edit that would not fit.
 
+## Studio and source
+
+The studio builds a revision from its original ROM and the documents in
+`hack/<revision>/`; it does not assemble `src/`. `make build` assembles `src/`
+and never reads `hack/`. So an edit to the source shows in `make build` and
+`make play`, not in the studio, and a studio edit stays in the studio's
+documents until someone writes it into the source by hand. Use the studio for
+content (rooms, graphics, text, music) and the source for code.
+
 ## The game's names and tables
 
 Retrolarium keeps nothing taken from the game; this repository gives it what it
