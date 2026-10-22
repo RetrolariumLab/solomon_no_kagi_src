@@ -6,7 +6,7 @@
     "paths": ["src"]
   },
   "text": {
-    "json": "indent",
+    "json": "valid",
     "skip": ["assets/generated", "references"]
   }
 }
