@@ -17,15 +17,16 @@ debugger exports remain in the history (tags `source-reconstruction-1.0` to
 
 ## Quick start
 
-You need Python 3, GNU Make and Retrolarium Kit (`rltool` on `PATH`, or
-`RLTOOL=...`); the kit supplies the pinned ca65 and ld65 of
-`config/toolchain.json`. Copy `Solomon's Key (U) [!].nes` and
-`Solomon's Key (E) [!].nes` into the repository root, then:
+You need Python 3.11 or later, GNU Make and Retrolarium Kit (`rltool` on
+`PATH`, or `RLTOOL=...`); the kit supplies ca65 and ld65 and checks them. Copy
+`Solomon's Key (U) [!].nes` and `Solomon's Key (E) [!].nes` into the repository
+root (either is enough for its own revision), then:
 
 ```bash
+make                    # the targets
 make split              # cut the private CHR out of the ROMs (once)
 make verify             # build the USA revision and compare byte for byte
-make verify-revisions   # USA and Europe
+make verify-revisions   # every revision whose ROM is here
 ```
 
 `assets/manifest.json` names the ROMs and the assets cut out of them
@@ -37,19 +38,23 @@ does not grant rights to the original game code or data; see
 ## Targets
 
 ```bash
-make build / verify                    # the USA revision
-make verify-revisions                  # USA and Europe (REVISION=usa|europe for one)
-make build-relocated                   # fifty-one segments moved
-make studio-check                      # open and rebuild every revision in the kit
+make build / verify [REVISION=europe]  # one revision (USA unless given), in build/revisions/<id>/
+make verify-revisions                  # every revision whose ROM is here
+make build-relocated [REVISION=...]    # fifty-one segments moved, in build/relocated/<id>/
+make studio-check / profile-check      # the kit opens and rebuilds it; the profile's table places
 make test / test-full / golden         # the checks
-make play MOVIE=attract                # watch a movie in MAME
-make lint / format / format-check / hooks / clean / help
+make play [MOVIE=attract]              # watch a movie in MAME
+make lint / format / hooks / clean
 ```
+
+Each revision builds from its entry file, `src/revisions/<id>.asm`, which sets
+`SolomonRevision` and includes `src/main.asm`.
 
 ## Tests
 
-`make test` (about half a minute) runs the unit tests, verifies both revisions
-byte for byte, builds the relocated ROM and runs the studio check.
+`make test` (about twenty seconds) runs the unit tests, verifies every revision
+whose ROM is here byte for byte, builds each relocated, checks the table places
+of `config/game_profile.json` against the builds and runs the studio check.
 
 `make test-full` adds the attract mode played in MAME on the relocated build:
 with no input the game shows its title, plays its demo and ends it with a game
@@ -62,7 +67,10 @@ shrinks by as many. Name MAME once with `rltool movie mame <path>`
 `make golden` records the reference values again.
 
 Only the first demo is checked: the next one depends on a random seed taken
-from frame counters, which a moved build may reach a frame later.
+from frame counters, which a moved build may reach a frame later. For the same
+reason the European relocated build has no movie yet: its first demo already
+departs from the original's (`movies/attract-europe.check.json`,
+[unknowns](docs/unknowns.md)).
 
 `make play MOVIE=attract` shows a movie in a MAME window at the game's
 speed, on the relocated build (or on `ROM=<image>`), and compares its cells
@@ -74,11 +82,12 @@ when the movie ends. `make play` alone plays `attract`.
 
 ```text
 src/              ca65 source (main.asm, grouped by subsystem)
-config/           linker layout, revisions, toolchain, lint, names, profile
+src/revisions/    one entry file per revision the source builds
+config/           linker layout, lint, names, profile and its table places
 assets/           manifest.json (the extracted CHR is ignored)
-scripts/build/    split, verification, revision and relocation scripts
-tests/            their unit tests
-movies/           the attract-mode check
+scripts/build/    relocate.py, the relocated build's source rewrite
+tests/            its unit tests
+movies/           the attract-mode checks
 docs/             architecture, subsystems, RAM, data formats
 solomons_key.rlj  the Retrolarium project
 ```

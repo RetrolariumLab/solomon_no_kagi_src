@@ -18,8 +18,18 @@ not missing binary ownership.
 2. The USA and European runtime matrices cover critical boot, gameplay,
    pause, death/reload, audio, scheduler, and transition paths; they do not
    claim an exhaustive 53-room longplay or every ending/special-room branch.
-3. Systematic relocation, expanded images, mapper changes, and sibling engines
-   require a future major release because they change the fixed-layout ABI.
+3. Expanded images, mapper changes, and sibling engines require a future
+   major release because they change the fixed-layout ABI.
+4. The European relocated build (`make build-relocated REVISION=europe`)
+   assembles, but its attract mode departs from the original's from about
+   frame 1110, at the start of the demo (`movies/attract-europe.check.json`,
+   recorded from the European ROM, which it and the plain European build
+   match). Probing one segment at a time, a byte after any of segments 0 to 28
+   or 40 to 45 of the 51 moved changes it, one after 29 to 39 or 46 to 50 does
+   not; the USA build passes with every probe. The first divergences are in
+   zero-page temporaries, not in pointers, which fits the timing effect that
+   already limits the USA check to its first demo (a seed from frame counters)
+   more than an address the code depends on, but that is not proven.
 
 ## Resolved questions
 

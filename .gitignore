@@ -15,6 +15,11 @@ content/workspace/
 # Local research repositories
 references/
 
+# Recordings being worked on; a movie joins the checks with `git add -f`
+/movies/*
+!/movies/attract.*
+!/movies/attract-europe.*
+
 # Python caches and editor state
 __pycache__/
 *.py[cod]

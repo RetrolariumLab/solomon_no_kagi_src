@@ -15,7 +15,7 @@ SolomonRevisionUsa = 0
 SolomonRevisionEurope = 1
 
 .ifndef SolomonRevision
-SolomonRevision = SolomonRevisionUsa
+    .error "assemble a revision's entry file, src/revisions/<id>.asm"
 .endif
 
 .assert SolomonRevision = SolomonRevisionUsa .or SolomonRevision = SolomonRevisionEurope, error, "unsupported Solomon's Key revision profile"

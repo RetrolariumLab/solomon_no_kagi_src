@@ -44,17 +44,18 @@ a file only when its bytes changed. Neither a ROM nor a generated asset is
 tracked by Git. `rltool assets images` lists the manifest's ROMs (`--present`:
 those that are here).
 
-`src/main.asm` takes a numeric `SolomonRevision` define and defaults to USA.
-Build one revision and compare it with its reference (`rltool assets verify`),
-or check every revision whose ROM is here:
+Each revision's entry file, `src/revisions/usa.asm` or `europe.asm`, sets
+`SolomonRevision` and includes `src/main.asm`. Build one revision and compare
+it with its original (`rltool assets verify`), or check every revision whose
+ROM is here:
 
 ```console
-make verify-revision REVISION=europe
+make verify REVISION=europe
 make verify-revisions
 ```
 
-Both 65,552-byte images are byte-identical; no European code, data, padding,
-or graphics comes from an opaque PRG asset.
+Each 65,552-byte build equals its original image byte for byte; no European
+code, data, padding, or graphics comes from an opaque PRG asset.
 
 ## Source and binary boundaries
 

@@ -1,96 +1,88 @@
 # Solomon's Key: build the source back into the USA and European ROMs and
-# check it. `make help` lists the targets.
+# check it. `make` alone lists the targets.
 PYTHON ?= python
-# cc65 from Retrolarium Kit (RLTOOL, default rltool), asked once per run; the
-# recipes' shell needs forward slashes.
 RLTOOL ?= rltool
 export RLTOOL
+# cc65 from Retrolarium Kit, which verifies it; asked once, when a recipe
+# first needs it (the recipes' shell wants forward slashes).
 CA65 ?= $(eval CA65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ca65)))$(CA65)
 LD65 ?= $(eval LD65 := $$(subst \,/,$$(shell $$(RLTOOL) build-tools path nes ld65)))$(LD65)
-# MAME for `make test-full`, `make golden` and `make play`; with none named,
-# the one `rltool movie mame <path>` remembered.
-MAME ?= $(RETROLARIUM_MAME)
 
-# The private assets: assets/manifest.json names the ROMs and what `make split`
-# cuts out of them; `rltool assets` (Retrolarium Kit) splits, checks and
-# verifies.
-ASSETS = $(RLTOOL) assets $(1)
+GAME := solomons_key
 BASE_IMAGE := usa
-REFERENCE_ROM ?= Solomon's Key (U) [!].nes
+# The revisions the source builds, one entry file each (the Japanese image
+# is not reconstructed yet); REVISION picks one.
+REVISIONS := $(basename $(notdir $(wildcard src/revisions/*.asm)))
+REVISION ?= $(BASE_IMAGE)
 LINKER_CONFIG := config/linker/cnrom.cfg
-# The revisions the source builds: image ids of assets/manifest.json and their
-# SolomonRevision value (the Japanese image is not reconstructed yet).
-REVISIONS := usa europe
-REVISION ?= europe
-SOLOMON_REVISION_usa := 0
-SOLOMON_REVISION_europe := 1
-BUILD_DIR := build/native
-ROM := $(BUILD_DIR)/solomons_key.nes
-REVISION_ROM = build/revisions/$(REVISION)/solomons_key.nes
-# Fifty-one segments before the audio code moved (scripts/build/relocate.py).
-RELOCATED_DIR := build/relocated
-RELOCATED_ROM := $(RELOCATED_DIR)/solomons_key.nes
-# The movies by name (make play MOVIE=<name>); test-full plays them in this
-# order: the TAS first, then the longplay, then the attract mode.
-MOVIE_attract := movies/attract.check.json
-MOVIES := attract
-MOVIE_CHECKS := $(foreach movie,$(MOVIES),$(MOVIE_$(movie)))
-SOURCE_FILES := $(sort $(wildcard src/*.asm src/*/*.asm src/*/*/*.asm src/*/*.inc))
+OUT = build/revisions/$(REVISION)
+ROM = $(OUT)/$(GAME).nes
+RELOCATED_OUT = build/relocated/$(REVISION)
+RELOCATED_ROM = $(RELOCATED_OUT)/$(GAME).nes
+# The revisions whose ROM is here (assets/manifest.json names the files).
+PRESENT = $(filter $(REVISIONS),$(shell $(RLTOOL) assets images --present))
+# The movies each revision's relocated build plays in `make test-full`, by
+# name (movies/<name>.check.json, written by `make golden`).
+MOVIES_usa := attract
+# None for Europe yet: its relocated build departs from the original in the
+# first demo (docs/unknowns.md); movies/attract-europe.check.json is ready.
+MOVIES_europe :=
+MOVIE_CHECKS = $(foreach movie,$(MOVIES_$(1)),movies/$(movie).check.json)
+# The revisions here that have movies.
+PLAYED = $(foreach revision,$(PRESENT),$(if $(MOVIES_$(revision)),$(revision)))
+MAME_OPTION = $(if $(MAME),--mame "$(MAME)")
 
-# One build of src/main.asm: $(call build_rom,<output ROM>,<SolomonRevision>)
-build_rom = $(PYTHON) -c "from pathlib import Path; Path('$(dir $(1))').mkdir(parents=True, exist_ok=True)" && \
-	$(CA65) -D SolomonRevision=$(2) --debug-info -g -o "$(basename $(1)).o" -l "$(basename $(1)).lst" "src/main.asm" && \
-	$(LD65) -C $(LINKER_CONFIG) -o "$(1)" "$(basename $(1)).o" -Ln "$(basename $(1)).lbl" \
-		-m "$(basename $(1)).map" --dbgfile "$(basename $(1)).dbg"
+define newline
 
-.PHONY: play all help build verify build-revision verify-revision verify-revisions split \
-	_require-assets build-relocated verify-toolchain studio-check lint format format-check \
-	test test-full golden hooks clean
 
-all: verify
+endef
+
+# Assemble and link one entry file: $(call build_rom,<entry>,<output folder>)
+build_rom = $(PYTHON) -c "from pathlib import Path; Path('$(2)').mkdir(parents=True, exist_ok=True)"$(newline)\
+	$(CA65) -I src --debug-info -g -o "$(2)/$(GAME).o" -l "$(2)/$(GAME).lst" "$(1)"$(newline)\
+	$(LD65) -C $(LINKER_CONFIG) -o "$(2)/$(GAME).nes" "$(2)/$(GAME).o" -Ln "$(2)/$(GAME).lbl" \
+		-m "$(2)/$(GAME).map" --dbgfile "$(2)/$(GAME).dbg"
+
+.PHONY: help split build verify verify-revisions build-relocated studio-check profile-check \
+	lint format test test-full golden play hooks clean _revision
+.DEFAULT_GOAL := help
 
 split:
-	$(call ASSETS,split)
+	$(RLTOOL) assets split
 
-_require-assets:
-	$(call ASSETS,check) --image $(BASE_IMAGE)
+_revision:
+	$(if $(filter $(REVISION),$(REVISIONS)),,$(error REVISION=$(REVISION) is not one of: $(REVISIONS)))
+	$(RLTOOL) assets check --image $(BASE_IMAGE)
 
-$(ROM): $(SOURCE_FILES) Makefile | verify-toolchain _require-assets
-	$(call build_rom,$@,0)
+# Every build assembles anew: it takes a second, and nothing it reads
+# (source, linker config, CHR) can be missed.
+build: _revision
+	$(call build_rom,src/revisions/$(REVISION).asm,$(OUT))
 
-build: $(ROM)
+verify: build
+	$(RLTOOL) assets verify --image $(REVISION) --built "$(ROM)"
 
-verify: $(ROM)
-	$(call ASSETS,verify) --image $(BASE_IMAGE) --built "$(ROM)"
-
-# One revision (REVISION=usa or europe).
-build-revision: verify-toolchain _require-assets
-	$(call build_rom,$(REVISION_ROM),$(SOLOMON_REVISION_$(REVISION)))
-
-verify-revision: build-revision
-	$(call ASSETS,verify) --image $(REVISION) --built "$(REVISION_ROM)"
-
-# Every revision the source builds whose ROM is here.
+# Every revision whose ROM is here, byte for byte.
 verify-revisions:
-	@for revision in $$($(call ASSETS,images) --present); do \
-		case " $(REVISIONS) " in *" $$revision "*) \
-			$(MAKE) --no-print-directory verify-revision REVISION=$$revision || exit 1;; \
-		esac; \
-	done
+	$(if $(PRESENT),,$(error none of the ROMs of $(REVISIONS) is here: copy them beside this Makefile and make split))
+	$(foreach revision,$(PRESENT),$(MAKE) --no-print-directory verify REVISION=$(revision)$(newline))
 
-build-relocated: $(SOURCE_FILES) | verify-toolchain _require-assets
-	$(PYTHON) scripts/build/relocate.py --main src/main.asm --linker-config $(LINKER_CONFIG) \
-		--output "$(RELOCATED_DIR)/main.asm"
-	$(CA65) -g -o "$(RELOCATED_DIR)/solomons_key.o" "$(RELOCATED_DIR)/main.asm"
-	$(LD65) -C $(LINKER_CONFIG) -o "$(RELOCATED_ROM)" "$(RELOCATED_DIR)/solomons_key.o"
+# The source with every segment before the audio filler moved by one more
+# byte than the one before it (scripts/build/relocate.py), built the same way.
+build-relocated: _revision
+	$(PYTHON) scripts/build/relocate.py --entry src/revisions/$(REVISION).asm \
+		--linker-config $(LINKER_CONFIG) --output-dir "$(RELOCATED_OUT)"
+	$(call build_rom,$(RELOCATED_OUT)/$(REVISION).asm,$(RELOCATED_OUT))
 
-verify-toolchain:
-	$(PYTHON) scripts/build/toolchain.py --manifest config/toolchain.json
-
-# Open every revision of solomons_key.rlj in a throwaway copy of the
-# repository the way Retrolarium Studio does, and rebuild each without edits.
+# Open the revisions of solomons_key.rlj whose ROM is here in a throwaway copy
+# of the repository the way Retrolarium Studio does, and rebuild each without
+# edits.
 studio-check:
-	$(RLTOOL) studio check solomons_key.rlj
+	$(RLTOOL) studio check solomons_key.rlj --present
+
+# The table places config/game_profile.json records, against the builds.
+profile-check:
+	$(RLTOOL) profile tables --check $(foreach revision,$(PRESENT),--revision $(revision))
 
 lint:
 	$(RLTOOL) lint
@@ -98,46 +90,43 @@ lint:
 format:
 	$(RLTOOL) lint --fix
 
-format-check:
-	$(RLTOOL) lint --only assembly
-
-# The quick suite: the unit tests, both revisions byte for byte, the relocated
-# build and the studio check.
+# The quick suite: the unit tests, every revision here byte for byte and
+# relocated, the profile's table places and the studio check.
 test:
 	$(PYTHON) -m unittest discover -s tests -t .
-	$(MAKE) --no-print-directory verify verify-revisions build-relocated studio-check
+	$(MAKE) --no-print-directory verify-revisions
+	$(foreach revision,$(PRESENT),$(MAKE) --no-print-directory build-relocated REVISION=$(revision)$(newline))
+	$(MAKE) --no-print-directory profile-check studio-check
 
-# The full suite: the quick one, then the movies in MAME on the relocated
-# build in turn (the first that differs stops it); the attract mode plays with
-# no input: the title, the demo and its game over. Compared with what the
-# original ROM gives (movies/*.check.json, written by `make golden`).
+# The full suite: the quick one, then each relocated build plays its movies
+# in MAME (the attract mode with no input: the title, the demo and its game
+# over), compared with what the original ROM gives (`make golden`).
 test-full: test
-	$(RLTOOL) movie check $(MOVIE_CHECKS) --rom "$(RELOCATED_ROM)" --mame "$(MAME)"
+	$(foreach revision,$(PLAYED),$(RLTOOL) movie check $(call MOVIE_CHECKS,$(revision)) \
+		--rom "build/relocated/$(revision)/$(GAME).nes" $(MAME_OPTION)$(newline))
 
 golden:
-	$(RLTOOL) movie golden $(MOVIE_CHECKS) --rom "$(REFERENCE_ROM)" --mame "$(MAME)"
+	$(foreach revision,$(PLAYED),$(RLTOOL) movie golden $(call MOVIE_CHECKS,$(revision)) \
+		--rom "$(shell $(RLTOOL) assets path --image $(revision))" $(MAME_OPTION)$(newline))
 
 # Watch a movie in a MAME window at the game's speed, on the relocated build
 # or on ROM=<image>; once the window is closed, its cells are compared with
 # the original's. In MAME, F10 lifts the speed limit and Insert fast-forwards.
-#   make play MOVIE=<name> [ROM=<image>] [FRAMES=<frame>] [CLOSE=1]
+#   make play [MOVIE=<name>] [REVISION=<id>] [ROM=<image>] [FRAMES=<frame>] [CLOSE=1]
 # FRAMES closes MAME at that frame (only the start of the movie), CLOSE=1 when
 # the movie ends (else it stays open to play on, the credits say).
-MOVIE ?= $(firstword $(MOVIES))
+MOVIE ?= $(firstword $(MOVIES_$(REVISION)))
 PLAY_ROM = $(if $(filter command line,$(origin ROM)),$(ROM),$(RELOCATED_ROM))
-ifneq ($(filter play,$(MAKECMDGOALS)),)
-ifeq ($(MOVIE_$(MOVIE)),)
-$(error unknown MOVIE "$(MOVIE)": this game has $(MOVIES))
-endif
-endif
 
 play: $(if $(filter command line,$(origin ROM)),,build-relocated)
-	$(RLTOOL) movie play $(MOVIE_$(MOVIE)) --rom "$(PLAY_ROM)" --mame "$(MAME)" \
+	$(if $(wildcard movies/$(MOVIE).check.json),,$(error unknown MOVIE "$(MOVIE)": movies/ has \
+		$(basename $(basename $(notdir $(wildcard movies/*.check.json))))))
+	$(RLTOOL) movie play movies/$(MOVIE).check.json --rom "$(PLAY_ROM)" $(MAME_OPTION) \
 		$(if $(FRAMES),--stop-at $(FRAMES)) $(if $(CLOSE),--close)
 
 # `make hooks`, once per clone, makes Git check every commit and push for stop
-# words and run `make lint` and `make format-check` first (Retrolarium Kit's
-# rltool hooks; the stop-word list lives outside the repositories).
+# words and run `make lint` first (Retrolarium Kit's rltool hooks; the
+# stop-word list lives outside the repositories).
 hooks:
 	$(RLTOOL) hooks install --project .
 
@@ -145,16 +134,15 @@ clean:
 	$(PYTHON) -c "import shutil; shutil.rmtree('build', ignore_errors=True)"
 
 help:
-	@echo "Solomon's Key source reconstruction"
-	@echo "  make split                  cut the assets out of the ROMs that are here (once)"
-	@echo "  make build / verify         the USA revision / and byte for byte"
-	@echo "  make build-revision REVISION=usa|europe / verify-revision / verify-revisions"
-	@echo "  make build-relocated        fifty-one segments moved"
-	@echo "  make studio-check           open and rebuild every solomons_key.rlj revision"
-	@echo "  make test                   the quick suite"
-	@echo "  make test-full              test, then the attract mode in MAME (MAME=<path>)"
-	@echo "  make golden                 record the attract mode's checkpoints from the original"
-	@echo "  make play MOVIE=attract     watch a movie in MAME (ROM=<image> for another build)"
-	@echo "  make lint / format / format-check   the house style (Retrolarium Kit)"
-	@echo "  make hooks                  install the Git hooks"
-	@echo "  make verify-toolchain / clean"
+	$(info Solomon's Key source reconstruction: $(REVISIONS), REVISION=$(BASE_IMAGE) unless given)
+	$(info   make split                  cut the assets out of the ROMs that are here, once)
+	$(info   make build [REVISION=id]    build a revision into build/revisions/id/)
+	$(info   make verify [REVISION=id]   build it and compare it with its ROM byte for byte)
+	$(info   make verify-revisions       every revision whose ROM is here)
+	$(info   make build-relocated        the revision with its segments moved)
+	$(info   make test                   the quick suite)
+	$(info   make test-full              test, then the movies in MAME: MAME=path or the kit's)
+	$(info   make golden                 record the movies' checkpoints from the original ROMs)
+	$(info   make play [MOVIE=name]      watch a movie in MAME; ROM=image for another build)
+	$(info   make studio-check / profile-check / lint / format / hooks / clean)
+	@exit 0

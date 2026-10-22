@@ -40,5 +40,4 @@ describe the change, the affected boundary, and the checks that passed. Keep
 one task per commit.
 
 `make hooks` installs Git hooks that check commits and pushes for words that
-must not be published and run `make lint` and `make format-check` before each
-commit.
+must not be published and run `make lint` before each commit.

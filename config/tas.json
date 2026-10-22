@@ -1,8 +1,0 @@
-{
-  "stop_when": [
-    {
-      "name": "Dana dies",
-      "lua": "memory:read_u8(0x0028) & 0x10 ~= 0"
-    }
-  ]
-}

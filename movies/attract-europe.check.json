@@ -1,0 +1,104 @@
+{
+  "schema": "retrolarium.movie-check",
+  "schema_version": 1,
+  "movie": "attract.rlmovie",
+  "cells": {
+    "room": {
+      "address": "0x0428"
+    },
+    "room_state": {
+      "address": "0x007C"
+    },
+    "score": {
+      "address": "0x044B",
+      "length": 8
+    },
+    "lives": {
+      "address": "0x0453"
+    },
+    "timer": {
+      "address": "0x0439",
+      "length": 4
+    },
+    "dana_y": {
+      "address": "0x0587"
+    },
+    "dana_x": {
+      "address": "0x058A"
+    }
+  },
+  "frames": [
+    1000,
+    1500,
+    2000,
+    2500,
+    3000,
+    3500,
+    "end"
+  ],
+  "expected": {
+    "1000": {
+      "room": "02",
+      "room_state": "03",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "00000001",
+      "dana_y": "00",
+      "dana_x": "00"
+    },
+    "1500": {
+      "room": "02",
+      "room_state": "03",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "07020900",
+      "dana_y": "3b",
+      "dana_x": "56"
+    },
+    "2000": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "00",
+      "timer": "01000900",
+      "dana_y": "00",
+      "dana_x": "00"
+    },
+    "2500": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "00",
+      "timer": "01000900",
+      "dana_y": "00",
+      "dana_x": "00"
+    },
+    "3000": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "02070900",
+      "dana_y": "50",
+      "dana_x": "38"
+    },
+    "3500": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "03090800",
+      "dana_y": "40",
+      "dana_x": "a3"
+    },
+    "end": {
+      "room": "02",
+      "room_state": "13",
+      "score": "0000000000000000",
+      "lives": "03",
+      "timer": "07070800",
+      "dana_y": "50",
+      "dana_x": "dc"
+    }
+  }
+}
