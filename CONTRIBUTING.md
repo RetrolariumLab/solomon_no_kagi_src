@@ -26,8 +26,8 @@ introducing a name, record the evidence in the relevant document:
 - unknown: stable address-based name only.
 
 Do not silently upgrade a tentative name to a fact. Write ROM addresses as
-labels, never as numbers: a table or thread entry named by its address breaks
-as soon as anything before it moves, and `make test-full` will show it.
+labels, never as numbers: a table or thread entry named by its address breaks as
+soon as anything before it moves, and `make test-full` will show it.
 
 Prefer subsystem-sized source files (roughly 300-700 lines) over one file per
 small address range.
@@ -35,9 +35,9 @@ small address range.
 ## Commit messages
 
 Write the subject and body in English. Use a concrete result-oriented subject
-without a trailing period. Follow it with two or three paragraphs that
-describe the change, the affected boundary, and the checks that passed. Keep
-one task per commit.
+without a trailing period. Follow it with two or three paragraphs that describe
+the change, the affected boundary, and the checks that passed. Keep one task per
+commit.
 
 `make hooks` installs Git hooks that check commits and pushes for words that
 must not be published and run `make lint` before each commit.

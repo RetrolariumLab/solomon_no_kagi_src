@@ -9,11 +9,11 @@ over from the original.
 
 ## Revisions
 
-| Revision | ROM                          | Timing |
-| -------- | ---------------------------- | ------ |
-| `usa`    | `Solomon's Key (U) [!].nes`  | NTSC   |
-| `europe` | `Solomon's Key (E) [!].nes`  | PAL    |
-| `japan`  | `Solomon no Kagi (J).nes`    | NTSC   |
+| Revision | ROM                         | Timing |
+| -------- | --------------------------- | ------ |
+| `usa`    | `Solomon's Key (U) [!].nes` | NTSC   |
+| `europe` | `Solomon's Key (E) [!].nes` | PAL    |
+| `japan`  | `Solomon no Kagi (J).nes`   | NTSC   |
 
 The USA and European revisions are the ones this repository rebuilds from
 source; the Japanese revision is edited from its ROM.
@@ -57,9 +57,9 @@ project made from it; Retrolarium keeps no copy.
 
 `config/profile_tables.json` names, by label, the tables the kit reads from the
 image built from this source. `rltool profile tables` prints their offsets in
-each revision's build, the values of `config/game_profile.json`; `make
-profile-check` (part of `make test`) compares the two, so a source change that
-moves such a table fails until the profile is updated. The profile's other
+each revision's build, the values of `config/game_profile.json`;
+`make profile-check` (part of `make test`) compares the two, so a source change
+that moves such a table fails until the profile is updated. The profile's other
 offsets are not derived from labels yet.
 
 ## Checking the repository

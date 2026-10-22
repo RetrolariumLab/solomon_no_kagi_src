@@ -39,75 +39,116 @@
         "ready_frames": 1000
       },
       "resource_overrides": [
-        {"id": "render-tables", "parameters": {"tables": {
-            "constellation_tile_patterns": {"file_offset": 6507, "size": 96},
-            "constellation_palettes": {"file_offset": 6603, "size": 12}
-          }}},
-        {"id": "room-blocks", "parameters": {"prg_offset": 24492}},
-        {"id": "enemy-streams", "parameters": {
-          "pointer_table_prg": 23660,
-          "arena_start_prg": 23766,
-          "arena_end_prg": 24492
-        }},
-        {"id": "item-streams", "parameters": {
-          "pointer_table_prg": 27036,
-          "arena_start_prg": 27142,
-          "arena_end_prg": 28484
-        }},
-        {"id": "mirror-schedules", "parameters": {
-          "pointer_table_prg": 23424,
-          "arena_start_prg": 23490,
-          "arena_end_prg": 23618
-        }},
-        {"id": "mirror-enemy-sets", "parameters": {
-          "pointer_table_prg": 23456,
-          "arena_start_prg": 23618,
-          "arena_end_prg": 23660
-        }},
-        {"id": "special-rooms", "parameters": {
-          "bonus_positions_prg": 6602,
-          "bonus_types_prg": 6634
-        }},
-        {"id": "room-palettes", "parameters": {
-          "file_offset": 3810
-        }},
-        {"id": "room-art", "parameters": {
-          "room_group_colors_prg": 4401,
-          "room_map_patterns_prg": 20352
-        }},
-        {"id": "sprite-frames", "parameters": {
-          "animation_pointers_prg": 20584
-        }},
-        {"id": "animations", "parameters": {
-          "pointer_table_prg": 20584,
-          "enemy_configuration_prg": 9294
-        }},
-        {"id": "audio", "parameters": {
-          "period_cpu": 62184,
-          "duration_cpu": 62208,
-          "envelope_pointer_cpu": 62274,
-          "envelope_data_cpu": 62290,
-          "effect_pointer_cpu": 62500,
-          "effect_data_cpu": 62552,
-          "stream_cpu": 62778,
-          "stream_end_cpu": 65502
-        }},
-        {"id": "presentation", "parameters": {
-          "record_cpu": 52463,
-          "logo_cpu": 52618,
-          "demo_duration_cpu": 52865,
-          "demo_input_cpu": 52899,
-          "demo_code_cpu": 51899,
-          "demo_end_cpu": 53035
-        }},
-        {"id": "text", "parameters": {
-          "static_pointer_low_cpu": 38050,
-          "static_pointer_high_cpu": 38068,
-          "static_region_cpu": 38086,
-          "static_region_end_cpu": 38435,
-          "room_intro_cpu": 37516,
-          "special_names_cpu": 37547
-        }}
+        {
+          "id": "render-tables",
+          "parameters": {
+            "tables": {
+              "constellation_tile_patterns": { "file_offset": 6507, "size": 96 },
+              "constellation_palettes": { "file_offset": 6603, "size": 12 }
+            }
+          }
+        },
+        { "id": "room-blocks", "parameters": { "prg_offset": 24492 } },
+        {
+          "id": "enemy-streams",
+          "parameters": {
+            "pointer_table_prg": 23660,
+            "arena_start_prg": 23766,
+            "arena_end_prg": 24492
+          }
+        },
+        {
+          "id": "item-streams",
+          "parameters": {
+            "pointer_table_prg": 27036,
+            "arena_start_prg": 27142,
+            "arena_end_prg": 28484
+          }
+        },
+        {
+          "id": "mirror-schedules",
+          "parameters": {
+            "pointer_table_prg": 23424,
+            "arena_start_prg": 23490,
+            "arena_end_prg": 23618
+          }
+        },
+        {
+          "id": "mirror-enemy-sets",
+          "parameters": {
+            "pointer_table_prg": 23456,
+            "arena_start_prg": 23618,
+            "arena_end_prg": 23660
+          }
+        },
+        {
+          "id": "special-rooms",
+          "parameters": {
+            "bonus_positions_prg": 6602,
+            "bonus_types_prg": 6634
+          }
+        },
+        {
+          "id": "room-palettes",
+          "parameters": {
+            "file_offset": 3810
+          }
+        },
+        {
+          "id": "room-art",
+          "parameters": {
+            "room_group_colors_prg": 4401,
+            "room_map_patterns_prg": 20352
+          }
+        },
+        {
+          "id": "sprite-frames",
+          "parameters": {
+            "animation_pointers_prg": 20584
+          }
+        },
+        {
+          "id": "animations",
+          "parameters": {
+            "pointer_table_prg": 20584,
+            "enemy_configuration_prg": 9294
+          }
+        },
+        {
+          "id": "audio",
+          "parameters": {
+            "period_cpu": 62184,
+            "duration_cpu": 62208,
+            "envelope_pointer_cpu": 62274,
+            "envelope_data_cpu": 62290,
+            "effect_pointer_cpu": 62500,
+            "effect_data_cpu": 62552,
+            "stream_cpu": 62778,
+            "stream_end_cpu": 65502
+          }
+        },
+        {
+          "id": "presentation",
+          "parameters": {
+            "record_cpu": 52463,
+            "logo_cpu": 52618,
+            "demo_duration_cpu": 52865,
+            "demo_input_cpu": 52899,
+            "demo_code_cpu": 51899,
+            "demo_end_cpu": 53035
+          }
+        },
+        {
+          "id": "text",
+          "parameters": {
+            "static_pointer_low_cpu": 38050,
+            "static_pointer_high_cpu": 38068,
+            "static_region_cpu": 38086,
+            "static_region_end_cpu": 38435,
+            "room_intro_cpu": 37516,
+            "special_names_cpu": 37547
+          }
+        }
       ]
     },
     {
@@ -126,43 +167,57 @@
         "ready_frames": 1000
       },
       "resource_overrides": [
-        {"id": "render-tables", "parameters": {"tables": {
-            "constellation_tile_patterns": {"file_offset": 6374, "size": 96},
-            "constellation_palettes": {"file_offset": 6470, "size": 12}
-          }}},
-        {"id": "special-rooms", "parameters": {
-          "bonus_positions_prg": 6469,
-          "bonus_types_prg": 6501,
-          "seal_positions_prg": 15254,
-          "princess_positions_prg": 15270,
-          "room20_plane_prg": 15282,
-          "room30_plane_prg": 15306
-        }},
-        {"id": "ending-fade", "parameters": {"file_offset": 14708}},
-        {"id": "sprite-frames", "parameters": {"enemy_configuration_prg": 8974}},
-        {"id": "animations", "parameters": {"enemy_configuration_prg": 8974}},
-        {"id": "presentation", "parameters": {
-          "record_cpu": 52744,
-          "logo_cpu": 52899,
-          "demo_duration_cpu": 53146,
-          "demo_input_cpu": 53180,
-          "demo_code_cpu": 52180,
-          "demo_end_cpu": 53248
-        }},
-        {"id": "text", "parameters": {
-          "static_count": 13,
-          "static_pointer_high_cpu": 38037,
-          "static_region_cpu": 38050,
-          "static_region_end_cpu": 38302,
-          "static_05_reference_cpu": 47466,
-          "ending_initial_cpu": 47653,
-          "ending_initial_end_cpu": 47711,
-          "ending_initial_second_operand_cpu": 47256,
-          "ending_offsets_cpu": 47732,
-          "ending_data_cpu": 47742,
-          "ending_data_end_cpu": 47994,
-          "ending_single_address_operand_cpu": 47337
-        }}
+        {
+          "id": "render-tables",
+          "parameters": {
+            "tables": {
+              "constellation_tile_patterns": { "file_offset": 6374, "size": 96 },
+              "constellation_palettes": { "file_offset": 6470, "size": 12 }
+            }
+          }
+        },
+        {
+          "id": "special-rooms",
+          "parameters": {
+            "bonus_positions_prg": 6469,
+            "bonus_types_prg": 6501,
+            "seal_positions_prg": 15254,
+            "princess_positions_prg": 15270,
+            "room20_plane_prg": 15282,
+            "room30_plane_prg": 15306
+          }
+        },
+        { "id": "ending-fade", "parameters": { "file_offset": 14708 } },
+        { "id": "sprite-frames", "parameters": { "enemy_configuration_prg": 8974 } },
+        { "id": "animations", "parameters": { "enemy_configuration_prg": 8974 } },
+        {
+          "id": "presentation",
+          "parameters": {
+            "record_cpu": 52744,
+            "logo_cpu": 52899,
+            "demo_duration_cpu": 53146,
+            "demo_input_cpu": 53180,
+            "demo_code_cpu": 52180,
+            "demo_end_cpu": 53248
+          }
+        },
+        {
+          "id": "text",
+          "parameters": {
+            "static_count": 13,
+            "static_pointer_high_cpu": 38037,
+            "static_region_cpu": 38050,
+            "static_region_end_cpu": 38302,
+            "static_05_reference_cpu": 47466,
+            "ending_initial_cpu": 47653,
+            "ending_initial_end_cpu": 47711,
+            "ending_initial_second_operand_cpu": 47256,
+            "ending_offsets_cpu": 47732,
+            "ending_data_cpu": 47742,
+            "ending_data_end_cpu": 47994,
+            "ending_single_address_operand_cpu": 47337
+          }
+        }
       ]
     }
   ],
@@ -245,8 +300,13 @@
       "capacity_policy": "fixed",
       "parameters": {
         "resource_ids": [
-          "chr-bank-0", "chr-bank-1", "chr-bank-2", "chr-bank-3",
-          "room-palettes", "ending-fade", "render-tables"
+          "chr-bank-0",
+          "chr-bank-1",
+          "chr-bank-2",
+          "chr-bank-3",
+          "room-palettes",
+          "ending-fade",
+          "render-tables"
         ]
       }
     },
@@ -257,8 +317,8 @@
       "capacity_policy": "fixed",
       "parameters": {
         "tables": {
-          "constellation_tile_patterns": {"file_offset": 6499, "size": 96},
-          "constellation_palettes": {"file_offset": 6595, "size": 12}
+          "constellation_tile_patterns": { "file_offset": 6499, "size": 96 },
+          "constellation_palettes": { "file_offset": 6595, "size": 12 }
         }
       }
     },
@@ -267,28 +327,28 @@
       "kind": "graphics",
       "codec": "nes.chr-2bpp.v1",
       "capacity_policy": "fixed",
-      "parameters": {"file_offset": 32784, "size": 8192}
+      "parameters": { "file_offset": 32784, "size": 8192 }
     },
     {
       "id": "chr-bank-1",
       "kind": "graphics",
       "codec": "nes.chr-2bpp.v1",
       "capacity_policy": "fixed",
-      "parameters": {"file_offset": 40976, "size": 8192}
+      "parameters": { "file_offset": 40976, "size": 8192 }
     },
     {
       "id": "chr-bank-2",
       "kind": "graphics",
       "codec": "nes.chr-2bpp.v1",
       "capacity_policy": "fixed",
-      "parameters": {"file_offset": 49168, "size": 8192}
+      "parameters": { "file_offset": 49168, "size": 8192 }
     },
     {
       "id": "chr-bank-3",
       "kind": "graphics",
       "codec": "nes.chr-2bpp.v1",
       "capacity_policy": "fixed",
-      "parameters": {"file_offset": 57360, "size": 8192}
+      "parameters": { "file_offset": 57360, "size": 8192 }
     },
     {
       "id": "room-palettes",

@@ -25,8 +25,8 @@ and a tightly coupled data bank slightly longer. A directory holds a few files,
 and two files in one directory should not begin with the same
 underscore-delimited prefix; nothing checks these, they are conventions.
 
-The prefix convention is intentionally local. Names such as `runtime.asm` are useful
-in several different subsystem directories, while names such as
+The prefix convention is intentionally local. Names such as `runtime.asm` are
+useful in several different subsystem directories, while names such as
 `enemy_movement.asm`, `enemy_dispatch.asm`, and `enemy_setup.asm` in one flat
 directory indicate that an `enemies` subsystem directory is missing.
 
@@ -41,11 +41,11 @@ Small sources remain only where merging would obscure a real boundary:
 - scoring, timer, transition-orbit, and HUD files each contain their complete
   subsystem and have no adjacent responsibility worth absorbing.
 
-The shared audio data and object animation sources are slightly above the
-upper target because splitting them would fragment pointer-local data banks.
-Their exceptions prevent accidental growth from being mistaken for an
-unlimited allowance: reviewers should revisit the boundary when either file
-changes materially.
+The shared audio data and object animation sources are slightly above the upper
+target because splitting them would fragment pointer-local data banks. Their
+exceptions prevent accidental growth from being mistaken for an unlimited
+allowance: reviewers should revisit the boundary when either file changes
+materially.
 
 ## Relationship to semantic modules
 

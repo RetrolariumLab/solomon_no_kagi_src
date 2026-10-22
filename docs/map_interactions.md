@@ -1,9 +1,9 @@
 # Room-map object interactions
 
-`src/game/rooms/mechanics.asm` owns `$9C60-$9DB0`. It connects runtime
-`RoomMap` cells, object-record initialization, and Dana's block magic. The
-adjacent coordinate/object overlap predicate at `$9DB1-$9DCF` is separated
-because it has a stable general-purpose calling contract.
+`src/game/rooms/mechanics.asm` owns `$9C60-$9DB0`. It connects runtime `RoomMap`
+cells, object-record initialization, and Dana's block magic. The adjacent
+coordinate/object overlap predicate at `$9DB1-$9DCF` is separated because it has
+a stable general-purpose calling contract.
 
 ## Applying a map tile to an object
 
@@ -15,17 +15,17 @@ because it has a stable general-purpose calling contract.
 - `MapInteractionDirection`: direction bits used for negative tile classes.
 
 Tiles below `$F8` have their upper two bits cleared in `RoomMap`. The packed
-cell is converted to pixel coordinates, optionally offset according to the
-tile sign and direction, and stored in object bytes 7 and 10. The common
-header initializer writes state `$C6`, variant `$04`, sentinel `$FF` in byte
-2, and a tile-dependent action byte. Nonnegative source tiles are then queued
-for redraw through `BuildAndPublishRoomMapCellUpdate`.
+cell is converted to pixel coordinates, optionally offset according to the tile
+sign and direction, and stored in object bytes 7 and 10. The common header
+initializer writes state `$C6`, variant `$04`, sentinel `$FF` in byte 2, and a
+tile-dependent action byte. Nonnegative source tiles are then queued for redraw
+through `BuildAndPublishRoomMapCellUpdate`.
 
 The entry has six external callers. `HandleDanaHeadCollision` and
 `RemoveBlockAtTarget` supply the magic-spark record. The four enemy paths are
 `UpdateNuelGhostMapInteraction`, `AllocateSingleLinkedEnemy`,
-`UpdateType0CTo0FMapInteraction`, and `ApplyForwardEnemyMapInteraction`.
-Every call uses the semantic symbol and the shared zero-page aliases.
+`UpdateType0CTo0FMapInteraction`, and `ApplyForwardEnemyMapInteraction`. Every
+call uses the semantic symbol and the shared zero-page aliases.
 
 ## Creating a block
 
@@ -66,6 +66,6 @@ object behaviors are reconstructed.
 
 `CheckCoordinateOverlapWithObject` starts with carry set. A nonnegative object
 state returns immediately as no overlap. Active records are tested against
-`MapInteractionX/MapInteractionY` using the integer X/Y fields at offsets 10
-and 7. Carry clear denotes overlap inside the routine's asymmetric `$15` by
-`$1D` comparison window; carry set denotes no overlap.
+`MapInteractionX/MapInteractionY` using the integer X/Y fields at offsets 10 and
+7\. Carry clear denotes overlap inside the routine's asymmetric `$15` by `$1D`
+comparison window; carry set denotes no overlap.

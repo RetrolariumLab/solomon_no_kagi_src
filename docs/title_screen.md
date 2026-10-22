@@ -6,16 +6,16 @@ small fixed tile and buffered-update templates consumed by those callers.
 
 ## Packed stream format
 
-`RenderPackedTitleData` receives a 16-bit source pointer in `TempPointer00`.
-It maintains a logical column in `$02` and row in `$03` and interprets each
+`RenderPackedTitleData` receives a 16-bit source pointer in `TempPointer00`. It
+maintains a logical column in `$02` and row in `$03` and interprets each
 nonnegative byte as a cursor command:
 
-| Value | Meaning |
-| ---: | --- |
-| `$00-$3F` | replace the logical column |
-| `$40-$5F` | replace the logical row |
-| `$60-$7E` | add `(value & $1F) + 1` to the row |
-| `$7F` | terminate and return |
+|     Value | Meaning                                 |
+| --------: | --------------------------------------- |
+| `$00-$3F` | replace the logical column              |
+| `$40-$5F` | replace the logical row                 |
+| `$60-$7E` | add `(value & $1F) + 1` to the row      |
+|     `$7F` | terminate and return                    |
 | `$80-$FF` | literal tile byte written to `PPU_DATA` |
 
 The extra one in the relative-row command comes from the carry left set by
@@ -31,19 +31,19 @@ mirrored title layout.
 
 ## Record/background layer
 
-`DrawTitleRecordLayer` renders `TitleRecordPackedData` at USA `$CD5F` /
-Europe `$CCEF`, writes a
-21-byte fixed tail in reverse order, then queues static PPU streams `$09-$0B`.
-It reuses `BuildScoreDisplayUpdate` three times with local headers to publish:
+`DrawTitleRecordLayer` renders `TitleRecordPackedData` at USA `$CD5F` / Europe
+`$CCEF`, writes a 21-byte fixed tail in reverse order, then queues static PPU
+streams `$09-$0B`. It reuses `BuildScoreDisplayUpdate` three times with local
+headers to publish:
 
 - the current seven-digit score;
 - the seven-digit warm-RAM best score;
 - the two-digit warm-RAM best GDV.
 
 Leading zeroes in the best score become blank tile `$24`, matching the normal
-HUD formatter. The best GDV passes through `FormatTwoDigitNumberTiles`.
-Each buffered update waits for `PpuUpdateStreamPointer` to become idle before
-reusing the shared buffer.
+HUD formatter. The best GDV passes through `FormatTwoDigitNumberTiles`. Each
+buffered update waits for `PpuUpdateStreamPointer` to become idle before reusing
+the shared buffer.
 
 ## Logo layer
 
@@ -53,17 +53,16 @@ fixed direct-PPU patterns: 16 alternating `$DF/$DE` pairs, eight `$F5` tiles,
 one `$CF` accent, and a seven-byte attribute sequence.
 
 Both packed streams are source-owned in `PRG_TITLE_PACKED_DATA`. The first is
-155 bytes and ends at `$CDF9`; the second is 247 bytes and ends at `$CEF0`.
-Each includes its `$7F` terminator, and assembly assertions preserve their
-exact adjacency and sizes.
+155 bytes and ends at `$CDF9`; the second is 247 bytes and ends at `$CEF0`. Each
+includes its `$7F` terminator, and assembly assertions preserve their exact
+adjacency and sizes.
 
-The two streams decode into 25 cursor commands and 17 literal runs (377
-literal tiles); the decoder reproduces the carry-dependent PPU address
-calculation, and Retrolarium Kit's `games/solomon/presentation.py` re-encodes
-all 402 bytes.
+The two streams decode into 25 cursor commands and 17 literal runs (377 literal
+tiles); the decoder reproduces the carry-dependent PPU address calculation, and
+Retrolarium Kit's `games/solomon/presentation.py` re-encodes all 402 bytes.
 
-The attract demo's 34 duration and controller bytes follow at `$CEF1-$CF34`;
-see `docs/attract_demo_flow.md` for playback semantics.
+The attract demo's 34 duration and controller bytes follow at `$CEF1-$CF34`; see
+`docs/attract_demo_flow.md` for playback semantics.
 
 The European layout moves both packed streams and the demo tables `$70` bytes
 earlier: title data occupies `$CCEF-$CE80` and demo input occupies

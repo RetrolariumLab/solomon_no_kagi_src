@@ -17,8 +17,8 @@ debugger exports remain in the history (tags `source-reconstruction-1.0` to
 
 ## Quick start
 
-You need Python 3.11 or later, GNU Make and Retrolarium Kit (`rltool` on
-`PATH`, or `RLTOOL=...`); the kit supplies ca65 and ld65 and checks them. Copy
+You need Python 3.11 or later, GNU Make and Retrolarium Kit (`rltool` on `PATH`,
+or `RLTOOL=...`); the kit supplies ca65 and ld65 and checks them. Copy
 `Solomon's Key (U) [!].nes` and `Solomon's Key (E) [!].nes` into the repository
 root (either is enough for its own revision), then:
 
@@ -31,9 +31,9 @@ make verify-revisions   # every revision whose ROM is here
 
 `assets/manifest.json` names the ROMs and the assets cut out of them
 (`rltool assets`, Retrolarium Kit). ROMs, extracted assets and build products
-are ignored by Git. This project
-does not grant rights to the original game code or data; see
-[licensing](docs/licensing.md) and [provenance](docs/provenance.md).
+are ignored by Git. This project does not grant rights to the original game code
+or data; see [licensing](docs/licensing.md) and
+[provenance](docs/provenance.md).
 
 ## Targets
 
@@ -62,21 +62,20 @@ over, and at seven checkpoints the room, room state, score, lives, timer and
 Dana's position must equal what the original ROM gives
 (`movies/attract.check.json`). In the relocated build one byte follows each of
 fifty-one segments before the audio code, and the filler before the audio code
-shrinks by as many. Name MAME once with `rltool movie mame <path>`
-(or `MAME=<path>`);
-`make golden` records the reference values again.
+shrinks by as many. Name MAME once with `rltool movie mame <path>` (or
+`MAME=<path>`); `make golden` records the reference values again.
 
-Only the first demo is checked: the next one depends on a random seed taken
-from frame counters, which a moved build may reach a frame later. For the same
-reason the European relocated build has no movie yet: its first demo already
-departs from the original's (`movies/attract-europe.check.json`,
+Only the first demo is checked: the next one depends on a random seed taken from
+frame counters, which a moved build may reach a frame later. For the same reason
+the European relocated build has no movie yet: its first demo already departs
+from the original's (`movies/attract-europe.check.json`,
 [unknowns](docs/unknowns.md)).
 
-`make play MOVIE=attract` shows a movie in a MAME window at the game's
-speed, on the relocated build (or on `ROM=<image>`), and compares its cells
-with the original's once the window is closed; in MAME, F10 lifts the speed
-limit and Insert fast-forwards. `FRAMES=<frame>` closes MAME at that frame, `CLOSE=1`
-when the movie ends. `make play` alone plays `attract`.
+`make play MOVIE=attract` shows a movie in a MAME window at the game's speed, on
+the relocated build (or on `ROM=<image>`), and compares its cells with the
+original's once the window is closed; in MAME, F10 lifts the speed limit and
+Insert fast-forwards. `FRAMES=<frame>` closes MAME at that frame, `CLOSE=1` when
+the movie ends. `make play` alone plays `attract`.
 
 ## Repository map
 

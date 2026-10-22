@@ -32,11 +32,14 @@ class RelocationError(ValueError):
 
 def candidate_segments(linker_config: Path) -> list[str]:
     """Every segment before the audio filler that may move."""
-    names = [match.group("name") for line in linker_config.read_text(encoding="utf-8").splitlines()
-             if (match := SEGMENT_RE.match(line))]
+    names = [
+        match.group("name")
+        for line in linker_config.read_text(encoding="utf-8").splitlines()
+        if (match := SEGMENT_RE.match(line))
+    ]
     if FILLER_SEGMENT not in names:
         raise RelocationError(f"{linker_config.name} has no {FILLER_SEGMENT}")
-    return [name for name in names[:names.index(FILLER_SEGMENT)] if name not in FIXED]
+    return [name for name in names[: names.index(FILLER_SEGMENT)] if name not in FIXED]
 
 
 def moved_segments(linker_config: Path) -> list[str]:
@@ -108,11 +111,14 @@ def relocate(entry: Path, linker_config: Path, output_dir: Path, only: int | Non
     if only is not None:
         if not 0 <= only < len(segments):
             raise RelocationError(f"--only takes 0 to {len(segments) - 1}: {len(segments)} segments move")
-        segments = segments[only:only + 1]
+        segments = segments[only : only + 1]
     output_dir.mkdir(parents=True, exist_ok=True)
     filler = output_dir / Path(FILLER_MODULE).name
-    filler.write_text(shrink_filler((source_root / FILLER_MODULE).read_text(encoding="utf-8"), len(segments)),
-                      encoding="utf-8", newline="\n")
+    filler.write_text(
+        shrink_filler((source_root / FILLER_MODULE).read_text(encoding="utf-8"), len(segments)),
+        encoding="utf-8",
+        newline="\n",
+    )
     main_output = output_dir / "main.asm"
     lines = rewrite_includes(main_source, main_output, {(source_root / FILLER_MODULE).resolve(): filler})
     lines.append("")

@@ -1,9 +1,9 @@
 # PPU update pipeline
 
-This guide describes direct PPU access, buffered update streams, repeated writers, static requests, and nametable clearing.
+This guide describes direct PPU access, buffered update streams, repeated
+writers, static requests, and nametable clearing.
 
-
----
+______________________________________________________________________
 
 ## Direct PPU address writes
 
@@ -21,18 +21,19 @@ The helper temporarily pushes `A`, reads `PPU_STATUS` to reset the shared
 `PPU_SCROLL`/`PPU_ADDR` write toggle, restores `A`, and performs the two address
 writes. Callers restore `PpuCtrlShadow` separately when their transfer requires
 it; this helper owns only latch reset and address selection. Longer transfers
-use the separate begin/end contract documented in `docs/ppu_pipeline.md#direct-ppu-transfer-guard`.
+use the separate begin/end contract documented in
+`docs/ppu_pipeline.md#direct-ppu-transfer-guard`.
 
----
+______________________________________________________________________
 
 ## Direct PPU transfer guard
 
 The game brackets bulk CPU-to-PPU writes with two adjacent helpers:
 
-| Entry | Range | Static uses |
-| --- | --- | ---: |
-| `EndDirectPpuTransfer` | `$96DC-$96EF` | 7 |
-| `BeginDirectPpuTransfer` | `$96F0-$970A` | 6 |
+| Entry                    | Range         | Static uses |
+| ------------------------ | ------------- | ----------: |
+| `EndDirectPpuTransfer`   | `$96DC-$96EF` |           7 |
+| `BeginDirectPpuTransfer` | `$96F0-$970A` |           6 |
 
 ### Begin contract
 
@@ -59,7 +60,7 @@ nametable clear, full two-nametable clear, and several still-preserved screen
 renderers all share this contract. The adjacent room-frame renderer uses the
 repeated writers documented in `docs/ppu_pipeline.md#repeated-ppu-data-writers`.
 
----
+______________________________________________________________________
 
 ## Repeated PPU data writers
 
@@ -73,8 +74,8 @@ Two small helpers at `$97A3-$97B7` support a direct screen renderer.
 - `X`: number of pattern repetitions.
 
 Each repetition resets `Y` to 3 and writes source offsets 3, 2, 1, and 0 to
-`PPU_DATA`. The pointer is not advanced. The four current callers request 6,
-6, 8, and 8 repetitions from the four records at `$97B8-$97C7`.
+`PPU_DATA`. The pointer is not advanced. The four current callers request 6, 6,
+8, and 8 repetitions from the four records at `$97B8-$97C7`.
 
 ### Single-byte writer
 
@@ -84,13 +85,13 @@ bytes.
 
 ### Pattern data
 
-The four records are named `RepeatedPpuPattern0` through
-`RepeatedPpuPattern3`. The first two form the outer and inner right frame
-columns; the latter two fill the two bottom tile rows. The data module asserts
-the complete 16-byte extent at assembly time. See
-`docs/room_lifecycle.md#room-nametable-frame` for the PPU layout.
+The four records are named `RepeatedPpuPattern0` through `RepeatedPpuPattern3`.
+The first two form the outer and inner right frame columns; the latter two fill
+the two bottom tile rows. The data module asserts the complete 16-byte extent at
+assembly time. See `docs/room_lifecycle.md#room-nametable-frame` for the PPU
+layout.
 
----
+______________________________________________________________________
 
 ## PPU update-buffer publication
 
@@ -115,16 +116,17 @@ address alias for the decoded timer-specific layout.
 During NMI, the high byte of `PpuUpdateStreamPointer` gates
 `ExecutePpuUpdateStream`. The consumer executes the compact command stream,
 marks the pointer idle by clearing its high byte, and restores scroll and
-`PPU_CTRL` state. See `docs/ppu_pipeline.md#ppu-update-stream-interpreter` for the bytecode format.
+`PPU_CTRL` state. See `docs/ppu_pipeline.md#ppu-update-stream-interpreter` for
+the bytecode format.
 
----
+______________________________________________________________________
 
 ## PPU update stream interpreter
 
 `ExecutePpuUpdateStream` at `$8B7F-$8BE1` is the NMI-side consumer for both
-ROM-resident update streams and programs assembled in `PpuUpdateBuffer`.
-The NMI enters with `Y = 1`; the routine decrements it to zero and reads the
-first command through `PpuUpdateStreamPointer`.
+ROM-resident update streams and programs assembled in `PpuUpdateBuffer`. The NMI
+enters with `Y = 1`; the routine decrements it to zero and reads the first
+command through `PpuUpdateStreamPointer`.
 
 Each command has this layout:
 
@@ -143,61 +145,60 @@ bit 6       payload mode: 0 = repeat one byte, 1 = literal bytes
 bits 5..0   write count minus one (1-64 writes)
 ```
 
-The interpreter writes each command directly through `PPU_ADDR` and
-`PPU_DATA`. A repeat command advances past its single payload byte after all
-writes; a literal command advances after every byte. The next address-high
-byte starts another command, while zero finishes the program.
+The interpreter writes each command directly through `PPU_ADDR` and `PPU_DATA`.
+A repeat command advances past its single payload byte after all writes; a
+literal command advances after every byte. The next address-high byte starts
+another command, while zero finishes the program.
 
-Completion clears `PpuUpdateStreamPointer + 1`, making the shared producer
-slot available again. It then performs the game's `$3F00`/`$0000` PPU-address
+Completion clears `PpuUpdateStreamPointer + 1`, making the shared producer slot
+available again. It then performs the game's `$3F00`/`$0000` PPU-address
 sequence, resets the PPU latch through `PPU_STATUS`, and restores `PpuScrollX`,
 `PpuScrollY`, and `PpuCtrlShadow`. `RestorePpuStateAfterUpdate` at `$8BCE` is
 also a shared entry used by the adjacent status-read path.
 
----
+______________________________________________________________________
 
 ## Static PPU update queue
 
-`QueueStaticPpuUpdateStream` at USA `$9471-$9487` / Europe `$948B-$94A1` is
-the producer for 18 ROM-resident PPU update programs. The caller supplies a
+`QueueStaticPpuUpdateStream` at USA `$9471-$9487` / Europe `$948B-$94A1` is the
+producer for 18 ROM-resident PPU update programs. The caller supplies a
 zero-based stream index in `A`.
 
 If `PpuUpdateStreamPointer + 1` is nonzero, the producer preserves the index on
-the current cooperative context's stack and yields through `SwitchThreads`.
-Once the NMI consumer clears that high byte, the producer indexes parallel
-low- and high-byte tables at USA `$9488`/`$949A` or Europe
-`$94A2`/`$94B4` and publishes the selected address through
-`PpuUpdateStreamPointer`.
+the current cooperative context's stack and yields through `SwitchThreads`. Once
+the NMI consumer clears that high byte, the producer indexes parallel low- and
+high-byte tables at USA `$9488`/`$949A` or Europe `$94A2`/`$94B4` and publishes
+the selected address through `PpuUpdateStreamPointer`.
 
 The routine therefore serializes static updates with RAM-buffer producers; it
 does not overwrite a stream still being consumed. Eleven call sites select
-indices spanning the complete `$00-$11` table. The pointer tables and their
-18 target programs occupy USA `$9488-$961A` or Europe `$94A2-$9622`. They are
-source-owned by `src/data/static_layout.asm`: pointer order follows
-the public indices, while stream labels remain in physical ROM order.
+indices spanning the complete `$00-$11` table. The pointer tables and their 18
+target programs occupy USA `$9488-$961A` or Europe `$94A2-$9622`. They are
+source-owned by `src/data/static_layout.asm`: pointer order follows the public
+indices, while stream labels remain in physical ROM order.
 
-The 18 programs cover every byte of the payload range exactly once. PAL
-decodes 25 commands in 349 encoded bytes, versus 26 commands in 367 bytes for
-USA: two text streams select a regional tile value, and stream 17 uses the
-shorter European license message.
+The 18 programs cover every byte of the payload range exactly once. PAL decodes
+25 commands in 349 encoded bytes, versus 26 commands in 367 bytes for USA: two
+text streams select a regional tile value, and stream 17 uses the shorter
+European license message.
 
 The source representation uses `PpuUpdateCommand` headers rather than opaque
-control bytes. Each header names its PPU address, repeat/literal mode, and
-write count; payload bytes remain exact tile or palette values. The split
-pointer tables use `<` and `>` references to the 18 stream labels, so linker
-movement cannot silently detach an index from its program.
+control bytes. Each header names its PPU address, repeat/literal mode, and write
+count; payload bytes remain exact tile or palette values. The split pointer
+tables use `<` and `>` references to the 18 stream labels, so linker movement
+cannot silently detach an index from its program.
 
----
+______________________________________________________________________
 
 ## Direct nametable clearing
 
-The transition code has two public entries into one descriptor-driven direct
-PPU writer:
+The transition code has two public entries into one descriptor-driven direct PPU
+writer:
 
-| Entry | Descriptor | Cleared tile area |
-| --- | ---: | --- |
-| `Clear30x24NametableRegion` | 6 | 30 columns from `$2080`, 24 rows |
-| `Clear32x26NametableRegion` | 3 | 32 columns from `$2080`, 26 rows |
+| Entry                       | Descriptor | Cleared tile area                |
+| --------------------------- | ---------: | -------------------------------- |
+| `Clear30x24NametableRegion` |          6 | 30 columns from `$2080`, 24 rows |
+| `Clear32x26NametableRegion` |          3 | 32 columns from `$2080`, 26 rows |
 
 Six callers use the 30x24 entry and one uses the 32x26 entry. Descriptor zero,
 which describes 32 columns from `$2000` for 26 rows, has no direct static
@@ -222,8 +223,8 @@ After the tile rectangle, every path writes zero to 48 bytes beginning at
 ### Boundaries and contract
 
 The code owns `$C9BD-$CA32`; the descriptor table owns `$CA33-$CA3B`. Keeping
-them separate prevents the preservation disassembly from interpreting the
-nine data bytes as three false 6502 instructions.
+them separate prevents the preservation disassembly from interpreting the nine
+data bytes as three false 6502 instructions.
 
 The helper at `$96F0` and both wrapper continuations at `$96DC` remain outside
 this semantic range and deliberately retain raw addresses pending their own
@@ -249,5 +250,5 @@ For each nametable, the compact counter loop writes:
 The result covers the complete 32x30 tile plane and its complete 64-byte
 attribute table. All three static callers use the two-nametable wrapper at
 screen-reset boundaries. Transfer state uses the reconstructed direct-PPU
-begin/end helpers, while address writes use `SetPpuAddressAX`, with high byte
-in `A` and low byte in `X`.
+begin/end helpers, while address writes use `SetPpuAddressAX`, with high byte in
+`A` and low byte in `X`.

@@ -16,20 +16,20 @@ nametables used by the game.
 
 `InitializeNametable` receives the high PPU address byte in A. Startup invokes
 it for `$2000` and `$2800`. Each call writes blank tile `$24` through the tile
-area and zero through the 64-byte attribute area, then resets scroll and the
-PPU latch.
+area and zero through the 64-byte attribute area, then resets scroll and the PPU
+latch.
 
 ## CHR and warm-boot state
 
 After enabling NMI and waiting for two services, reset writes
 `StartupChrBankSelectValue` to its own CNROM cartridge address and probes CHR
-through `PPU_DATA`. This is a static high-confidence bank-switch handshake;
-the exact hardware reason for the repeated `$DF` test still needs a mapper/bus
+through `PPU_DATA`. This is a static high-confidence bank-switch handshake; the
+exact hardware reason for the repeated `$DF` test still needs a mapper/bus
 trace.
 
 Internal RAM `$07F0-$07FD` survives the selective startup clear. Four bytes at
-`WarmBootSignature` are compared with `StartupWarmBootSignature` (`FUKU`). On
-a mismatch, reset copies that signature, eight default-state bytes, and marker
+`WarmBootSignature` are compared with `StartupWarmBootSignature` (`FUKU`). On a
+mismatch, reset copies that signature, eight default-state bytes, and marker
 `$2F`. The retained state is therefore a warm-reset convention, not cartridge
 battery-backed save RAM.
 
@@ -41,6 +41,6 @@ encoded initial context `$17`, scans four `PendingThreadStarts` bytes, calls
 `StartThread` for nonzero requests, and yields through `SwitchThreads`.
 
 Bytes `$1A-$1B` are the shared `PpuUpdateStreamPointer`. The warmup byte at
-`$21` is `GameplayDelayCounter`; the active NMI path increments it together
-with the other `$20-$27` counters. The semantic meaning of every pending start
-code remains open until traces bind those selectors to behavior.
+`$21` is `GameplayDelayCounter`; the active NMI path increments it together with
+the other `$20-$27` counters. The semantic meaning of every pending start code
+remains open until traces bind those selectors to behavior.

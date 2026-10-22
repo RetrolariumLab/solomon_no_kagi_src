@@ -3,15 +3,10 @@
   "schema_version": 1,
   "assembly": {
     "dialect": "ca65",
-    "paths": [
-      "src"
-    ]
+    "paths": ["src"]
   },
   "text": {
-    "json": "valid",
-    "skip": [
-      "assets/generated",
-      "references"
-    ]
+    "json": "indent",
+    "skip": ["assets/generated", "references"]
   }
 }

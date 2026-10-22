@@ -19,7 +19,7 @@ Tecmo's original Solomon's Key code, graphics, audio, or other game data.
 
 Original `.nes` images, extracted `.chr` data, objects, built images, emulator
 states, screenshots containing private data, and local research checkouts are
-ignored. `make split` validates the private USA image before
-deriving the ignored CHR cache.
+ignored. `make split` validates the private USA image before deriving the
+ignored CHR cache.
 
 The source and evidence provenance ledger is in `docs/provenance.md`.
