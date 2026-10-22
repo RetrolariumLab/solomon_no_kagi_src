@@ -1,10 +1,5 @@
 # Title-screen renderer
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 `src/graphics/title_screen.asm` owns CPU `$CBA6-$CD52`. It contains a packed
 direct-PPU renderer, two callers that compose the title/record screen, and the
 small fixed tile and buffered-update templates consumed by those callers.
@@ -62,21 +57,14 @@ Both packed streams are source-owned in `PRG_TITLE_PACKED_DATA`. The first is
 Each includes its `$7F` terminator, and assembly assertions preserve their
 exact adjacency and sizes.
 
-`make title-data-audit` independently decodes the two streams into semantic
-cursor commands and literal runs, reproduces the carry-dependent PPU address
-calculation, and re-encodes all 402 bytes. The reviewed manifest records 25
-commands, 17 literal runs, 377 literal tiles, exact boundaries, and SHA-1
-fingerprints in `config/validation/title_data.json`. `make title-data-report` exposes the
-decoded commands, target PPU addresses, and tiles as JSON.
+The two streams decode into 25 cursor commands and 17 literal runs (377
+literal tiles); the decoder reproduces the carry-dependent PPU address
+calculation, and Retrolarium Kit's `games/solomon/presentation.py` re-encodes
+all 402 bytes.
 
-The same adjacent-data audit includes the attract demo's 34 duration and
-controller bytes at `$CEF1-$CF34`. Controller masks are decoded to named NES
-buttons before re-encoding; see `docs/attract_demo_flow.md` for playback
-semantics.
+The attract demo's 34 duration and controller bytes follow at `$CEF1-$CF34`;
+see `docs/attract_demo_flow.md` for playback semantics.
 
 The European layout moves both packed streams and the demo tables `$70` bytes
 earlier: title data occupies `$CCEF-$CE80` and demo input occupies
-`$CE81-$CEC4`. Their hashes and decoded records are identical to USA. The
-separate `config/validation/title_data_europe.json` manifest makes that conclusion an
-independent ROM-backed contract. `make title-data-profile-audits` round-trips
-all 470 bytes from both source-built images.
+`$CE81-$CEC4`, with the same bytes as USA.

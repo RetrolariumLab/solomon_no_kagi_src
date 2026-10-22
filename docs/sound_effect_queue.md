@@ -1,10 +1,5 @@
 # Sound-effect request queue
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 `src/system/thread_runtime.asm` owns CPU `$8E8D-$8E9F`. Bisqwit's map
 names its entry `AddSoundEffect`; all 34 static callers now use that symbol.
 

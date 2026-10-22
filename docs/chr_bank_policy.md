@@ -1,10 +1,5 @@
 # CNROM CHR-bank policy
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 The USA ROM has four switchable 8 KiB CHR banks. Static source inspection
 finds exactly two cartridge-space write sites: the reset handshake at
 `StartupChrBankSelectValue` and the per-frame `UpdateNmiChrBank` service.
@@ -55,7 +50,5 @@ Decoding all 53 source-owned streams gives:
 | 2 | 5, 17, 18, 23, 25, 26, 33, 35, 36, 39, 40, 44, 48, 49, 53 |
 | 3 | none |
 
-`make chr-bank-report` regenerates this grouping from the built ROM.
-`make chr-bank-audit`, included in `make release-check`, asserts the complete
-17/21/15/0 distribution. Byte-identical ROM verification and the room-stream
-round trip independently protect the exact per-room assignments.
+The distribution is 17/21/15/0 rooms. `make verify` and the room-stream
+round trip of `make studio-check` protect the exact per-room assignments.

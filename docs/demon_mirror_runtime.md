@@ -1,10 +1,5 @@
 # Demon Mirror runtime
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 The complete `$A04C-$A15E` range is the runtime consumer for the two Demon
 Mirror schedules, enemy sets, coordinates, and allocated enemy slots.
 `MainGameplayThread` first calls `UpdateDemonMirrorSpawnSchedule`, then

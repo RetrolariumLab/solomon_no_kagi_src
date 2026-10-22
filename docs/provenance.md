@@ -1,10 +1,5 @@
 # Provenance
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 ## Preservation listing
 
 - Repository: <https://github.com/rbmichael/solomons_key_disassembly>
@@ -48,22 +43,12 @@ external research input and is not tracked in this repository.
 Local clones used during research live beneath ignored `references/` and are
 not part of the project history.
 
-## Semantic rename ledger
-
-`config/reconstruction/label_renames.json` records every accepted ROM-label rename
-with its linked address, previous identifier, confidence, and concise evidence.
-`make reconstruction-audit` rejects duplicate entries, missing evidence,
-missing source labels, and any disagreement with the ld65 label file.
-
 ## Source Reconstruction 1.0 confidence review
 
-The release ledger contains 1,836 renamed labels: 1,733 `confirmed`, 102
-`high`, one `tentative`, and no `unknown` entries. Two accepted original labels
-complete the 1,838 semantic source-label inventory without rename records.
-`make release-audit` freezes this distribution alongside the complete label
-count, so confidence cannot be silently promoted or discarded.
-
-The 1.0 review examined every `high` and `tentative` entry. The `high` group
+The rename ledger of Source Reconstruction 1.0 (at its tag) recorded 1,836
+renamed labels: 1,733 `confirmed`, 102 `high`, one `tentative`, and no
+`unknown` entries; two original labels completed the 1,838 semantic source
+labels. The 1.0 review examined every `high` and `tentative` entry. The `high` group
 retains names supported by converging static evidence without claiming runtime
 proof. The sole tentative entry, `PreTimerWarningTableBytes`, deliberately says
 only where the three bytes lie; their resemblance to a timer PPU command is

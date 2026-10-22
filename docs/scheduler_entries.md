@@ -1,28 +1,18 @@
 # Scheduler entry tables
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 `StartThread` receives a packed byte: the high nibble selects one of eight
 stack contexts and the low nibble selects a two-byte entry in that context's
 table. The table word is an RTS return address, so the first executed address
 is always the stored word plus one.
 
-`scripts/validation/scheduler_data.py` extracts these tables from the built PRG and scans
-the assembly source for immediate `StartThread` calls. `make scheduler-audit`
-compares the decoded result with `config/validation/scheduler_entries.json`, including
-entries independently reviewed behind dynamically selected calls. Any new
-code, changed pointer, stack partition, or static/dynamic call count must be
-reviewed before the manifest is updated.
+The tables below list the immediate `StartThread` calls of the source and the
+entries reached through dynamically selected calls; a new call or entry needs
+a row here.
 
-The table layout is profile-selected. USA stores the initial stack pointers at
-`$8E01` and context-table bases at `$8E09`; PAL stores them at `$8E10` and
-`$8E18`. `config/validation/scheduler_entries_europe.json` independently records all 16
-static and seven reviewed dynamic codes at their native PAL slots and targets.
-`make scheduler-profile-audits` decodes both source-built ROMs while retaining
-the common context roles and call-site inventory.
+The table layout depends on the revision. USA stores the initial stack
+pointers at `$8E01` and context-table bases at `$8E09`; PAL stores them at
+`$8E10` and `$8E18`, with the same 16 static and seven dynamic codes at their
+PAL slots and targets and the same context roles.
 
 The currently referenced USA static entries are:
 

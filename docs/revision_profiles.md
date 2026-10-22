@@ -69,12 +69,10 @@ An unresolved byte range may be extracted from its private ROM while the
 regional reconstruction is in progress, provided all of these conditions are
 met:
 
-- the range and owning profile are declared in the revision manifest;
+- the range and owning image are declared in `assets/manifest.json`;
 - the output is ignored under `assets/generated/`;
-- size and cryptographic hashes are checked before assembly;
-- documentation states why the format remains opaque;
-- the Source 2.0 release manifest does not claim semantic ownership until the
-  range is either decoded or explicitly accepted as a bounded binary asset.
+- size and hash are checked before assembly;
+- documentation states why the format remains opaque.
 
 The complete European PRG must not be used as a shortcut asset. Doing so would
 prove container identity but not source reconstruction. Regional executable

@@ -1,10 +1,5 @@
 # Unknowns and research queue
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 Source Reconstruction 2.1 has no unresolved question that blocks the accepted
 USA or European fixed-layout profiles. Neutral names remain where the original
 developers' historical intent cannot be proven; those are evidence boundaries,
@@ -38,13 +33,11 @@ not missing binary ownership.
   evidence, and regional authoring round trips. Japan is kept separate rather
   than borrowing conclusions from either accepted profile.
 
-- Every PRG byte is now separated into code, data, encoded stream, padding, or
-  vector by `make prg-layout-audit`; there are no generated labels or raw
-  control-flow addresses left.
-- All eight scheduler contexts have stable responsibilities. The manifest
-  covers all 23 known entry codes, context 0's startup coordinator, and
-  context 7's permanently idle reservation; `make scheduler-audit` enforces
-  the complete map.
+- Every PRG byte is separated into code, data, encoded stream, padding, or
+  vector; there are no generated labels or raw control-flow addresses left.
+- All eight scheduler contexts have stable responsibilities, covering all 23
+  known entry codes, context 0's startup coordinator, and context 7's
+  permanently idle reservation ([scheduler entries](scheduler_entries.md)).
 - Dana record byte 3 is a facing-preserving action selector through `$23`, and
   byte 5 is signed Y motion. `docs/player_actions.md#dana-action-state-encoding` records every proven
   pair. Fireball bytes `$0430-$0431` are the current and alternate four-way
@@ -62,10 +55,9 @@ not missing binary ownership.
   Bunny scripts, page collectible, and Golden Wings flag now have gameplay
   names backed by code behavior and independently documented room locations.
   See `docs/special_room_scripts.md`.
-- The complete CNROM policy is documented in `docs/chr_bank_policy.md`.
-  `make chr-bank-audit` proves the decoded 53-room bank distribution; source
-  inspection accounts for reset, intro, gameplay, transition, title, and
-  ending requests.
+- The complete CNROM policy is documented in `docs/chr_bank_policy.md`: the
+  53 rooms' bank distribution, and the reset, intro, gameplay, transition,
+  title, and ending requests.
 - `RoomMap` geometry is fixed by shared assembly constants: 16 columns by 14
   stored rows, with a 16x12 playable range at indices `$10-$CF` and sentinel
   rows at `$00-$0F` and `$D0-$DF`.

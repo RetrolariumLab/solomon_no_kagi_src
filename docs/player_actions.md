@@ -1,10 +1,5 @@
 # Player actions
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide connects Dana action threads and state encoding to coordinate helpers and inline parameter dispatch.
 
 
@@ -24,8 +19,8 @@ path.
 
 The pointer table stores return addresses because `StartThread` installs each
 value as a synthetic RTS frame. The source therefore emits each pointer as
-`.addr <entry> - 1`; `make scheduler-audit` verifies the resulting addresses
-and selector mapping.
+`.addr <entry> - 1` ([scheduler entries](scheduler_entries.md) lists the
+selector mapping).
 
 ### Head collision
 
@@ -231,5 +226,4 @@ fallthrough instructions. The routine clobbers `A`, `Y`, and
 `TempPointer00`; `X` is unchanged.
 
 Eleven static call sites use this ABI. The 28-entry enemy AI appendix is
-separately decoded and checked by `make enemy-ai-audit`; other appendices will
-enter equivalent manifests as their surrounding subsystems are reconstructed.
+described in [the enemy system](enemy_system.md).

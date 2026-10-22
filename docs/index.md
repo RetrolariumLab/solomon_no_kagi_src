@@ -44,5 +44,6 @@ separates project tooling and documentation from reconstructed source and
 private user-supplied inputs.
 
 The reference pages describe findings made during Source Reconstruction 1.0
-to 3.0; the validation targets and machine-readable contracts they cite remain
-at those tags.
+to 3.0; the audits and machine-readable contracts that checked them remain at
+the tags `source-reconstruction-1.0` to `3.0`. The source is now edited
+directly and checked by `make test`.

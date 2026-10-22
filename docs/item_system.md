@@ -1,10 +1,5 @@
 # Items, timer, and score
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide covers item collision effects, inventory state, timer adjustments, scoring, and fireball services.
 
 
@@ -77,15 +72,10 @@ that unchecked original behavior rather than inventing handlers.
 These selector names agree with Bisqwit's independently published item map.
 The reconstruction preserves repeated pointers instead of inventing wrapper
 routines for item types that intentionally share behavior.
-`make item-handler-audit` independently decodes the built ROM and checks every
-selector, semantic name, address, and the complete table SHA-1 against
-`config/validation/item_handlers.json`.
 
-The European item block moves `$80` bytes earlier, including all 20 unique
-handler targets. `config/validation/item_handlers_europe.json` records those native PAL
-addresses and its independently hashed 58-byte table while preserving the
-same selector, map-tile, and semantic-name sequence. Run
-`make item-handler-profile-audits` to validate both source-built layouts.
+The European item block sits `$80` bytes earlier, including all 20 unique
+handler targets; its 58-byte table keeps the same selector, map-tile and
+semantic-name sequence.
 
 Tile `$21` is shared by the Page of Time and Page of Space rooms. Before
 gameplay starts, the loader restores `CurrentRoomIndex` to the source-room
@@ -302,8 +292,8 @@ appearance as `JSR $4469` is incidental.
 
 ### Runtime cadence
 
-The deterministic runtime harness counts `DecrementTimer` calls and pending
-ticks over the first 60 frames after `MainGameplayThread` starts. The first
+A runtime trace of Source Reconstruction 2.x counted `DecrementTimer` calls
+and pending ticks over the first 60 frames after `MainGameplayThread` starts. The first
 call also exposes a room-intro backlog: 87 ticks in Room 1 and 64 in the
 attract demo. After that initial batch, the lightly populated room executes
 203 timer calls across all 60 frames and consumes all 59 new counter
@@ -319,10 +309,8 @@ the NMI handler deliberately skips gameplay services when the interrupted
 context's local stack offset is below `$08`, and such a video frame cannot be
 recovered because it never increments the accumulator. The eight-bit counter
 would also wrap after 256 unconsumed gameplay updates, although the measured
-maximum backlog after room entry is two.
-
-`make trace-runtime` reproduces both measurements and validates their exact
-summary strings against `scenarios/runtime_scenarios.json`.
+maximum backlog after room entry is two. The tracing harness remains at the
+tags `source-reconstruction-2.0` to `3.0`.
 
 ---
 

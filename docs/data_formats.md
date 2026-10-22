@@ -1,10 +1,5 @@
 # Room data formats
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 All offsets below are within the 32 KiB PRG. Add 16 for offsets in a headered
 iNES file. Runtime pointers address the same bytes at CPU `$8000-$FFFF`.
 
@@ -79,10 +74,8 @@ cells in reverse order, rotating each byte right. This produces the same
 top-to-bottom, MSB-first logical ordering while filling RoomMap indices
 `$10-$CF`; indices `$00-$0F` and `$D0-$DF` are sentinel rows.
 
-All 2,544 encoded bytes are source-owned in `src/data/rooms/blocks.asm` and can
-be regenerated from a reviewed ROM with `scripts/validation/room_data.py --source-blocks`.
-The existing `make room-data-audit` check independently decodes and re-encodes
-every bitplane.
+All 2,544 encoded bytes are in `src/data/rooms/blocks.asm`. Retrolarium Kit's
+`games/solomon/rooms.py` decodes and re-encodes every bitplane for the Studio.
 
 ## Enemy stream
 
@@ -139,39 +132,22 @@ modifiers, four timer speeds, 32 special-room positions, and 16 special-room
 item types. The fourth timer-speed byte intentionally overlaps the first
 special-room position at `$99C2`.
 
-The tested codec is `scripts/validation/room_data.py`. Its JSON keeps raw type values and
-the original item command grouping so that naming uncertainty or RLE expansion
-does not corrupt the lossless structural result.
+The kit's codec (`games/solomon/rooms.py`) keeps raw type values and the
+original item command grouping, so naming uncertainty or RLE expansion cannot
+corrupt the lossless structure.
 
 The 53-entry split pointer table at `$EA1C-$EA85` and every metadata/command
 stream at `$EA86-$EFC3` are source-owned in `src/data/rooms/items.asm`. Named
 macros preserve header, individual-item, repeated-item, constellation, and
-terminator boundaries. The reviewed source can be regenerated with
-`scripts/validation/room_data.py --source-items`.
+terminator boundaries.
 
-`make room-data-audit` decodes and re-encodes all 53 block-plane records,
-enemy streams, item metadata/command streams, and both 53-entry split-pointer
-tables. It also round-trips all 16 Demon Mirror schedules, 17 enemy-set
-streams, and both of their split-pointer tables. The gate compares all 5,060
-encoded bytes directly with the built PRG. Its RoomMap pattern codec adds 232
-bytes, bringing the room-domain total to 5,292 checked bytes.
-
-`make roundtrip-formats` is the aggregate byte-level codec gate. It includes
-the room-data contract above, all 18 static PPU update streams, and every
-reachable audio command stream. It also independently decodes and re-encodes
-all object-animation pointers, descriptors, variant selectors, and frame
-records plus all object-motion pointers, action selectors, and Y/X vectors.
-The packed title codec contributes both command/literal streams, including an
-independent reconstruction of the cursor opcodes and all 402 encoded bytes.
-It also reconstructs the adjacent 34 duration/controller pairs from named NES
-buttons, covering another 68 bytes of attract-demo data.
-It is part of `make release-check`.
-
-`make format-coverage-audit` binds these codecs to linker segment names. It
-requires every segment classified as `stream` to have exactly one codec owner;
-unknown, missing, duplicated, or non-stream ownership is rejected. The seven
-owned segments total 8,113 bytes, exactly matching the stream byte count from
-`make prg-layout-audit`.
+`make studio-check` opens every revision in a copy of the repository and
+rebuilds it with no edits through the kit's codecs: the 53 block-plane records,
+the enemy and item streams with both 53-entry split-pointer tables, the 16
+Demon Mirror schedules and 17 enemy-set streams, the RoomMap patterns, the 18
+static PPU update streams, the audio command streams, the object animation and
+motion records, the packed title streams and the 34 attract-demo
+duration/controller pairs. The rebuilt image must equal the ROM byte for byte.
 
 ## Nametable clear descriptors
 

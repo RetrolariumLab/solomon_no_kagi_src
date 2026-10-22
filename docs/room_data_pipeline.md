@@ -1,10 +1,5 @@
 # Room data pipeline
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide follows encoded room blocks, items, enemies, tiles, and buffered map updates into the rendered room.
 
 
@@ -42,8 +37,7 @@ white/solid bitplane.
 
 `RoomBlockData` and all 53 records are source-owned in the 485-line
 `src/data/rooms/blocks.asm`. Each room is shown as three eight-byte rows per
-brown/breakable plane followed by three per white/solid plane; the file can be
-reproduced with `scripts/validation/room_data.py --source-blocks`.
+brown/breakable plane followed by three per white/solid plane.
 
 ### Expansion
 
@@ -110,13 +104,12 @@ lossless room codec rather than guessed names.
 
 `LoadRoomEnemies` at `$961B-$9660` turns the current room's compressed enemy
 record into live runtime slots. `CurrentRoomIndex` selects one of 53 split
-pointers at `$DCEC/$DD21`; the resulting stream uses the format already
-round-tripped by `scripts/validation/room_data.py`.
+pointers at `$DCEC/$DD21`; the resulting stream has the format of the room
+enemy streams ([data formats](data_formats.md)).
 
 Both pointer halves and all 53 streams are source-owned in the 552-line
 `src/data/rooms/enemies.asm`. Each record is expressed with macros for the
-encoded lifetime, `(enemy_type, map_position)` pair, and terminator; the source
-can be reproduced with `scripts/validation/room_data.py --source-enemies`.
+encoded lifetime, `(enemy_type, map_position)` pair, and terminator.
 
 The first byte is split into `EnemySpawnLifetimeThresholdLo` (`bits 7..5`) and
 `EnemySpawnLifetimeThresholdHi` (`bits 4..0`). `ApplyEnemyLifetimeThreshold`
@@ -132,9 +125,8 @@ For every record, the loader:
 4. calls `InitializeEnemy` for the parallel records;
 5. calls `ConfigureEnemyType` with the decoded type.
 
-The loader assumes room data never exceeds the 17-slot enemy pool. That
-invariant is independently exercised by the all-room decoder and pointer
-audits in `make check`.
+The loader assumes room data never exceeds the 17-slot enemy pool; every
+original room keeps within it.
 
 ---
 
@@ -402,8 +394,9 @@ selected logical pattern value. The complete byte-class contract is in
 
 The first record byte carries two independent values: palette in bits 0-1 and
 the top-left tile in bits 2-7. The next three bytes are the top-right,
-bottom-left, and bottom-right tiles. `make room-data-audit` decodes those five
-fields and re-encodes all 232 table bytes without retaining a raw first byte.
+bottom-left, and bottom-right tiles. The kit's room-art codec decodes those
+five fields and re-encodes all 232 table bytes without keeping a raw first
+byte.
 
 `CalculateRoomMapAttributeAddressLow` also returns a quadrant selector in
 `RoomMapUpdatePpuAddressHigh` (`$05`). The builder rotates the existing

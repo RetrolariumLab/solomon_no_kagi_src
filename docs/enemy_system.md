@@ -1,10 +1,5 @@
 # Enemy system
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide follows enemy records from allocation and configuration through movement, AI dispatch, and deactivation.
 
 
@@ -13,9 +8,8 @@ This guide follows enemy records from allocation and configuration through movem
 ## Enemy AI record layout
 
 The runtime enemy system has 17 eight-byte AI records at `$04F7-$057E`, in
-parallel with 17 `$14`-byte object records at `$05CF-$0722`. The split pointer
-tables and their arithmetic stride are machine-checked by
-`make enemy-pointer-audit`.
+parallel with 17 `$14`-byte object records at `$05CF-$0722`. Assembly-time
+assertions fix the split pointer tables and their arithmetic stride.
 
 Every byte now has a shared offset name. The last two bytes deliberately keep
 multiple aliases because their role depends on the enemy family.
@@ -178,17 +172,12 @@ The source expresses both sequences from their RAM bases and strides with
 assembly-time count and offset assertions. This keeps the byte-identical
 layout while making the pool relationship reviewable.
 
-`make enemy-pointer-report` decodes the four byte planes from the built PRG.
-`make enemy-pointer-audit` compares the reconstructed 16-bit pointers with
-`config/validation/enemy_record_pointers.json`; the audit is part of `make release-check`.
 Bisqwit's map independently classifies the same ranges as the enemy AI and
 object pointer tables.
 
 PAL keeps all four byte planes at the same PRG addresses but moves both RAM
-pools one byte higher. `config/validation/enemy_record_pointers_europe.json` therefore
-records native bases `$04F8` and `$0580`; the strides and counts remain shared.
-`make enemy-pointer-profile-audits` validates all 38 reconstructed pointers
-against both regional source builds.
+pools one byte higher, to bases `$04F8` and `$0580`; the strides and counts
+remain shared.
 
 ---
 
@@ -295,13 +284,8 @@ bytes. `JumpWithParams` consumes them as an inline little-endian handler table
 and transfers control to the selected target. Repeated targets are meaningful:
 the table contains 28 entries but only 14 unique handler addresses.
 
-`make enemy-ai-report` prints the decoded table from the built PRG.
-`make enemy-ai-audit` compares every pointer with
-`config/validation/enemy_ai_handlers.json`; the audit is part of `make release-check`.
-An assembly assertion independently fixes the source table at 28 entries.
-The table and all 14 unique target addresses are physically identical in USA
-and PAL. `make enemy-ai-profile-audits` verifies that shared contract against
-both source-built ROMs rather than inferring it from the source conditionals.
+An assembly assertion fixes the source table at 28 entries. The table and all
+14 unique target addresses are physically identical in USA and PAL.
 
 The first two targets are source-owned as `RunType00To03EnemyAi` and
 `RunMightyBombJackEnemyAi` in `src/game/enemies/early_ai.asm`. Their shared contact
@@ -368,8 +352,8 @@ routine uses four small signed-adjustment/limit tables at `$A988-$A997` to
 update object Y and X motion while retaining a direction value in AI byte 6.
 
 Action targets beyond this range now resolve to symbols in the later enemy-AI
-modules. This module assembles to exactly 780 bytes, and `make verify-prg`
-proves it is identical to the original PRG image.
+modules. This module assembles to exactly 780 bytes, and `make verify`
+proves it is identical to the original image.
 
 ---
 
@@ -488,7 +472,7 @@ Three handlers deliberately share the short trampoline at `$ABAD`, and some
 mask paths contain branches whose fallthrough is unreachable from that entry.
 Those shapes are retained because they are part of the original machine code,
 not simplified pseudocode. The segment is exactly 927 bytes and remains
-byte-identical under `make verify-prg`.
+byte-identical under `make verify`.
 
 ---
 

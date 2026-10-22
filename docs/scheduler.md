@@ -1,10 +1,5 @@
 # Cooperative scheduler
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 ## Owned range and contexts
 
 `src/system/thread_runtime.asm` owns CPU `$8D5F-$8E46` (232 bytes). It implements
@@ -61,14 +56,13 @@ table and the important RTS-plus-one convention.
 PAL preserves the same eight stack partitions, 23 known entry codes, and
 context roles, but moves `InitialThreadStackPointers` and
 `ThreadEntryTableBases` `$0F` bytes later. Its entry targets then follow their
-own subsystem relocations. `make scheduler-profile-audits` binds both layouts
-to separate reviewed manifests.
+own subsystem relocations.
 
 ## Context responsibilities
 
 All eight contexts now have a stable role derived from their entry tables and
-callers. `make scheduler-audit` checks that every known static or reviewed
-dynamic code appears under exactly one matching context.
+callers; every known static or dynamic code appears under exactly one
+matching context ([scheduler entries](scheduler_entries.md)).
 
 | Context | Entry codes | Responsibility |
 | ---: | :--- | :--- |
@@ -96,8 +90,8 @@ counts of `829,828,828,829,829,829,829,829`; the attract demo records exactly
 205 for every context. Idle contexts therefore preserve round-robin order but
 cycle substantially faster when less cooperative work is runnable.
 
-These observations are generated and checked by `make trace-runtime`; exact
-event series and counts live in `scenarios/runtime_scenarios.json`. The static
-role map is complete. A deeper trace of SP, `ActiveThreadMask`, the eight saved
+These observations come from the runtime traces of Source Reconstruction 2.x,
+whose harness remains at the tags `source-reconstruction-2.0` to `3.0`. The
+static role map is complete. A deeper trace of SP, `ActiveThreadMask`, the eight saved
 SP bytes, and continuation addresses would still make useful evidence for
 individual suspension and resumption paths.

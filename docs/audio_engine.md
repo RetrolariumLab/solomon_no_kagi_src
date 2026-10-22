@@ -1,10 +1,5 @@
 # Audio engine
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 `src/audio/engine.asm` owns CPU `$F000-$F367`. `UpdateAudio` is called
 from NMI after input sampling whenever the game-state audio-disable bit is
 clear. It first consumes the three pending sound-effect mailboxes, then updates
@@ -134,23 +129,16 @@ source-owned at `$F368-$FFF9` in `src/audio/data.asm`. Periods and all pointer
 operands use symbolic words; `$F2/$F3` bytecode targets reference 114 named
 stream entries. The adjacent CPU vectors are symbolic through `$FFFF`.
 
-`make audio-data-audit` independently checks 12 periods, 26 duration values,
-eight envelope pointers, 26 overlapping effect descriptors, and every stream
-entry reachable through descriptor and `$F2/$F3` command pointers. All 2,664
-bytes at `$F592-$FFF9` must be reachable and every decoded path must re-encode
-byte-for-byte.
+The data holds 12 periods, 26 duration values, eight envelope pointers, 26
+overlapping effect descriptors, and the streams reachable through descriptor
+and `$F2/$F3` command pointers; all 2,664 bytes at `$F592-$FFF9` are
+reachable, and Retrolarium Kit's `games/solomon/audio.py` decodes every path
+and re-encodes it byte for byte.
 
-`python scripts/run.py validation.audio_data source --image <rom>` reproduces the reviewed
-ASM representation from a matching image.
-
-Source Reconstruction 2.0 gives the codec explicit USA and Europe layouts.
 The PAL layout starts at `$EF80`, uses its duration table at `$F300`, places
 the envelope pointer table at `$F342`, and covers 2,725 reachable stream bytes
-at `$F53A-$FFDE`. `make audio-profile-audits` verifies both private reference
-identities before decoding 26 effects and 114 reachable stream entries per
-profile. The PAL audit records 2,255 commands and proves that its complete
-stream range round-trips byte-for-byte; this structural evidence is the base
-for music editing and for profile-selected stream source.
+at `$F53A-$FFDE`: 26 effects and 114 reachable stream entries, 2,255 commands,
+whose complete range round-trips byte for byte as well.
 
 The PAL gap from `$F300` to `$F341` is not merely a 26-byte primary duration
 table plus opaque padding. Stream tokens mask their duration index to six bits,

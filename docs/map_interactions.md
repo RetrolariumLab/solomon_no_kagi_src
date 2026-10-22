@@ -1,10 +1,5 @@
 # Room-map object interactions
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 `src/game/rooms/mechanics.asm` owns `$9C60-$9DB0`. It connects runtime
 `RoomMap` cells, object-record initialization, and Dana's block magic. The
 adjacent coordinate/object overlap predicate at `$9DB1-$9DCF` is separated

@@ -1,10 +1,5 @@
 # Architecture
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 ## Cartridge and CPU layout
 
 The USA release is CNROM (mapper 3): one fixed 32 KiB PRG mapping at
@@ -22,7 +17,7 @@ registers, commits OAM page `$02`, selects one of four CNROM CHR banks through
 CPU registers. `WritePpuScroll` resets the PPU write latch by reading
 `PPU_STATUS`, then performs the X and Y writes to `PPU_SCROLL`.
 The complete request lifecycle and all room/screen assignments are documented
-in `docs/chr_bank_policy.md` and checked by `make chr-bank-audit`.
+in `docs/chr_bank_policy.md`.
 
 The adjacent `$80FF-$837C` NMI gameplay module runs alternating 17-enemy
 overlap scans, constructs the fireball's four-cell RoomMap collision mask,

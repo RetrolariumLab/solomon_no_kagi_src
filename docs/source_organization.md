@@ -1,15 +1,10 @@
 # Source organization
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 The source tree groups code by subsystem rather than by the order in which the
-original bytes appeared in the ROM. The linker configuration remains the
-authority for physical PRG order: each consolidated source can contain several
-named segments, while `config/reconstruction/reconstruction.json` continues to bind every
-segment to its original address range and required labels.
+original bytes appeared in the ROM. The linker configuration
+(`config/linker/cnrom.cfg`) is the authority for physical PRG order: each
+consolidated source can contain several named segments, and the `.map` and
+`.lbl` files of `make build` give every segment's and label's address.
 
 The main directories have distinct responsibilities:
 
@@ -22,23 +17,15 @@ The main directories have distinct responsibilities:
 - `src/data` owns large room/object streams and compact non-executable tables;
 - `src/memory` defines hardware registers and RAM aliases.
 
-## File-size policy
+## File-size guideline
 
-The preferred size for an ASM file is 300–700 lines. This is large enough to
-keep a behavior family together and small enough for focused review. It is a
-design target, not an excuse to mix unrelated code: a complete subsystem may
-remain shorter, and a tightly coupled data bank may remain slightly longer.
+An ASM file of 300–700 lines keeps a behavior family together and stays small
+enough for focused review (CONTRIBUTING). A complete subsystem may be shorter,
+and a tightly coupled data bank slightly longer. A directory holds a few files,
+and two files in one directory should not begin with the same
+underscore-delimited prefix; nothing checks these, they are conventions.
 
-`config/reconstruction/source_organization.json` records every exception with its reason.
-`make lint` checks that:
-
-- every ASM file outside the preferred range has a reviewed exception;
-- exceptions cannot outlive the file or remain after it enters the range;
-- no directory contains more than six ASM files;
-- two files in the same directory cannot begin with the same underscore-
-  delimited filename prefix.
-
-The final rule is intentionally local. Names such as `runtime.asm` are useful
+The prefix convention is intentionally local. Names such as `runtime.asm` are useful
 in several different subsystem directories, while names such as
 `enemy_movement.asm`, `enemy_dispatch.asm`, and `enemy_setup.asm` in one flat
 directory indicate that an `enemies` subsystem directory is missing.

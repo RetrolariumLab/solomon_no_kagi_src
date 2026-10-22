@@ -1,10 +1,5 @@
 # Room lifecycle
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide covers the state transitions that leave one room, prepare the next room, and present its introductory frame.
 
 
@@ -84,9 +79,8 @@ conditions for an already collected key and an open-door overlap. From there,
 the original ROM executes `EnterRoomDoor` at frame 721, enters
 `RoomClearThread` in context 1 on the same frame, reaches the first
 `SubtractTimerBy8` score conversion at frame 854, and invokes `RoomLoadThread`
-for internal room `$01` at frame 1136. Every setup write and previous value is
-declared in `scenarios/runtime_scenarios.json` and checked by
-`make validate-runtime`.
+for internal room `$01` at frame 1136 (a runtime scenario of Source
+Reconstruction 2.x, which remains at its tags).
 
 ---
 

@@ -1,10 +1,5 @@
 # Object system
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide defines gameplay object records, frame updates, movement, collision response, pointer access, and pool maintenance.
 
 
@@ -15,8 +10,8 @@ This guide defines gameplay object records, frame updates, movement, collision r
 The gameplay pool contains 21 contiguous `$14`-byte records at
 `$057F-$0722`: Dana, the magic spark, the fireball, one auxiliary object, and
 17 enemy objects. `ObjectRecordPointerLowTable` and
-`ObjectRecordPointerHighTable` address every record and are checked by
-`make enemy-pointer-audit`.
+`ObjectRecordPointerHighTable` address every record; assembly-time assertions
+fix their count and stride.
 
 | Offset | Name | Role |
 | ---: | --- | --- |
@@ -175,22 +170,11 @@ A negative selector is a room-state mask. The loader intersects it with
 uses that value for a second lookup in the same selector table. This accounts
 for room-dependent motion without changing the object action.
 
-`make object-motion-audit` locks the frozen USA layout before source
-extraction: 33 object-type pointers, 20 unique selector groups containing 388
-action bytes, and 35 paired Y/X motion vectors. It also rejects any nonnegative
-selector outside the vector table and checks independent SHA-1 values for all
-three regions. Its encoder additionally reconstructs all 524 bytes from the
-decoded pointer, selector, and vector records and compares them byte-for-byte.
-`make object-motion-report` emits the decoded JSON view from the built ROM
-using `config/validation/object_motion.json`.
-
-Source Reconstruction 2.0 adds the independent
-`config/validation/object_motion_europe.json` contract. The 66-byte pointer table and
-388-byte selector region move `$80` bytes earlier; selectors are semantically
-and byte-identical after relocation, while all 35 paired PAL vectors are
-profile-selected values with their own hash. Run
-`make object-motion-profile-audits` to decode, validate exact coverage, and
-round-trip all 524 bytes from both source-built ROMs.
+The USA layout holds 33 object-type pointers, 20 unique selector groups
+containing 388 action bytes, and 35 paired Y/X motion vectors; no nonnegative
+selector points outside the vector table. In the European image the 66-byte
+pointer table and the 388-byte selector region sit `$80` bytes earlier; the
+selectors are the same bytes, while all 35 paired vectors take PAL values.
 
 The complete `$D9D3-$DBDE` range is now source-owned in the 523-line
 `src/data/objects/motion.asm`. Its macros distinguish direct vector indices
@@ -222,27 +206,17 @@ The complete animation descriptor and frame payload is source-owned in
 `src/data/objects/animations.asm`; the adjacent motion pointer, selector, and
 vector families are source-owned in `src/data/objects/motion.asm`.
 
-`make object-animation-audit` independently locks the reviewed data layout:
+The animation data, 2,283 bytes, holds:
 
 - 33 object-type pointers selecting 18 unique descriptor groups;
 - 340 four-byte action descriptors, 44 of which select a variant table;
 - four overlapping four-pointer variant selectors in two eight-pointer tables;
-- 126 referenced animation sequences covering 275 three-byte frame records;
-- exact hashes for the pointer, definition, and frame-data regions;
-- byte-for-byte reconstruction of all 2,283 bytes from decoded records.
+- 126 referenced animation sequences covering 275 three-byte frame records.
 
-The corresponding JSON report is available through
-`make object-animation-report`. The manifest lives at
-`config/validation/object_animations.json`; it records structural facts, not speculative
-enemy names.
-
-Source Reconstruction 2.0 gives the relocated PAL layout its own reviewed
-`config/validation/object_animations_europe.json` contract. The entire descriptor and
-frame region moves `$80` bytes earlier. Relocated type, descriptor, variant,
-and frame pointers therefore give the pointer and definition regions distinct
-hashes, while the 825 raw frame bytes remain identical. Run
-`make object-animation-profile-audits` to decode and reconstruct all 2,283
-bytes independently from both source-built ROMs.
+In the European image the whole descriptor and frame region sits `$80` bytes
+earlier, so its type, descriptor, variant and frame pointers differ, while the
+825 frame bytes are the same. Retrolarium Kit's `games/solomon/animations.py`
+reads and writes these records for the Studio.
 
 ---
 

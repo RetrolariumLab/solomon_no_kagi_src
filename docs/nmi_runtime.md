@@ -1,10 +1,5 @@
 # NMI runtime
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide describes the vertical-blank dispatcher, gameplay interactions, Dana control, and sprite composition.
 
 
@@ -17,8 +12,7 @@ This guide describes the vertical-blank dispatcher, gameplay interactions, Dana 
 `src/system/boot_and_frame.asm` owns CPU `$8000-$80FE` (255 bytes). The adjacent gameplay
 services at `$80FF-$837C` are reconstructed separately in
 `src/game/nmi/gameplay_interactions.asm`. The linker places both segments
-before the remaining fixed PRG, and
-`make reconstruction-audit` checks its start, end, size, and required labels.
+before the remaining fixed PRG; assembly-time assertions check its size.
 
 ### Entry and exit contract
 

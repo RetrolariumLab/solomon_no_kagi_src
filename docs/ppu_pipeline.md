@@ -1,10 +1,5 @@
 # PPU update pipeline
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 This guide describes direct PPU access, buffered update streams, repeated writers, static requests, and nametable clearing.
 
 
@@ -181,19 +176,10 @@ indices spanning the complete `$00-$11` table. The pointer tables and their
 source-owned by `src/data/static_layout.asm`: pointer order follows
 the public indices, while stream labels remain in physical ROM order.
 
-`make ppu-update-report` emits the decoded pointers, commands, PPU addresses,
-increments, modes, counts, and payloads. `make ppu-update-audit` binds the
-tables and complete payload range to `config/validation/ppu_update_streams.json`, checks
-that the 18 programs cover every byte exactly once, and re-encodes each stream
-byte-for-byte. The audit is part of `make release-check`.
-
-Source Reconstruction 2.0 adds an independent PAL manifest at
-`config/validation/ppu_update_streams_europe.json`. PAL decodes 25 commands in 349
-encoded bytes, versus 26 commands in 367 bytes for USA: two text streams
-select a regional tile value, and stream 17 uses the shorter European license
-message. Run
-`make ppu-update-profile-audits` to bind both physical pointer layouts and
-localized payloads to their own hashes and round-trip every stream.
+The 18 programs cover every byte of the payload range exactly once. PAL
+decodes 25 commands in 349 encoded bytes, versus 26 commands in 367 bytes for
+USA: two text streams select a regional tile value, and stream 17 uses the
+shorter European license message.
 
 The source representation uses `PpuUpdateCommand` headers rather than opaque
 control bytes. Each header names its PPU address, repeat/literal mode, and

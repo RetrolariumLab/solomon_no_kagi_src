@@ -1,10 +1,5 @@
 # Source layout
 
-The validation and audit targets (`make ...-audit`, `make validate-...`) and
-machine-readable contracts (`config/validation/`, `config/reconstruction/`)
-this page cites belonged to Source Reconstruction 1.0 to 3.0 and remain at
-those tags. The findings stand; the source is now edited directly.
-
 `src/main.asm` owns the CPU selection, iNES header, hardware/RAM registries, and
 one include per subsystem source. The linker restores physical ROM order from
 the named segments inside those sources; see
@@ -277,8 +272,5 @@ segment is possible, but gives no semantic benefit until the PRG and CHR data
 are divided into stable modules.
 
 Every source split must remain address-ordered and pass `make verify` after
-each boundary is introduced. `config/reconstruction/reconstruction.json` records accepted
-module ranges and non-regression thresholds; `make reconstruction-audit`
-checks those declarations against the linker map and label file. Tables that
-cross a round-number address should not be split merely to create visually
-neat files.
+each boundary is introduced. Tables that cross a round-number address should
+not be split merely to create visually neat files.

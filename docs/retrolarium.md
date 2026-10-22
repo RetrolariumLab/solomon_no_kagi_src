@@ -47,8 +47,11 @@ which codec reads it. The kit reads it when it opens `solomons_key.rlj` or a
 project made from it; Retrolarium keeps no copy.
 
 `config/profile_tables.json` names, by label, the tables the kit reads from the
-image built from this source; `tools/profile_tables.py` in Retrolarium Kit turns
-it into the offsets of `config/game_profile.json` for every revision.
+image built from this source. `rltool profile tables` prints their offsets in
+each revision's build, the values of `config/game_profile.json`; `make
+profile-check` (part of `make test`) compares the two, so a source change that
+moves such a table fails until the profile is updated. The profile's other
+offsets are not derived from labels yet.
 
 ## Checking the repository
 
