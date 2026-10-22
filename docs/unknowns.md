@@ -1,18 +1,17 @@
 # Unknowns and research queue
 
-Source Reconstruction 2.1 has no unresolved question that blocks the accepted
-USA or European fixed-layout profiles. Neutral names remain where the original
-developers' historical intent cannot be proven; those are evidence boundaries,
-not missing binary ownership.
+No unresolved question blocks the USA or European builds. Neutral names
+remain where the original developers' intent cannot be proven; those are
+evidence boundaries, not missing binary ownership.
 
 ## Open and explicitly deferred
 
-1. Japan is hash-identified and its private CHR has an isolated extraction
-   path, but it has no complete source build or direct runtime matrix. It remains
-   a planned profile rather than an accepted 2.1 artifact.
-2. The USA and European runtime matrices cover critical boot, gameplay,
-   pause, death/reload, audio, scheduler, and transition paths; they do not
-   claim an exhaustive 53-room longplay or every ending/special-room branch.
+1. Japan is identified by its hashes and its private CHR is extracted, but
+   the source does not build it; the Studio edits it from its ROM.
+2. The runtime scenarios of Source Reconstruction 2.x covered boot, gameplay,
+   pause, death/reload, audio, scheduler, and transition paths, not an
+   exhaustive 53-room longplay or every ending/special-room branch; today only
+   the attract mode plays on the relocated USA build (`make test-full`).
 3. Expanded images, mapper changes, and sibling engines require a future
    major release because they change the fixed-layout ABI.
 4. The European relocated build (`make build-relocated REVISION=europe`)

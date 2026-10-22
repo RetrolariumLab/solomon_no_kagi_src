@@ -1,7 +1,10 @@
 # Room data formats
 
-All offsets below are within the 32 KiB PRG. Add 16 for offsets in a headered
-iNES file. Runtime pointers address the same bytes at CPU `$8000-$FFFF`.
+All offsets below are within the 32 KiB PRG of the USA image. Add 16 for
+offsets in a headered iNES file. Runtime pointers address the same bytes at CPU
+`$8000-$FFFF`. The European image keeps the same formats; most of the room data
+sits `$80` bytes earlier there (`config/game_profile.json` gives each
+revision's offsets).
 
 ## Section map
 
@@ -79,9 +82,13 @@ All 2,544 encoded bytes are in `src/data/rooms/blocks.asm`. Retrolarium Kit's
 
 ## Enemy stream
 
-The first byte is the Demonhead/Saramandor lifetime rotated right by three bits.
-Rotate it left by three to decode. Remaining records are `(type, position)`
-pairs terminated by type `$00`.
+The first byte is the Demonhead/Saramandor lifetime threshold, split without
+any rotation: bits 7-5 are the top bits of its low byte and bits 4-0 its high
+byte, so the 16-bit threshold is `((b & $1F) << 8) | (b & $E0)` (`$02` gives
+`$0200`, `$20` gives `$0020`). `ApplyEnemyLifetimeThreshold` subtracts it from
+AI-record bytes 2-3. In the European build the `RoomEnemySpawnLifetime` macro of
+`src/data/rooms/enemies.asm` turns each USA value into its PAL byte. Remaining
+records are `(type, position)` pairs terminated by type `$00`.
 
 `LoadRoomEnemies` resolves the current room through the split tables at CPU
 `$DCEC/$DD21`. It stores the packed lifetime threshold across `$0426-$0427`,
@@ -91,8 +98,7 @@ the parallel object and AI records.
 
 The complete pointer tables and all streams through `$E02B` are symbolic ca65
 source in `src/data/rooms/enemies.asm`. Its 53 stream labels replace raw ROM
-addresses, while the existing round-trip codec remains the independent binary
-contract.
+addresses.
 
 ## Item metadata and stream
 
@@ -110,6 +116,17 @@ Every item stream begins with ten bytes:
 | 7 | player start position |
 | 8 | mirror 1 position |
 | 9 | mirror 2 position |
+
+Byte 4 holds three fields (`LoadRoomItemsAndMetadata`, `src/game/rooms/decoding.asm`):
+
+- bits 3-0 index `TimerDecrementSpeedTable`, the room's time-decrease rate;
+- bit 7 places the key as a hidden key (`RoomMapHiddenKey`) instead of a plain
+  one;
+- bit 6 places it embedded in a block (`RoomMapEmbeddedKey`); it wins over bit 7.
+
+A door position of zero places no door. A key position of zero places the
+deferred-door tile instead of a key. When the key is already held (bit 5 of
+`GameplayFlags`), the door is placed open and no key tile is written.
 
 The schedule indices address 16 eight-byte records at `$DC42-$DCC1`. The enemy
 set indices address 17 streams at `$DCC2-$DCEB`; bytes below `$90` are object

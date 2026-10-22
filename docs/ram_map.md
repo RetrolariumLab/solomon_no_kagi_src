@@ -1,7 +1,13 @@
 # RAM map
 
 This is the initial evidence registry, not a claim that every byte in each
-range is understood.
+range is understood. `src/memory/ram.inc` defines every name and address.
+
+The addresses are the USA image's. In the European image every field from
+`$0429` on (`FireballState`) lies one byte higher (`RegionalGameplayRamOffset`
+in `ram.inc`): the timer digits at `$0439-$043C`, the score at `$044B-$0452`,
+the lives at `$0453`, Dana's Y and X at `$0587` and `$058A`, and so on. Rows
+that name both regions spell it out.
 
 | Address / range | Working meaning | Confidence |
 | --- | --- | --- |
@@ -68,13 +74,14 @@ range is understood.
 | `$04F6` (USA), `$04F7` (Europe) | rotating active virtual-channel bitset | confirmed |
 | `$05BE` | total extra lives acquired; overlaps auxiliary-object byte 3 | high |
 | `$04F7-$057E` (USA), `$04F8-$057F` (Europe) | 17 eight-byte enemy AI records; complete shared layout documented | confirmed |
-| `$057F-$070F` (USA), `$0580-$0710` (Europe) | 21 `$14`-byte gameplay object records; complete shared layout documented | confirmed |
+| `$057F-$0722` (USA), `$0580-$0723` (Europe) | 21 `$14`-byte gameplay object records (the last starts at `$070F` / `$0710`); complete shared layout documented | confirmed |
 
-The last object base is `$070F`; a full `$14`-byte record therefore reaches
-`$0722`. Exact ownership above that boundary still needs write-watch evidence.
+Exact ownership above the pool (from `$0723` / `$0724`) still needs write-watch
+evidence.
 
 Important object fields observed on Dana include integer Y at `$0586`, integer
-X at `$0589`, and adjacent fractional/movement fields. Equivalent offsets are
+X at `$0589` (`$0587`, `$058A` in Europe), and adjacent fractional/movement
+fields. Equivalent offsets are
 expected across the object pool, but each field should be proven before global
 renaming.
 
