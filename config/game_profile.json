@@ -21,7 +21,11 @@
         "current_room_address": 1064,
         "start_frame": 300,
         "ready_frames": 1000
-      }
+      },
+      "invincible": [
+        { "offset": 10119, "expect": "a931205f8d", "write": "eaeaeaeaea" },
+        { "offset": 426, "expect": "20b181", "write": "38eaea" }
+      ]
     },
     {
       "id": "europe",
@@ -44,7 +48,8 @@
           "parameters": {
             "tables": {
               "constellation_tile_patterns": { "file_offset": 6507, "size": 96 },
-              "constellation_palettes": { "file_offset": 6603, "size": 12 }
+              "constellation_palettes": { "file_offset": 6603, "size": 12 },
+              "room_frame_patterns": { "file_offset": 6096, "size": 16 }
             }
           }
         },
@@ -149,6 +154,10 @@
             "special_names_cpu": 37547
           }
         }
+      ],
+      "invincible": [
+        { "offset": 10119, "expect": "a931206e8d", "write": "eaeaeaeaea" },
+        { "offset": 426, "expect": "20b181", "write": "38eaea" }
       ]
     },
     {
@@ -172,7 +181,8 @@
           "parameters": {
             "tables": {
               "constellation_tile_patterns": { "file_offset": 6374, "size": 96 },
-              "constellation_palettes": { "file_offset": 6470, "size": 12 }
+              "constellation_palettes": { "file_offset": 6470, "size": 12 },
+              "room_frame_patterns": { "file_offset": 5963, "size": 16 }
             }
           }
         },
@@ -218,6 +228,10 @@
             "ending_single_address_operand_cpu": 47337
           }
         }
+      ],
+      "invincible": [
+        { "offset": 9799, "expect": "a931205f8d", "write": "eaeaeaeaea" },
+        { "offset": 426, "expect": "20b181", "write": "38eaea" }
       ]
     }
   ],
@@ -318,7 +332,8 @@
       "parameters": {
         "tables": {
           "constellation_tile_patterns": { "file_offset": 6499, "size": 96 },
-          "constellation_palettes": { "file_offset": 6595, "size": 12 }
+          "constellation_palettes": { "file_offset": 6595, "size": 12 },
+          "room_frame_patterns": { "file_offset": 6088, "size": 16 }
         }
       }
     },
